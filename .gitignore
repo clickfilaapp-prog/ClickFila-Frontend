@@ -1,0 +1,29 @@
+# Dependências
+node_modules
+.npm-cache
+
+# Builds de Produção
+dist
+dist-ssr
+
+# Logs
+*.log
+npm-debug.log*
+
+# Variáveis de Ambiente (Segurança!)
+.env
+.env.local
+.env.*
+
+# Lixo de Navegadores / Testes Locais
+.edge-test
+Crashpad/
+metadata
+settings.dat
+throttle_store.dat
+Variations
+
+# Lixo de Sistema Operacional e Editores
+.DS_Store
+.vscode/
+.idea/

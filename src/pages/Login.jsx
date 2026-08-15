@@ -3,6 +3,7 @@ import { LogIn, Mail } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import salonHero from "../assets/salao-feminino-masculino.png";
 import { saveAuthSession } from "../auth/authStorage";
+import { getGoogleAuthorizationUrl } from "../auth/googleOAuth";
 import PasswordField from "../components/PasswordField";
 import PasswordResetFlow from "../components/PasswordResetFlow";
 import { loginUser } from "../services/auth";
@@ -47,13 +48,6 @@ export default function Login() {
     } finally {
       setIsLoading(false);
     }
-  }
-
-  function handleGoogleLogin() {
-    const apiBaseUrl = (
-      import.meta.env.VITE_API_URL || "http://localhost:8080"
-    ).replace(/\/$/, "");
-    window.location.href = `${apiBaseUrl}/oauth2/authorization/google`;
   }
 
   return (
@@ -147,16 +141,15 @@ export default function Login() {
                 <span>ou</span>
               </div>
 
-              <button
+              <a
                 className="google-login-button"
-                type="button"
-                onClick={handleGoogleLogin}
+                href={getGoogleAuthorizationUrl()}
               >
                 <span className="google-mark" aria-hidden="true">
                   G
                 </span>
                 Google
-              </button>
+              </a>
 
               <p className="login-auth-register">
                 Ainda não tem uma conta?{" "}

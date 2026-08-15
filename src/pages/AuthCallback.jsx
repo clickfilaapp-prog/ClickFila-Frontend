@@ -2,6 +2,11 @@ import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { saveAuthSession } from "../auth/authStorage";
 
+const ROLE_HOME = Object.freeze({
+  USER: "/clientQueue",
+  PROFESSIONAL: "/professionalDashboard",
+});
+
 function readCookie(name) {
   const prefix = `${encodeURIComponent(name)}=`;
   const cookie = document.cookie
@@ -20,27 +25,21 @@ export default function AuthCallback() {
 
   useEffect(() => {
     const token = readCookie("TEMP_AUTH_TOKEN");
-    const roleCookie = readCookie("TEMP_ROLE");
-    if (!token) {
-      setError(
-        "Não foi possível concluir o login com Google: Tente novamente mais tarde....",
-      );
-      return;
-    }
-
-    const role = String(roleCookie || "CLIENT")
+    const role = String(readCookie("TEMP_ROLE") || "")
       .replace(/^ROLE_/i, "")
       .toUpperCase();
 
-    saveAuthSession(token, role);
+    if (!token || !ROLE_HOME[role]) {
+      deleteCookie("TEMP_AUTH_TOKEN");
+      deleteCookie("TEMP_ROLE");
+      setError("Não foi possível concluir o login com Google. Tente novamente.");
+      return;
+    }
 
+    saveAuthSession(token, role);
     deleteCookie("TEMP_AUTH_TOKEN");
     deleteCookie("TEMP_ROLE");
-
-    navigate(
-      role === "PROFESSIONAL" ? "/professionalDashboard" : "/clientQueue",
-      { replace: true },
-    );
+    navigate(ROLE_HOME[role], { replace: true });
   }, [navigate]);
 
   if (error) {

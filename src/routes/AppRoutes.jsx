@@ -64,6 +64,7 @@ export default function AppRoutes() {
   return (
     <Routes>
       <Route path="/auth/callback" element={<AuthCallback />} />
+      <Route path="/oauth/callback" element={<AuthCallback />} />
       <Route path="/inicio" element={<HomeRoute />} />
       <Route path="/lgpd-consent" element={<LgpdConsent />} />
 

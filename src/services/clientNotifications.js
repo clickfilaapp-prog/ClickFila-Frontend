@@ -4,6 +4,23 @@ function supportsNotifications() {
   return typeof window !== "undefined" && "Notification" in window;
 }
 
+async function showClientNotification(title, options) {
+  if ("serviceWorker" in navigator) {
+    const registration = await navigator.serviceWorker.register(
+      "/notification-sw.js",
+    );
+    await navigator.serviceWorker.ready;
+    await registration.showNotification(title, options);
+    return;
+  }
+
+  const notification = new window.Notification(title, options);
+  notification.onclick = () => {
+    window.focus();
+    notification.close();
+  };
+}
+
 export function shouldExplainNotificationPermission() {
   return (
     supportsNotifications() &&
@@ -54,7 +71,7 @@ function getNotificationContent(previous, current) {
   return null;
 }
 
-export function notifyClientEntryChange(previous, current) {
+export async function notifyClientEntryChange(previous, current) {
   if (!supportsNotifications() || window.Notification.permission !== "granted")
     return false;
 
@@ -65,17 +82,13 @@ export function notifyClientEntryChange(previous, current) {
   if (localStorage.getItem(LAST_NOTIFICATION_KEY) === signature) return false;
 
   try {
-    if ("vibrate" in navigator) navigator.vibrate([250, 120, 250]);
-
-    const notification = new window.Notification(content[0], {
+    await showClientNotification(content[0], {
       body: content[1],
       tag: signature,
       renotify: true,
+      vibrate: [250, 120, 250],
+      data: { url: window.location.href },
     });
-    notification.onclick = () => {
-      window.focus();
-      notification.close();
-    };
 
     localStorage.setItem(LAST_NOTIFICATION_KEY, signature);
     return true;

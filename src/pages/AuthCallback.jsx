@@ -16,7 +16,12 @@ function readCookie(name) {
 }
 
 function deleteCookie(name) {
-  document.cookie = `${encodeURIComponent(name)}=; Max-Age=0; Path=/; SameSite=Lax`;
+  const expiredCookie = `${encodeURIComponent(name)}=; Max-Age=0; Path=/; SameSite=Lax`;
+  document.cookie = expiredCookie;
+
+  if (window.location.hostname.endsWith(".clickfila.com.br")) {
+    document.cookie = `${expiredCookie}; Domain=.clickfila.com.br; Secure`;
+  }
 }
 
 export default function AuthCallback() {

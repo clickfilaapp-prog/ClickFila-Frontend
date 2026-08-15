@@ -3101,8 +3101,6 @@ footer {
   border: 1px solid #dfd4cc;
   border-radius: 11px;
   font-weight: 700;
-  text-decoration: none;
-  cursor: pointer;
   transition:
     border-color 0.2s,
     background 0.2s,

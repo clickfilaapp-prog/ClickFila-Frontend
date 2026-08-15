@@ -61,7 +61,7 @@ export default function PasswordResetFlow({ initialEmail = "", onBack }) {
       return;
     }
     run(async () => {
-      await resetPassword({ email, code, newPassword, confirmPassword });
+      await resetPassword({ email, code, newPassword });
       setStep("done");
     });
   }

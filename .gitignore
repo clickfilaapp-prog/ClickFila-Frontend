@@ -14,6 +14,7 @@ npm-debug.log*
 .env
 .env.local
 .env.*
+!.env.production
 
 # Lixo de Navegadores / Testes Locais
 .edge-test

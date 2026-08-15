@@ -2,6 +2,11 @@ import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { saveAuthSession } from "../auth/authStorage";
 
+const AUTH_COOKIE_NAMES = Object.freeze({
+  token: "TEMP_AUTH_TOKEN",
+  role: "TEMP_ROLE",
+});
+
 const ROLE_HOME = Object.freeze({
   USER: "/clientQueue",
   PROFESSIONAL: "/professionalDashboard",
@@ -29,22 +34,27 @@ export default function AuthCallback() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const token = readCookie("TEMP_AUTH_TOKEN");
-    const role = String(readCookie("TEMP_ROLE") || "")
+    const token = readCookie(AUTH_COOKIE_NAMES.token);
+    const role = String(readCookie(AUTH_COOKIE_NAMES.role) || "")
       .replace(/^ROLE_/i, "")
       .toUpperCase();
 
+    deleteCookie(AUTH_COOKIE_NAMES.token);
+    deleteCookie(AUTH_COOKIE_NAMES.role);
+
     if (!token || !ROLE_HOME[role]) {
-      deleteCookie("TEMP_AUTH_TOKEN");
-      deleteCookie("TEMP_ROLE");
       setError("Não foi possível concluir o login com Google. Tente novamente.");
       return;
     }
 
-    saveAuthSession(token, role);
-    deleteCookie("TEMP_AUTH_TOKEN");
-    deleteCookie("TEMP_ROLE");
-    navigate(ROLE_HOME[role], { replace: true });
+    try {
+      saveAuthSession(token, role);
+      navigate(ROLE_HOME[role], { replace: true });
+    } catch {
+      setError(
+        "Não foi possível salvar sua sessão. Verifique as configurações do navegador.",
+      );
+    }
   }, [navigate]);
 
   if (error) {

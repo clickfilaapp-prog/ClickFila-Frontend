@@ -57,13 +57,8 @@ export const validatePasswordReset = (email, code) =>
     body: JSON.stringify({ email: normalizeEmail(email), code }),
   });
 
-export const resetPassword = ({ email, code, newPassword, confirmPassword }) =>
+export const resetPassword = ({ email, code, newPassword }) =>
   apiRequest(API_ROUTES.resetPassword, {
     method: "PATCH",
-    body: JSON.stringify({
-      email: normalizeEmail(email),
-      code,
-      newPassword,
-      confirmPassword,
-    }),
+    body: JSON.stringify({ email: normalizeEmail(email), code, newPassword }),
   });

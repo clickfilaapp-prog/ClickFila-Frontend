@@ -16,8 +16,10 @@ body {
 }
 button,
 input,
-select {
+select,
+textarea {
   font: inherit;
+  max-width: 100%;
 }
 button {
   cursor: pointer;
@@ -283,6 +285,7 @@ nav button.active {
   grid-column: 1 / -1;
 }
 .profile-form label {
+  min-width: 0;
   color: #56474a;
   font-size: 12px;
   font-weight: 600;
@@ -305,6 +308,7 @@ nav button.active {
   cursor: not-allowed;
 }
 .profile-value {
+  min-width: 0;
   min-height: 46px;
   padding: 10px 12px;
   display: flex;
@@ -320,6 +324,11 @@ nav button.active {
 .profile-value svg {
   flex: 0 0 auto;
   color: #9b898b;
+}
+.profile-value span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 .profile-form small {
   display: block;
@@ -3516,7 +3525,9 @@ footer {
 }
 .notification-consent-modal > section {
   width: min(100%, 410px);
+  max-height: calc(100dvh - 44px);
   padding: 30px;
+  overflow-y: auto;
   text-align: center;
   background: #fffdfa;
   border: 1px solid #e4d9d0;
@@ -3851,7 +3862,8 @@ footer {
   .password-modal,
   .confirmation-modal,
   .cancellation-modal,
-  .lgpd-modal {
+  .lgpd-modal,
+  .notification-consent-modal {
     padding: 10px;
     align-items: end;
   }
@@ -3863,7 +3875,9 @@ footer {
   .password-modal > section,
   .confirmation-modal > div,
   .cancellation-modal > div,
-  .lgpd-modal > section {
+  .lgpd-modal > section,
+  .notification-consent-modal > section {
+    width: 100%;
     padding: 24px 18px;
     border-radius: 18px;
     max-height: calc(100dvh - 20px);
@@ -3889,8 +3903,33 @@ footer {
   }
   .password-modal-actions,
   .confirmation-actions,
-  .lgpd-modal-actions {
+  .lgpd-modal-actions,
+  .notification-consent-actions {
     grid-template-columns: 1fr;
+  }
+  .notification-consent-modal h2 {
+    font-size: 23px;
+  }
+  .notification-consent-actions button {
+    width: 100%;
+  }
+
+  .notification-panel {
+    padding: 20px 16px;
+    border-radius: 16px;
+  }
+  .notification-item {
+    min-width: 0;
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .notification-item > * {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  .channel {
+    width: fit-content;
+    max-width: 100%;
   }
 
   .login-auth-main,
@@ -3955,6 +3994,14 @@ footer {
   }
   .queue-timeline small {
     font-size: 7px;
+  }
+  .profile-card,
+  .password-modal > section,
+  .confirmation-modal > div,
+  .cancellation-modal > div,
+  .lgpd-modal > section,
+  .notification-consent-modal > section {
+    padding-inline: 15px;
   }
 }
 

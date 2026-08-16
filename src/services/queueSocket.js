@@ -1,7 +1,26 @@
 import { Client } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
+import { clearAuthSession } from "../auth/authStorage";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "";
+const RECONNECT_DELAY_MS = 5000;
+const MAX_RECONNECT_FAILURES = 5;
+const AUTHENTICATION_ERROR_PATTERN = /jwt|user\s+not\s+found/i;
+
+function getSocketErrorMessage(error) {
+  return [
+    error?.headers?.message,
+    error?.body,
+    error?.message,
+    error?.reason,
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
+
+export function isAuthenticationSocketError(error) {
+  return AUTHENTICATION_ERROR_PATTERN.test(getSocketErrorMessage(error));
+}
 
 export function subscribeToQueue(
   sessionId,
@@ -12,14 +31,21 @@ export function subscribeToQueue(
   if (!sessionId) return () => {};
 
   const token = localStorage.getItem("token");
+  let consecutiveFailures = 0;
+  let stopped = false;
+  let redirectingToLogin = false;
+  let lastConnectionError = "";
+
   const client = new Client({
     webSocketFactory: () => new SockJS(`${API_BASE_URL}/api/ws`),
     connectHeaders: token ? { Authorization: `Bearer ${token}` } : {},
-    reconnectDelay: 5000,
+    reconnectDelay: RECONNECT_DELAY_MS,
     heartbeatIncoming: 10000,
     heartbeatOutgoing: 10000,
     debug: () => {},
     onConnect: () => {
+      consecutiveFailures = 0;
+      lastConnectionError = "";
       onConnected?.();
       client.subscribe(`/topic/queue/${sessionId}`, (message) => {
         try {
@@ -65,28 +91,78 @@ export function subscribeToQueue(
         }
       });
     },
-    onStompError: (frame) =>
-      onError?.(
-        new Error(
-          frame.headers?.message || "Falha na atualização em tempo real.",
-        ),
-      ),
-    onWebSocketError: () =>
-      onError?.(
-        new Error("Não foi possível conectar às atualizações em tempo real."),
-      ),
-    onWebSocketClose: () => {
-      if (client.active)
+    onStompError: (frame) => {
+      if (isAuthenticationSocketError(frame)) {
+        abortExpiredSession();
+        return;
+      }
+      lastConnectionError =
+        frame.headers?.message ||
+        frame.body ||
+        "Falha na atualização em tempo real.";
+    },
+    onWebSocketError: (event) => {
+      if (isAuthenticationSocketError(event)) {
+        abortExpiredSession();
+        return;
+      }
+      lastConnectionError =
+        "Não foi possível conectar às atualizações em tempo real.";
+    },
+    onWebSocketClose: (event) => {
+      if (stopped || !client.active) return;
+      if (isAuthenticationSocketError(event)) {
+        abortExpiredSession();
+        return;
+      }
+
+      consecutiveFailures += 1;
+      if (consecutiveFailures >= MAX_RECONNECT_FAILURES) {
+        stopClient();
         onError?.(
           new Error(
-            "A atualização em tempo real foi interrompida. Tentando reconectar...",
+            "Você está offline ou o servidor está indisponível. Tente novamente mais tarde.",
           ),
         );
+        return;
+      }
+
+      onError?.(
+        new Error(
+          `${lastConnectionError || "A atualização em tempo real foi interrompida."} ` +
+            `Tentando reconectar (${consecutiveFailures}/${MAX_RECONNECT_FAILURES})...`,
+        ),
+      );
     },
   });
 
+  function stopClient() {
+    if (stopped) return;
+    stopped = true;
+    client.reconnectDelay = 0;
+    void client.deactivate();
+  }
+
+  function abortExpiredSession() {
+    if (redirectingToLogin) return;
+    redirectingToLogin = true;
+    stopClient();
+    clearAuthSession();
+    onError?.(
+      new Error("Sua sessão expirou. Entre novamente para continuar."),
+    );
+    window.location.replace("/login");
+  }
+
+  if (!token) {
+    clearAuthSession();
+    onError?.(new Error("Sua sessão expirou. Entre novamente para continuar."));
+    window.location.replace("/login");
+    return () => {};
+  }
+
   client.activate();
   return () => {
-    client.deactivate();
+    stopClient();
   };
 }

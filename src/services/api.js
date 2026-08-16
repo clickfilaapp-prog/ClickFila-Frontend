@@ -27,19 +27,14 @@ function isLgpdPending(responseData) {
     );
   };
 
-  if (typeof responseData === "string") {
+  if (typeof responseData === "string")
     return indicatesPendingConsent(responseData);
+
+  try {
+    return indicatesPendingConsent(JSON.stringify(responseData));
+  } catch {
+    return false;
   }
-
-  const candidates = [
-    responseData?.errorCode,
-    responseData?.code,
-    responseData?.status,
-    responseData?.message,
-    responseData?.error,
-  ];
-
-  return candidates.some(indicatesPendingConsent);
 }
 
 function waitForLgpdConsent() {
@@ -88,7 +83,11 @@ apiClient.interceptors.response.use(
     if (
       status === 403 &&
       hasAuthenticatedSession &&
-      isLgpdPending(requestError.response?.data) &&
+      isLgpdPending({
+        data: requestError.response?.data,
+        headers: requestError.response?.headers,
+        statusText: requestError.response?.statusText,
+      }) &&
       !isConsentRequest &&
       !requestError.config?._lgpdRetry
     ) {

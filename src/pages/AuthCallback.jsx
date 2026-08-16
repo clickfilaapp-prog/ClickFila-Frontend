@@ -1,6 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { saveAuthSession } from "../auth/authStorage";
+import {
+  clearAuthSession,
+  saveAuthSession,
+} from "../auth/authStorage";
+import {
+  getMyProfessionalProfile,
+  getMyUserProfile,
+} from "../services/profile";
 
 const AUTH_COOKIE_NAMES = Object.freeze({
   token: "TEMP_AUTH_TOKEN",
@@ -34,27 +41,49 @@ export default function AuthCallback() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const token = readCookie(AUTH_COOKIE_NAMES.token);
-    const role = String(readCookie(AUTH_COOKIE_NAMES.role) || "")
-      .replace(/^ROLE_/i, "")
-      .toUpperCase();
+    let active = true;
 
-    deleteCookie(AUTH_COOKIE_NAMES.token);
-    deleteCookie(AUTH_COOKIE_NAMES.role);
+    async function completeGoogleLogin() {
+      const token = readCookie(AUTH_COOKIE_NAMES.token);
+      const role = String(readCookie(AUTH_COOKIE_NAMES.role) || "")
+        .replace(/^ROLE_/i, "")
+        .toUpperCase();
 
-    if (!token || !ROLE_HOME[role]) {
-      setError("Não foi possível concluir o login com Google. Tente novamente.");
-      return;
+      deleteCookie(AUTH_COOKIE_NAMES.token);
+      deleteCookie(AUTH_COOKIE_NAMES.role);
+
+      if (!token || !ROLE_HOME[role]) {
+        if (active)
+          setError(
+            "Não foi possível concluir o login com Google. Tente novamente.",
+          );
+        return;
+      }
+
+      try {
+        saveAuthSession(token, role);
+
+        // Valida o token provisório antes de liberar o acesso. Caso o backend
+        // responda LGPD_PENDING, o interceptor abre o modal e esta chamada
+        // permanece aguardando até receber e salvar o novo JWT.
+        if (role === "PROFESSIONAL") await getMyProfessionalProfile();
+        else await getMyUserProfile();
+
+        if (active) navigate(ROLE_HOME[role], { replace: true });
+      } catch (requestError) {
+        clearAuthSession();
+        if (active)
+          setError(
+            requestError?.message ||
+              "Não foi possível validar seu acesso com Google. Tente novamente.",
+          );
+      }
     }
 
-    try {
-      saveAuthSession(token, role);
-      navigate(ROLE_HOME[role], { replace: true });
-    } catch {
-      setError(
-        "Não foi possível salvar sua sessão. Verifique as configurações do navegador.",
-      );
-    }
+    completeGoogleLogin();
+    return () => {
+      active = false;
+    };
   }, [navigate]);
 
   if (error) {

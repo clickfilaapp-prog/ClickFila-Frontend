@@ -6,6 +6,8 @@ export default function LgpdConsentModal({
   isSubmitting,
   onClose,
   onConfirm,
+  accessFlow = false,
+  error = "",
 }) {
   const [accepted, setAccepted] = useState(false);
 
@@ -45,8 +47,9 @@ export default function LgpdConsentModal({
         </div>
 
         <p id="lgpd-modal-description">
-          Antes de criar seu cadastro, leia como seus dados serão utilizados de
-          acordo com a Lei Geral de Proteção de Dados (Lei nº 13.709/2018).
+          {accessFlow
+            ? "Antes de continuar, leia como seus dados serão utilizados de acordo com a Lei Geral de Proteção de Dados (Lei nº 13.709/2018)."
+            : "Antes de criar seu cadastro, leia como seus dados serão utilizados de acordo com a Lei Geral de Proteção de Dados (Lei nº 13.709/2018)."}
         </p>
 
         <div className="lgpd-modal-content">
@@ -78,6 +81,12 @@ export default function LgpdConsentModal({
           </div>
         </div>
 
+        {error && (
+          <div className="login-auth-error" role="alert">
+            {error}
+          </div>
+        )}
+
         <label className="lgpd-consent-check">
           <input
             type="checkbox"
@@ -101,7 +110,13 @@ export default function LgpdConsentModal({
             disabled={!accepted || isSubmitting}
             onClick={onConfirm}
           >
-            {isSubmitting ? "Criando cadastro..." : "Confirmar e criar cadastro"}
+            {isSubmitting
+              ? accessFlow
+                ? "Atualizando acesso..."
+                : "Criando cadastro..."
+              : accessFlow
+                ? "Aceitar e continuar"
+                : "Confirmar e criar cadastro"}
           </button>
         </div>
       </section>

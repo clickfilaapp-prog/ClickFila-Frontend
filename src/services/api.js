@@ -2,9 +2,8 @@ import axios from "axios";
 import { ErrorDictionary } from "../constants/errorMessages";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "";
-const LGPD_ROUTE = "/lgpd-consent";
-const LGPD_RETURN_URL_KEY = "lgpdReturnUrl";
-let lgpdRedirectInProgress = false;
+const LGPD_REQUIRED_EVENT = "barberflow:lgpd-consent-required";
+let pendingLgpdConsent = null;
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -43,9 +42,37 @@ function isLgpdPending(responseData) {
   return candidates.some(indicatesPendingConsent);
 }
 
+function waitForLgpdConsent() {
+  if (!pendingLgpdConsent) {
+    let resolveConsent;
+    let rejectConsent;
+    const promise = new Promise((resolve, reject) => {
+      resolveConsent = resolve;
+      rejectConsent = reject;
+    });
+    pendingLgpdConsent = { promise, resolveConsent, rejectConsent };
+    window.dispatchEvent(new CustomEvent(LGPD_REQUIRED_EVENT));
+  }
+  return pendingLgpdConsent.promise;
+}
+
+export function completePendingLgpdConsent(token) {
+  if (!pendingLgpdConsent) return;
+  const { resolveConsent } = pendingLgpdConsent;
+  pendingLgpdConsent = null;
+  resolveConsent(token);
+}
+
+export function cancelPendingLgpdConsent() {
+  if (!pendingLgpdConsent) return;
+  const { rejectConsent } = pendingLgpdConsent;
+  pendingLgpdConsent = null;
+  rejectConsent(new Error("É necessário aceitar os termos para continuar."));
+}
+
 apiClient.interceptors.response.use(
   (response) => response,
-  (requestError) => {
+  async (requestError) => {
     const status = requestError.response?.status;
     const requestUrl = requestError.config?.url || "";
     const requestMethod = requestError.config?.method?.toUpperCase();
@@ -63,15 +90,22 @@ apiClient.interceptors.response.use(
       hasAuthenticatedSession &&
       isLgpdPending(requestError.response?.data) &&
       !isConsentRequest &&
-      window.location.pathname !== LGPD_ROUTE &&
-      !lgpdRedirectInProgress
+      !requestError.config?._lgpdRetry
     ) {
-      lgpdRedirectInProgress = true;
-      sessionStorage.setItem(
-        LGPD_RETURN_URL_KEY,
-        `${window.location.pathname}${window.location.search}${window.location.hash}`,
-      );
-      window.location.replace(LGPD_ROUTE);
+      try {
+        const newToken = await waitForLgpdConsent();
+        const retryConfig = {
+          ...requestError.config,
+          _lgpdRetry: true,
+          headers: {
+            ...requestError.config.headers,
+            Authorization: `Bearer ${newToken}`,
+          },
+        };
+        return apiClient.request(retryConfig);
+      } catch (consentError) {
+        return Promise.reject(consentError);
+      }
     } else if (status === 401 && !isPublicRequest) {
       localStorage.removeItem("token");
       localStorage.removeItem("role");

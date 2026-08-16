@@ -3865,14 +3865,11 @@ footer {
   .lgpd-modal,
   .notification-consent-modal {
     padding: 10px;
-    align-items: end;
-  }
-  .cancellation-modal {
     align-items: center;
     justify-items: center;
   }
   .profile-modal .profile-main {
-    align-items: end;
+    align-items: center;
     padding: 0;
   }
   .profile-card,
@@ -3893,6 +3890,9 @@ footer {
   .profile-heading {
     gap: 12px;
     flex-direction: column;
+  }
+  .profile-modal .profile-heading {
+    padding: 34px 0 0;
   }
   .profile-edit-button {
     width: 100%;

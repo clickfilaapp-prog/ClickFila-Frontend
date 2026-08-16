@@ -3867,6 +3867,10 @@ footer {
     padding: 10px;
     align-items: end;
   }
+  .cancellation-modal {
+    align-items: center;
+    justify-items: center;
+  }
   .profile-modal .profile-main {
     align-items: end;
     padding: 0;

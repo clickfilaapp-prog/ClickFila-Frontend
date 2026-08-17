@@ -11,6 +11,7 @@ import {
   ProfessionalRegister,
   ProfileSettings,
   PrivacyPolicy,
+  TermsOfUse,
   RoleChoice,
 } from "../pages";
 
@@ -69,6 +70,7 @@ export default function AppRoutes() {
       <Route path="/inicio" element={<HomeRoute />} />
       <Route path="/lgpd-consent" element={<LgpdConsent />} />
       <Route path="/politica-de-privacidade" element={<PrivacyPolicy />} />
+      <Route path="/termos-de-uso" element={<TermsOfUse />} />
 
       <Route
         path="/login"

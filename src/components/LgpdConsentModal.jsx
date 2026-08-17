@@ -93,19 +93,6 @@ export default function LgpdConsentModal({
           <label className="lgpd-consent-check">
             <input
               type="checkbox"
-              checked={accepted}
-              disabled={isSubmitting}
-              onChange={(event) => setAccepted(event.target.checked)}
-            />
-            <span>
-              Li e concordo com o tratamento dos meus dados pessoais para as
-              finalidades descritas neste termo.
-            </span>
-          </label>
-
-          <label className="lgpd-consent-check">
-            <input
-              type="checkbox"
               checked={privacyAccepted}
               disabled={isSubmitting}
               onChange={(event) => setPrivacyAccepted(event.target.checked)}
@@ -121,6 +108,27 @@ export default function LgpdConsentModal({
                 Política de Privacidade
               </Link>
               .
+            </span>
+          </label>
+
+          <label className="lgpd-consent-check">
+            <input
+              type="checkbox"
+              checked={accepted}
+              disabled={isSubmitting}
+              onChange={(event) => setAccepted(event.target.checked)}
+            />
+            <span>
+              Li e concordo com os{" "}
+              <Link
+                to="/termos-de-uso"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(event) => event.stopPropagation()}
+              >
+                Termos de Uso
+              </Link>
+              , incluindo as regras de funcionamento da fila.
             </span>
           </label>
         </div>

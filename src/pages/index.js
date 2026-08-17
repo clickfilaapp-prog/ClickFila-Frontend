@@ -7,4 +7,5 @@ export { default as ProfessionalDashboard } from "./ProfessionalDashboard";
 export { default as ProfessionalRegister } from "./ProfessionalRegister";
 export { default as ProfileSettings } from "./ProfileSettings";
 export { default as PrivacyPolicy } from "./PrivacyPolicy";
+export { default as TermsOfUse } from "./TermsOfUse";
 export { default as RoleChoice } from "./RoleChoice";

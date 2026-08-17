@@ -631,6 +631,29 @@ nav button.active {
 .lgpd-consent-check a:focus-visible {
   color: #6f4145;
 }
+.registration-legal-note {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: 11px 13px;
+  color: #796b6d;
+  background: #faf5f1;
+  border-radius: 9px;
+  font-size: 10px;
+  line-height: 1.55;
+}
+.registration-legal-note a,
+.privacy-card a {
+  color: #8d5c5f;
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.registration-legal-note a:hover,
+.registration-legal-note a:focus-visible,
+.privacy-card a:hover,
+.privacy-card a:focus-visible {
+  color: #6f4145;
+}
 .lgpd-modal-actions {
   display: grid;
   grid-template-columns: 0.7fr 1.3fr;

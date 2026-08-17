@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { ArrowLeft, Building2, Mail, UserPlus, UserRound } from "lucide-react";
+import { Link } from "react-router-dom";
 import PasswordField from "./PasswordField";
 import LgpdConsentModal from "./LgpdConsentModal";
 
@@ -158,6 +159,21 @@ export default function RegisterForm({
         placeholder="Digite a senha novamente"
         visibilityLabel="confirmação"
       />
+      <p className="registration-legal-note">
+        Ao criar sua conta, você declara ter lido e concordado com nossa{" "}
+        <Link
+          to="/politica-de-privacidade"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Política de Privacidade
+        </Link>{" "}
+        e com os{" "}
+        <Link to="/termos-de-uso" target="_blank" rel="noopener noreferrer">
+          Termos de Uso
+        </Link>
+        .
+      </p>
       <button className="dark" type="submit" disabled={isSubmitting}>
         {isSubmitting
           ? "Criando cadastro..."

@@ -51,6 +51,12 @@ export function ProfileSettingsContent({ onClose = null }) {
   const [confirmingDeletion, setConfirmingDeletion] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
+  useEffect(() => {
+    if (!success) return undefined;
+    const timer = window.setTimeout(() => setSuccess(""), 5000);
+    return () => window.clearTimeout(timer);
+  }, [success]);
+
   async function confirmAccountDeletion() {
     setDeleting(true);
     setError("");

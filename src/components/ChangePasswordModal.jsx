@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { KeyRound, X } from "lucide-react";
 import { changeMyPassword } from "../services/profile";
 import PasswordField from "./PasswordField";
@@ -21,6 +21,12 @@ export default function ChangePasswordModal({ onClose }) {
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
   const [confirming, setConfirming] = useState(false);
+
+  useEffect(() => {
+    if (!success) return undefined;
+    const timer = window.setTimeout(() => setSuccess(""), 5000);
+    return () => window.clearTimeout(timer);
+  }, [success]);
 
   function updateField(field) {
     return (event) => {

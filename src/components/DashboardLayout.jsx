@@ -21,9 +21,14 @@ export default function DashboardLayout({ children }) {
       replace: true,
       state: null,
     });
-    const timer = window.setTimeout(() => setToast(""), 3500);
-    return () => window.clearTimeout(timer);
+    return undefined;
   }, [location.pathname, location.search, location.state?.toast, navigate]);
+
+  useEffect(() => {
+    if (!toast) return undefined;
+    const timer = window.setTimeout(() => setToast(""), 5000);
+    return () => window.clearTimeout(timer);
+  }, [toast]);
 
   function handleLogout() {
     clearAuthSession();

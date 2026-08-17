@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { LogIn, Mail } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import salonHero from "../assets/salao-feminino-masculino.png";
@@ -20,6 +20,19 @@ export default function Login() {
   const [recoveringPassword, setRecoveringPassword] = useState(false);
   const [reactivationCredentials, setReactivationCredentials] = useState(null);
   const [isReactivating, setIsReactivating] = useState(false);
+  const [successMessage, setSuccessMessage] = useState(
+    location.state?.message || "",
+  );
+
+  useEffect(() => {
+    if (!successMessage) return undefined;
+    navigate(`${location.pathname}${location.search}`, {
+      replace: true,
+      state: null,
+    });
+    const timer = window.setTimeout(() => setSuccessMessage(""), 5000);
+    return () => window.clearTimeout(timer);
+  }, [location.pathname, location.search, navigate, successMessage]);
 
   function finishAuthentication(response, message) {
     const role = String(response.role || "")
@@ -139,14 +152,14 @@ export default function Login() {
               </div>
 
               <form className="login-auth-form" onSubmit={handleSubmit}>
-                {(error || location.state?.message) && (
+                {(error || successMessage) && (
                   <div
                     className={
                       error ? "login-auth-error" : "login-auth-success"
                     }
                     role="status"
                   >
-                    {error || location.state.message}
+                    {error || successMessage}
                   </div>
                 )}
 

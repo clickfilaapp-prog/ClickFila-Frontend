@@ -41,6 +41,12 @@ export default function ClientQueue() {
   const [loading, setLoading] = useState(false);
   const peopleInQueue = queue?.peopleInQueue ?? queue?.activeQueue?.length ?? 0;
 
+  useEffect(() => {
+    if (!message || messageKind !== "success") return undefined;
+    const timer = window.setTimeout(() => setMessage(""), 5000);
+    return () => window.clearTimeout(timer);
+  }, [message, messageKind]);
+
   function getEntrySessionId(activeEntry) {
     return (
       activeEntry?.queueSessionId ||

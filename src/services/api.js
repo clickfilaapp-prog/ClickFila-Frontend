@@ -75,6 +75,7 @@ apiClient.interceptors.response.use(
     const hasAuthenticatedSession = Boolean(localStorage.getItem("token"));
     const isPublicRequest =
       requestUrl.includes("/auth/login") ||
+      requestUrl.includes("/auth/reactivate") ||
       requestUrl.includes("/auth/password-resets") ||
       requestUrl.includes("/auth/passwords") ||
       (requestMethod === "POST" &&
@@ -130,7 +131,7 @@ export async function apiRequest(path, options = {}) {
     const error = new Error(getErrorMessage(data, status));
     error.status = status;
     error.data = data;
-    error.code = data?.errorCode;
+    error.code = data?.code ?? data?.errorCode;
 
     throw error;
   }

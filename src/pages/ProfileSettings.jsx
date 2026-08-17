@@ -6,14 +6,17 @@ import {
   Pencil,
   Phone,
   Save,
+  Trash2,
   UserRound,
   X,
 } from "lucide-react";
-import { loadAuthSession } from "../auth/authStorage";
+import { useNavigate } from "react-router-dom";
+import { clearAuthSession, loadAuthSession } from "../auth/authStorage";
 import DashboardLayout from "../components/DashboardLayout";
 import ChangePasswordModal from "../components/ChangePasswordModal";
 import ConfirmationModal from "../components/professionalDashboard/ConfirmationModal";
 import {
+  deleteMyAccount,
   getMyProfessionalProfile,
   getMyUserProfile,
   updateMyProfessionalProfile,
@@ -34,6 +37,7 @@ function formatPhone(value) {
 }
 
 export function ProfileSettingsContent({ onClose = null }) {
+  const navigate = useNavigate();
   const isProfessional = loadAuthSession()?.role === "PROFESSIONAL";
   const [form, setForm] = useState(EMPTY_FORM);
   const [initialForm, setInitialForm] = useState(EMPTY_FORM);
@@ -44,6 +48,25 @@ export function ProfileSettingsContent({ onClose = null }) {
   const [pendingChanges, setPendingChanges] = useState(null);
   const [editing, setEditing] = useState(false);
   const [changingPassword, setChangingPassword] = useState(false);
+  const [confirmingDeletion, setConfirmingDeletion] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  async function confirmAccountDeletion() {
+    setDeleting(true);
+    setError("");
+    try {
+      await deleteMyAccount();
+      clearAuthSession();
+      navigate("/login", {
+        replace: true,
+        state: { message: "Sua conta foi desativada e será excluída em 30 dias." },
+      });
+    } catch (requestError) {
+      setConfirmingDeletion(false);
+      setError(requestError.message);
+      setDeleting(false);
+    }
+  }
 
   useEffect(() => {
     let active = true;
@@ -193,6 +216,21 @@ export function ProfileSettingsContent({ onClose = null }) {
           loading={saving}
           onBack={() => setPendingChanges(null)}
           onConfirm={confirmProfileUpdate}
+        />
+      )}
+      {confirmingDeletion && (
+        <ConfirmationModal
+          confirmation={{
+            title: "Excluir conta",
+            message:
+              "Sua conta será desativada. Você terá até 30 dias após esta solicitação para recuperá-la fazendo login e escolhendo reativar. Depois desse prazo, a recuperação não estará mais disponível. Deseja continuar?",
+            backLabel: "Cancelar",
+            confirmLabel: "Sim, excluir",
+            danger: true,
+          }}
+          loading={deleting}
+          onBack={() => setConfirmingDeletion(false)}
+          onConfirm={confirmAccountDeletion}
         />
       )}
       <main className="profile-main">
@@ -356,6 +394,14 @@ export function ProfileSettingsContent({ onClose = null }) {
                 onClick={() => setChangingPassword(true)}
               >
                 <KeyRound size={17} /> Alterar senha
+              </button>
+              <button
+                className="profile-delete-button"
+                type="button"
+                disabled={saving || deleting}
+                onClick={() => setConfirmingDeletion(true)}
+              >
+                <Trash2 size={17} /> Excluir minha conta
               </button>
             </form>
           )}

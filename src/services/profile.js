@@ -9,6 +9,9 @@ export const updateMyUserProfile = (profile) =>
     body: JSON.stringify(profile),
   });
 
+export const deleteMyAccount = () =>
+  apiRequest(API_ROUTES.myUserProfile, { method: "DELETE" });
+
 export const changeMyPassword = ({
   currentPassword,
   newPassword,

@@ -3,6 +3,7 @@ import { Scissors, ShieldCheck, Sparkles } from "lucide-react";
 import salonHero from "../assets/salao-feminino-masculino.png";
 import salonHero2 from "../assets/salao-feminino-masculino-2.png";
 import salonHero3 from "../assets/salao-feminino-masculino-3.png";
+import SiteFooter from "./SiteFooter";
 
 const IMAGES = [salonHero, salonHero2, salonHero3];
 
@@ -44,8 +45,9 @@ export default function AuthenticationLayout({ page, children }) {
   }, []);
 
   return (
-    <main className="login-main">
-      <section className="login-shell">
+    <div className="auth-page-with-footer">
+      <main className="login-main">
+        <section className="login-shell">
         <div className="login-intro">
           <div className="login-slideshow" aria-hidden="true">
             {IMAGES.map((image, index) => (
@@ -90,7 +92,9 @@ export default function AuthenticationLayout({ page, children }) {
           </div>
           {children}
         </div>
-      </section>
-    </main>
+        </section>
+      </main>
+      <SiteFooter />
+    </div>
   );
 }

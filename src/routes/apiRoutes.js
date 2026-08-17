@@ -1,6 +1,7 @@
 export const API_ROUTES = Object.freeze({
   // --- AUTH & USERS ---
   login: "/api/auth/login",
+  reactivate: "/api/auth/reactivate",
   registerClient: "/api/users",
   registerProfessional: "/api/professionals",
   myUserProfile: "/api/users/me",

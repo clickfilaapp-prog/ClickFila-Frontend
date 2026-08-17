@@ -10,6 +10,12 @@ export const loginUser = (email, password) =>
     body: JSON.stringify({ login: normalizeEmail(email), password }),
   });
 
+export const reactivateUser = (email, password) =>
+  apiRequest(API_ROUTES.reactivate, {
+    method: "POST",
+    body: JSON.stringify({ login: normalizeEmail(email), password }),
+  });
+
 export const registerUser = ({ name, phone, email, password, termsAccepted }) =>
   apiRequest(API_ROUTES.registerClient, {
     method: "POST",

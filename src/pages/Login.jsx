@@ -5,7 +5,9 @@ import salonHero from "../assets/salao-feminino-masculino.png";
 import { saveAuthSession } from "../auth/authStorage";
 import PasswordField from "../components/PasswordField";
 import PasswordResetFlow from "../components/PasswordResetFlow";
-import { loginUser } from "../services/auth";
+import ConfirmationModal from "../components/professionalDashboard/ConfirmationModal";
+import SiteFooter from "../components/SiteFooter";
+import { loginUser, reactivateUser } from "../services/auth";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -16,6 +18,30 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [recoveringPassword, setRecoveringPassword] = useState(false);
+  const [reactivationCredentials, setReactivationCredentials] = useState(null);
+  const [isReactivating, setIsReactivating] = useState(false);
+
+  function finishAuthentication(response, message) {
+    const role = String(response.role || "")
+      .replace(/^ROLE_/i, "")
+      .toUpperCase();
+
+    if (!response.token || !role) {
+      console.error("A API não retornou o token ou o perfil.", response);
+      throw new Error(
+        "Ocorreu um problema ao carregar sua conta. Por favor, tente novamente.",
+      );
+    }
+
+    saveAuthSession(response.token, role);
+    navigate(
+      role === "PROFESSIONAL" ? "/professionalDashboard" : "/clientQueue",
+      {
+        replace: true,
+        state: message ? { toast: message } : undefined,
+      },
+    );
+  }
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -24,28 +50,40 @@ export default function Login() {
 
     try {
       const response = await loginUser(email, password);
-      const role = String(response.role || "")
-        .replace(/^ROLE_/i, "")
-        .toUpperCase();
-
-      if (!response.token || !role) {
-        console.error(
-          "Falha de lógica: A API não retornou o token ou o role.",
-          response,
-        );
-        throw new Error(
-          "Ocorreu um problema ao carregar sua conta. Por favor, tente novamente.",
-        );
-      }
-      saveAuthSession(response.token, role);
-      navigate(
-        role === "PROFESSIONAL" ? "/professionalDashboard" : "/clientQueue",
-        { replace: true },
-      );
+      finishAuthentication(response);
     } catch (error) {
-      setError(error.message);
+      if (error.code === "ACCOUNT_DEACTIVATED") {
+        setReactivationCredentials({ email, password });
+      } else if (error.status === 401 || error.status === 403) {
+        setError("Usuário ou senha inválidos");
+      } else {
+        setError(error.message);
+      }
     } finally {
       setIsLoading(false);
+    }
+  }
+
+  async function handleReactivation() {
+    if (!reactivationCredentials) return;
+    setIsReactivating(true);
+    setError("");
+    try {
+      const response = await reactivateUser(
+        reactivationCredentials.email,
+        reactivationCredentials.password,
+      );
+      setReactivationCredentials(null);
+      finishAuthentication(response, "Conta reativada com sucesso!");
+    } catch (requestError) {
+      setReactivationCredentials(null);
+      setError(
+        requestError.status === 401 || requestError.status === 403
+          ? "Usuário ou senha inválidos"
+          : requestError.message,
+      );
+    } finally {
+      setIsReactivating(false);
     }
   }
 
@@ -57,7 +95,22 @@ export default function Login() {
   }
 
   return (
-    <main className="login-auth-main">
+    <div className="auth-page-with-footer">
+      <main className="login-auth-main">
+      {reactivationCredentials && (
+        <ConfirmationModal
+          confirmation={{
+            title: "Reativar conta",
+            message:
+              "Sua conta está em processo de exclusão. Deseja cancelar a exclusão e reativar sua conta?",
+            backLabel: "Não, manter exclusão",
+            confirmLabel: "Sim, reativar",
+          }}
+          loading={isReactivating}
+          onBack={() => setReactivationCredentials(null)}
+          onConfirm={handleReactivation}
+        />
+      )}
       <section className="login-auth-shell">
         <aside className="login-auth-visual">
           <img src={salonHero} alt="Interior de um salão de beleza moderno" />
@@ -176,6 +229,8 @@ export default function Login() {
           )}
         </div>
       </section>
-    </main>
+      </main>
+      <SiteFooter />
+    </div>
   );
 }

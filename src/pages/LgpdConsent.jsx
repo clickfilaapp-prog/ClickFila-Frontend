@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { CheckCircle2, LockKeyhole, ShieldCheck } from "lucide-react";
-import { Navigate, useNavigate } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 import { loadAuthSession, saveAuthSession } from "../auth/authStorage";
 import { acceptLgpdTerms } from "../services/auth";
 
@@ -26,6 +26,7 @@ export default function LgpdConsent() {
   const navigate = useNavigate();
   const session = loadAuthSession();
   const [accepted, setAccepted] = useState(false);
+  const [privacyAccepted, setPrivacyAccepted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
 
@@ -33,7 +34,7 @@ export default function LgpdConsent() {
 
   async function handleSubmit(event) {
     event.preventDefault();
-    if (!accepted || isSubmitting) return;
+    if (!accepted || !privacyAccepted || isSubmitting) return;
 
     setIsSubmitting(true);
     setError("");
@@ -91,17 +92,43 @@ export default function LgpdConsent() {
 
         {error && <div className="login-auth-error" role="alert">{error}</div>}
 
-        <label className="lgpd-consent-check">
-          <input
-            type="checkbox"
-            checked={accepted}
-            disabled={isSubmitting}
-            onChange={(event) => setAccepted(event.target.checked)}
-          />
-          <span>Li e concordo com os termos atualizados e o tratamento descrito.</span>
-        </label>
+        <div className="lgpd-consent-options">
+          <label className="lgpd-consent-check">
+            <input
+              type="checkbox"
+              checked={accepted}
+              disabled={isSubmitting}
+              onChange={(event) => setAccepted(event.target.checked)}
+            />
+            <span>Li e concordo com os termos atualizados e o tratamento descrito.</span>
+          </label>
 
-        <button className="dark lgpd-accept-button" disabled={!accepted || isSubmitting}>
+          <label className="lgpd-consent-check">
+            <input
+              type="checkbox"
+              checked={privacyAccepted}
+              disabled={isSubmitting}
+              onChange={(event) => setPrivacyAccepted(event.target.checked)}
+            />
+            <span>
+              Li e aceito a{" "}
+              <Link
+                to="/politica-de-privacidade"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(event) => event.stopPropagation()}
+              >
+                Política de Privacidade
+              </Link>
+              .
+            </span>
+          </label>
+        </div>
+
+        <button
+          className="dark lgpd-accept-button"
+          disabled={!accepted || !privacyAccepted || isSubmitting}
+        >
           {isSubmitting ? "Atualizando acesso..." : "Aceitar e continuar"}
         </button>
       </form>

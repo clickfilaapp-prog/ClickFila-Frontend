@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { LogOut, Scissors, UserRound } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { clearAuthSession } from "../auth/authStorage";
 import { ProfileSettingsContent } from "../pages/ProfileSettings";
 import ConfirmationModal from "./professionalDashboard/ConfirmationModal";
+import SiteFooter from "./SiteFooter";
 
 /** Estrutura reutilizada somente pelas áreas autenticadas. */
 export default function DashboardLayout({ children }) {
@@ -11,6 +12,18 @@ export default function DashboardLayout({ children }) {
   const [confirmLogout, setConfirmLogout] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const [toast, setToast] = useState(location.state?.toast || "");
+
+  useEffect(() => {
+    if (!location.state?.toast) return undefined;
+    setToast(location.state.toast);
+    navigate(`${location.pathname}${location.search}`, {
+      replace: true,
+      state: null,
+    });
+    const timer = window.setTimeout(() => setToast(""), 3500);
+    return () => window.clearTimeout(timer);
+  }, [location.pathname, location.search, location.state?.toast, navigate]);
 
   function handleLogout() {
     clearAuthSession();
@@ -60,11 +73,13 @@ export default function DashboardLayout({ children }) {
           onConfirm={handleLogout}
         />
       )}
+      {toast && (
+        <div className="toast" role="status" aria-live="polite">
+          {toast}
+        </div>
+      )}
       {children}
-      <footer>
-        <span>Click Fila 2026</span>
-        <span>Sistema de fila com acesso por perfil.</span>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }

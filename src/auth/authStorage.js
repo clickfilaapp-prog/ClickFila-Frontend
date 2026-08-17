@@ -1,5 +1,12 @@
 const TOKEN_KEY = "token";
 const ROLE_KEY = "role";
+const USER_DATA_KEYS = [
+  TOKEN_KEY,
+  ROLE_KEY,
+  "queue-client-session-id",
+  "queue-client-ticket-code",
+  "queue-last-notification",
+];
 
 function normalizeRole(role) {
   return String(role || "")
@@ -18,6 +25,8 @@ export function loadAuthSession() {
 }
 
 export function clearAuthSession() {
-  localStorage.removeItem(TOKEN_KEY);
-  localStorage.removeItem(ROLE_KEY);
+  USER_DATA_KEYS.forEach((key) => {
+    localStorage.removeItem(key);
+    sessionStorage.removeItem(key);
+  });
 }

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { CheckCircle2, LockKeyhole, ShieldCheck, X } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export default function LgpdConsentModal({
   isProfessional,
@@ -10,6 +11,7 @@ export default function LgpdConsentModal({
   error = "",
 }) {
   const [accepted, setAccepted] = useState(false);
+  const [privacyAccepted, setPrivacyAccepted] = useState(false);
 
   useEffect(() => {
     function handleKeyDown(event) {
@@ -87,18 +89,41 @@ export default function LgpdConsentModal({
           </div>
         )}
 
-        <label className="lgpd-consent-check">
-          <input
-            type="checkbox"
-            checked={accepted}
-            disabled={isSubmitting}
-            onChange={(event) => setAccepted(event.target.checked)}
-          />
-          <span>
-            Li e concordo com o tratamento dos meus dados pessoais para as
-            finalidades descritas neste termo.
-          </span>
-        </label>
+        <div className="lgpd-consent-options">
+          <label className="lgpd-consent-check">
+            <input
+              type="checkbox"
+              checked={accepted}
+              disabled={isSubmitting}
+              onChange={(event) => setAccepted(event.target.checked)}
+            />
+            <span>
+              Li e concordo com o tratamento dos meus dados pessoais para as
+              finalidades descritas neste termo.
+            </span>
+          </label>
+
+          <label className="lgpd-consent-check">
+            <input
+              type="checkbox"
+              checked={privacyAccepted}
+              disabled={isSubmitting}
+              onChange={(event) => setPrivacyAccepted(event.target.checked)}
+            />
+            <span>
+              Li e aceito a{" "}
+              <Link
+                to="/politica-de-privacidade"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(event) => event.stopPropagation()}
+              >
+                Política de Privacidade
+              </Link>
+              .
+            </span>
+          </label>
+        </div>
 
         <div className="lgpd-modal-actions">
           <button type="button" disabled={isSubmitting} onClick={onClose}>
@@ -107,7 +132,7 @@ export default function LgpdConsentModal({
           <button
             className="dark"
             type="button"
-            disabled={!accepted || isSubmitting}
+            disabled={!accepted || !privacyAccepted || isSubmitting}
             onClick={onConfirm}
           >
             {isSubmitting

@@ -28,7 +28,7 @@ export default function ConfirmationModal({
             disabled={loading}
             onClick={onBack}
           >
-            Voltar
+            {confirmation.backLabel || "Voltar"}
           </button>
           <button
             type="button"

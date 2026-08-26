@@ -30,7 +30,6 @@ export const registerUser = ({ name, phone, email, password, termsAccepted }) =>
 
 export const registerProfessional = ({
   name,
-  businessName,
   phone,
   email,
   password,
@@ -43,7 +42,6 @@ export const registerProfessional = ({
       password,
       name: name.trim(),
       phone: normalizePhone(phone),
-      businessName: businessName.trim(),
       termsAccepted: termsAccepted === true,
     }),
   });

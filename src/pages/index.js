@@ -4,6 +4,7 @@ export { default as ClientRegister } from "./ClientRegister";
 export { default as Login } from "./Login";
 export { default as LgpdConsent } from "./LgpdConsent";
 export { default as ProfessionalDashboard } from "./ProfessionalDashboard";
+export { default as BusinessOnboarding } from "./BusinessOnboarding";
 export { default as ProfessionalRegister } from "./ProfessionalRegister";
 export { default as ProfileSettings } from "./ProfileSettings";
 export { default as PrivacyPolicy } from "./PrivacyPolicy";

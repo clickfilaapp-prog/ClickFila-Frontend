@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { LogOut, Scissors, UserRound } from "lucide-react";
+import { LogOut, Mail, Scissors, UserRound } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { clearAuthSession } from "../auth/authStorage";
 import { ProfileSettingsContent } from "../pages/ProfileSettings";
@@ -7,7 +7,12 @@ import ConfirmationModal from "./professionalDashboard/ConfirmationModal";
 import SiteFooter from "./SiteFooter";
 
 /** Estrutura reutilizada somente pelas áreas autenticadas. */
-export default function DashboardLayout({ children }) {
+export default function DashboardLayout({
+  children,
+  showInvites = false,
+  pendingInviteCount = 0,
+  onOpenInvites,
+}) {
   const [profileOpen, setProfileOpen] = useState(false);
   const [confirmLogout, setConfirmLogout] = useState(false);
   const navigate = useNavigate();
@@ -47,6 +52,18 @@ export default function DashboardLayout({ children }) {
           </span>
         </Link>
         <div className="session-bar">
+          {showInvites && (
+            <button
+              className="account-action invites-header-action"
+              type="button"
+              onClick={onOpenInvites}
+            >
+              <Mail size={16} /> <span>Meus convites</span>
+              {pendingInviteCount > 0 && (
+                <b className="header-invite-count">{pendingInviteCount}</b>
+              )}
+            </button>
+          )}
           <button
             className="account-action"
             type="button"

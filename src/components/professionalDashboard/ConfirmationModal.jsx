@@ -21,23 +21,31 @@ export default function ConfirmationModal({
         </div>
         <h2 id="confirmation-title">{confirmation.title}</h2>
         <p>{confirmation.message}</p>
-        <div className="confirmation-actions">
+        <div
+          className={`confirmation-actions ${confirmation.hideConfirm ? "single-action" : ""}`}
+        >
           <button
             type="button"
-            className="confirmation-back"
+            className={
+              confirmation.hideConfirm
+                ? "confirmation-accept"
+                : "confirmation-back"
+            }
             disabled={loading}
             onClick={onBack}
           >
             {confirmation.backLabel || "Voltar"}
           </button>
-          <button
-            type="button"
-            className={`confirmation-accept ${confirmation.danger ? "danger" : ""}`}
-            disabled={loading}
-            onClick={onConfirm}
-          >
-            {confirmation.confirmLabel}
-          </button>
+          {!confirmation.hideConfirm && (
+            <button
+              type="button"
+              className={`confirmation-accept ${confirmation.danger ? "danger" : ""}`}
+              disabled={loading}
+              onClick={onConfirm}
+            >
+              {confirmation.confirmLabel}
+            </button>
+          )}
         </div>
       </div>
     </div>

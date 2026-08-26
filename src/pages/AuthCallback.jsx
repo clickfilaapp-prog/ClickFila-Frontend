@@ -4,10 +4,7 @@ import {
   clearAuthSession,
   saveAuthSession,
 } from "../auth/authStorage";
-import {
-  getMyProfessionalProfile,
-  getMyUserProfile,
-} from "../services/profile";
+import { getMyUserProfile } from "../services/profile";
 
 const AUTH_COOKIE_NAMES = Object.freeze({
   token: "TEMP_AUTH_TOKEN",
@@ -66,8 +63,7 @@ export default function AuthCallback() {
         // Valida o token provisório antes de liberar o acesso. Caso o backend
         // responda LGPD_PENDING, o interceptor abre o modal e esta chamada
         // permanece aguardando até receber e salvar o novo JWT.
-        if (role === "PROFESSIONAL") await getMyProfessionalProfile();
-        else await getMyUserProfile();
+        await getMyUserProfile();
 
         if (active) navigate(ROLE_HOME[role], { replace: true });
       } catch (requestError) {

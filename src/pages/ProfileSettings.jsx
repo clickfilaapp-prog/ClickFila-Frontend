@@ -17,11 +17,13 @@ import ChangePasswordModal from "../components/ChangePasswordModal";
 import ConfirmationModal from "../components/professionalDashboard/ConfirmationModal";
 import {
   deleteMyAccount,
-  getMyProfessionalProfile,
   getMyUserProfile,
-  updateMyProfessionalProfile,
   updateMyUserProfile,
 } from "../services/profile";
+import {
+  getProfessionalDashboard,
+  updateMyBusiness,
+} from "../services/queue";
 
 const EMPTY_FORM = { name: "", phone: "", login: "", businessName: "" };
 
@@ -81,11 +83,12 @@ export function ProfileSettingsContent({ onClose = null }) {
       setLoading(true);
       setError("");
       try {
-        const profile = isProfessional
-          ? await getMyProfessionalProfile()
-          : await getMyUserProfile();
+        const [profile, dashboard] = await Promise.all([
+          getMyUserProfile(),
+          isProfessional ? getProfessionalDashboard() : null,
+        ]);
         if (!active) return;
-        const user = isProfessional ? profile?.user : profile;
+        const user = profile;
         const login = user?.login || "";
         const loadedName =
           user?.name || user?.fullName || user?.displayName || "";
@@ -93,7 +96,7 @@ export function ProfileSettingsContent({ onClose = null }) {
           name: loadedName,
           phone: formatPhone(user?.phone),
           login,
-          businessName: profile?.businessName || "",
+          businessName: dashboard?.businessName || "",
         };
         setForm(loadedForm);
         setInitialForm(loadedForm);
@@ -123,13 +126,11 @@ export function ProfileSettingsContent({ onClose = null }) {
     const phone = form.phone.replace(/\D/g, "");
     const initialPhone = initialForm.phone.replace(/\D/g, "");
     const userPayload = {};
-    const professionalPayload = {};
+    const businessChanged =
+      isProfessional && businessName !== initialForm.businessName.trim();
 
     if (name !== initialForm.name.trim()) userPayload.name = name;
     if (phone !== initialPhone) userPayload.phone = phone;
-    if (isProfessional && businessName !== initialForm.businessName.trim()) {
-      professionalPayload.businessName = businessName;
-    }
     if (
       userPayload.name !== undefined &&
       (name.length < 2 || name.length > 100)
@@ -145,17 +146,13 @@ export function ProfileSettingsContent({ onClose = null }) {
       return;
     }
     if (
-      professionalPayload.businessName !== undefined &&
+      businessChanged &&
       (businessName.length < 2 || businessName.length > 150)
     ) {
       setError("O nome do negócio deve ter entre 2 e 150 caracteres.");
       return;
     }
-
-    if (
-      !Object.keys(userPayload).length &&
-      !Object.keys(professionalPayload).length
-    ) {
+    if (!Object.keys(userPayload).length && !businessChanged) {
       setSuccess("Nenhuma alteração para salvar.");
       return;
     }
@@ -165,31 +162,26 @@ export function ProfileSettingsContent({ onClose = null }) {
       phone,
       businessName,
       userPayload,
-      professionalPayload,
+      businessChanged,
     });
   }
 
   async function confirmProfileUpdate() {
     if (!pendingChanges) return;
-    const { name, phone, businessName, userPayload, professionalPayload } =
-      pendingChanges;
+    const { name, phone, businessName, userPayload, businessChanged } = pendingChanges;
     setSaving(true);
     setError("");
     setSuccess("");
     try {
-      const [updatedUser, updatedProfessional] = await Promise.all([
-        Object.keys(userPayload).length
-          ? updateMyUserProfile(userPayload)
-          : null,
-        Object.keys(professionalPayload).length
-          ? updateMyProfessionalProfile(professionalPayload)
-          : null,
+      const [updatedUser, updatedBusiness] = await Promise.all([
+        Object.keys(userPayload).length ? updateMyUserProfile(userPayload) : null,
+        businessChanged ? updateMyBusiness(businessName) : null,
       ]);
       const nextForm = {
         ...form,
         name: updatedUser?.name || name,
         phone: formatPhone(updatedUser?.phone || phone),
-        businessName: updatedProfessional?.businessName || businessName,
+        businessName: updatedBusiness?.name || businessName,
       };
       setForm(nextForm);
       setInitialForm(nextForm);
@@ -229,7 +221,10 @@ export function ProfileSettingsContent({ onClose = null }) {
           confirmation={{
             title: "Excluir conta",
             message:
-              "Sua conta será desativada. Você terá até 30 dias após esta solicitação para recuperá-la fazendo login e escolhendo reativar. Depois desse prazo, a recuperação não estará mais disponível. Deseja continuar?",
+              "Sua conta será desativada. Você terá até 30 dias após esta " +
+              "solicitação para recuperá-la fazendo login e escolhendo " +
+              "reativar. Depois desse prazo, a recuperação não estará mais " +
+              "disponível. Deseja continuar?",
             backLabel: "Cancelar",
             confirmLabel: "Sim, excluir",
             danger: true,
@@ -272,8 +267,7 @@ export function ProfileSettingsContent({ onClose = null }) {
             </button>
           </div>
           <p>
-            Confira e atualize seus dados pessoais
-            {isProfessional ? " e os dados da barbearia" : ""}.
+            Confira e atualize seus dados pessoais e o nome do seu negócio.
           </p>
           {loading ? (
             <div className="profile-loading" role="status">
@@ -328,7 +322,6 @@ export function ProfileSettingsContent({ onClose = null }) {
                       <Building2 size={17} />
                       <input
                         name="profile-business-name"
-                        autoComplete="off"
                         required
                         minLength={2}
                         maxLength={150}

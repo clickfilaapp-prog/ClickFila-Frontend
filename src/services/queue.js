@@ -53,7 +53,34 @@ function normalizeQueueEntry(entry) {
       "",
   };
 }
-export async function getProfessionalDashboard() {
+let dashboardRequest = null;
+let dashboardCache = null;
+let dashboardCacheTime = 0;
+const DASHBOARD_DEDUPLICATION_MS = 750;
+
+export async function getProfessionalDashboard({ force = false } = {}) {
+  const now = Date.now();
+  if (!force && dashboardRequest) return dashboardRequest;
+  if (
+    !force &&
+    dashboardCache &&
+    now - dashboardCacheTime < DASHBOARD_DEDUPLICATION_MS
+  ) {
+    return dashboardCache;
+  }
+
+  dashboardRequest = loadProfessionalDashboard();
+  try {
+    const dashboard = await dashboardRequest;
+    dashboardCache = dashboard;
+    dashboardCacheTime = Date.now();
+    return dashboard;
+  } finally {
+    dashboardRequest = null;
+  }
+}
+
+async function loadProfessionalDashboard() {
   const dashboard = await apiRequest(API_ROUTES.professionalDashboard);
   if (!dashboard) return null;
   return {
@@ -62,8 +89,21 @@ export async function getProfessionalDashboard() {
     activeQueue: (dashboard.activeQueue || []).map(normalizeQueueEntry),
   };
 }
-export const callNext = (sessionId) =>
-  apiRequest(API_ROUTES.callNext(sessionId), { method: "POST" });
+export const createBusiness = (name) =>
+  apiRequest(API_ROUTES.businesses, {
+    method: "POST",
+    body: JSON.stringify({ name: name.trim() }),
+  });
+export const updateMyBusiness = (name) =>
+  apiRequest(API_ROUTES.myBusiness, {
+    method: "PATCH",
+    body: JSON.stringify({ name: name.trim() }),
+  });
+export const callNext = (sessionId, actionMemberId) =>
+  apiRequest(API_ROUTES.callNext(sessionId), {
+    method: "POST",
+    body: JSON.stringify({ actionMemberId }),
+  });
 export const startService = (entryId) =>
   apiRequest(API_ROUTES.startService(entryId), { method: "PATCH" });
 export const finishService = (entryId) =>

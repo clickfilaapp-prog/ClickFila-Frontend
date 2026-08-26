@@ -1,4 +1,5 @@
 const LAST_NOTIFICATION_KEY = "queue-last-notification";
+const NOTIFICATION_ICON = "/click-fila-icon.svg";
 
 function supportsNotifications() {
   return typeof window !== "undefined" && "Notification" in window;
@@ -84,6 +85,8 @@ export async function notifyClientEntryChange(previous, current) {
   try {
     await showClientNotification(content[0], {
       body: content[1],
+      icon: NOTIFICATION_ICON,
+      badge: NOTIFICATION_ICON,
       tag: signature,
       renotify: true,
       vibrate: [250, 120, 250],

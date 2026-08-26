@@ -79,7 +79,7 @@ apiClient.interceptors.response.use(
       requestUrl.includes("/auth/password-resets") ||
       requestUrl.includes("/auth/passwords") ||
       (requestMethod === "POST" &&
-        ["/api/users", "/api/professionals"].includes(requestUrl));
+        ["/api/users/client", "/api/users/professional"].includes(requestUrl));
 
     if (
       status === 403 &&

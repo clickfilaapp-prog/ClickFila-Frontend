@@ -3,6 +3,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import { loadAuthSession, clearAuthSession } from "../auth/authStorage";
 import {
   AuthCallback,
+  BusinessOnboarding,
   ClientQueue,
   ClientRegister,
   Login,
@@ -118,6 +119,14 @@ export default function AppRoutes() {
         element={
           <RoleRoute role="PROFESSIONAL">
             <ProfessionalDashboard />
+          </RoleRoute>
+        }
+      />
+      <Route
+        path="/professional/business/new"
+        element={
+          <RoleRoute role="PROFESSIONAL">
+            <BusinessOnboarding />
           </RoleRoute>
         }
       />

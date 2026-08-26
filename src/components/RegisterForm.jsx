@@ -1,12 +1,11 @@
 import React, { useState } from "react";
-import { ArrowLeft, Building2, Mail, UserPlus, UserRound } from "lucide-react";
+import { ArrowLeft, Mail, UserPlus, UserRound } from "lucide-react";
 import { Link } from "react-router-dom";
 import PasswordField from "./PasswordField";
 import LgpdConsentModal from "./LgpdConsentModal";
 
 const EMPTY_FORM = {
   name: "",
-  businessName: "",
   phone: "",
   email: "",
   password: "",
@@ -85,22 +84,6 @@ export default function RegisterForm({
           />
         </div>
       </label>
-      {isProfessional && (
-        <label>
-          Nome do negócio
-          <div className="input-wrap">
-            <Building2 size={17} />
-            <input
-              required
-              value={form.businessName}
-              onChange={(event) =>
-                updateField("businessName", event.target.value)
-              }
-              placeholder="Nome do salão ou barbearia"
-            />
-          </div>
-        </label>
-      )}
       <label>
         Telefone
         <div className="input-wrap">

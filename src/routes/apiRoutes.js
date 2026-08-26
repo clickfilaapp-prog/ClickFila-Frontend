@@ -2,11 +2,10 @@ export const API_ROUTES = Object.freeze({
   // --- AUTH & USERS ---
   login: "/api/auth/login",
   reactivate: "/api/auth/reactivate",
-  registerClient: "/api/users",
-  registerProfessional: "/api/professionals",
+  registerClient: "/api/users/client",
+  registerProfessional: "/api/users/professional",
   myUserProfile: "/api/users/me",
   myUserPassword: "/api/users/me/password",
-  myProfessionalProfile: "/api/professionals/me",
   lgpdConsent: "/api/v1/lgpd-consents",
 
   // --- PASSWORD RECOVERY ---
@@ -19,7 +18,17 @@ export const API_ROUTES = Object.freeze({
   updateQueueStatus: "/api/queue-sessions/me/status",
   updateQueueSettings: "/api/queue-sessions/me",
   refreshQueueCode: "/api/queue-sessions/me/ticket-code",
-  professionalDashboard: "/api/queue-sessions/me/dashboard",
+  professionalDashboard: "/api/dashboard/professional",
+  businesses: "/api/businesses",
+  myBusiness: "/api/businesses/me",
+  teamInvites: "/api/team-invites",
+  acceptTeamInvite: (inviteId) =>
+    `/api/team-invites/${encodeURIComponent(inviteId)}/accept`,
+  declineTeamInvite: (inviteId) =>
+    `/api/team-invites/${encodeURIComponent(inviteId)}/decline`,
+  quickTeamMember: "/api/team-members/quick-create",
+  removeTeamMember: (memberId) =>
+    `/api/team-members/${encodeURIComponent(memberId)}`,
   queueByCode: (ticketCode) =>
     `/api/queue-sessions/tickets/${encodeURIComponent(ticketCode)}`,
 

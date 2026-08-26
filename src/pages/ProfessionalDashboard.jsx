@@ -1,15 +1,21 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { Building2, UserPlus } from "lucide-react";
+import { useLocation, useNavigate } from "react-router-dom";
 import DashboardLayout from "../components/DashboardLayout";
 import {
   ConfirmationModal,
   CurrentServiceCard,
+  InviteAlertModal,
+  MemberSelectionModal,
+  PendingInvites,
+  prepareCallCountdown,
   QueueControlPanel,
+  TeamManagement,
   WaitingList,
 } from "../components/professionalDashboard";
 import {
   callNext,
   cancelEntry,
-  createQueueSession,
   finishService,
   getProfessionalDashboard,
   refreshQueueCode,
@@ -20,19 +26,25 @@ import {
   updateQueueTolerance,
 } from "../services/queue";
 import { subscribeToQueue } from "../services/queueSocket";
+import {
+  acceptTeamInvite,
+  createQuickTeamMember,
+  declineTeamInvite,
+  removeTeamMember,
+  sendTeamInvite,
+} from "../services/team";
 
 const EMPTY_DASHBOARD = {
+  businessId: null,
   sessionId: null,
   businessName: "",
   ticketCode: null,
   isActive: false,
   toleranceMinutes: null,
   activeQueue: [],
+  team: [],
+  pendingInvites: [],
 };
-
-const findCurrentEntry = (entries = []) =>
-  entries.find((entry) => ["CALLED", "IN_SERVICE"].includes(entry.status)) ||
-  null;
 
 const isSessionNotFound = (error) =>
   error.status === 404 && error.data?.errorCode === "SESSION_NOT_FOUND";
@@ -57,7 +69,11 @@ const mergeQueueDetails = (previousEntries = [], nextEntries = []) =>
   });
 
 export default function ProfessionalDashboard() {
+  const navigate = useNavigate();
+  const location = useLocation();
   const isRefreshing = useRef(false);
+  const showedInviteAlert = useRef(false);
+  const previousActiveEntryIds = useRef(new Set());
   const [dashboard, setDashboard] = useState(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
@@ -69,6 +85,13 @@ export default function ProfessionalDashboard() {
   const [prefixError, setPrefixError] = useState("");
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [confirmation, setConfirmation] = useState(null);
+  const [selectingMember, setSelectingMember] = useState(false);
+  const [successMessage, setSuccessMessage] = useState(location.state?.message || "");
+  const [inviteAlert, setInviteAlert] = useState(null);
+  const [teamManagementOpen, setTeamManagementOpen] = useState(false);
+  const [sentInvites, setSentInvites] = useState([]);
+  const [selectedActiveEntryId, setSelectedActiveEntryId] = useState("");
+  const [expiredCountdowns, setExpiredCountdowns] = useState(() => new Set());
 
   async function refresh({ silent = false } = {}) {
     if (isRefreshing.current) return;
@@ -104,6 +127,41 @@ export default function ProfessionalDashboard() {
   useEffect(() => {
     refresh();
   }, []);
+
+  useEffect(() => {
+    if (!location.state?.message) return;
+    navigate(`${location.pathname}${location.search}`, {
+      replace: true,
+      state: null,
+    });
+  }, [location.pathname, location.search, location.state?.message, navigate]);
+
+  useEffect(() => {
+    if (
+      !showedInviteAlert.current &&
+      !dashboard?.businessId &&
+      dashboard?.pendingInvites?.length
+    ) {
+      showedInviteAlert.current = true;
+      setInviteAlert(dashboard.pendingInvites[0]);
+    }
+  }, [dashboard]);
+
+  useEffect(() => {
+    if (
+      dashboard &&
+      !dashboard.businessId &&
+      !(dashboard.pendingInvites || []).length
+    ) {
+      navigate("/professional/business/new", { replace: true });
+    }
+  }, [dashboard, navigate]);
+
+  useEffect(() => {
+    if (!successMessage) return undefined;
+    const timer = window.setTimeout(() => setSuccessMessage(""), 5000);
+    return () => window.clearTimeout(timer);
+  }, [successMessage]);
 
   useEffect(() => {
     function handleProfileUpdated(event) {
@@ -170,11 +228,192 @@ export default function ProfessionalDashboard() {
     }
   }
 
+  async function reloadDashboard() {
+    const updatedDashboard = await getProfessionalDashboard({ force: true });
+    setDashboard(updatedDashboard || EMPTY_DASHBOARD);
+  }
+
+  async function handleAcceptInvite(invite) {
+    setInviteAlert(null);
+    setLoading(true);
+    setError("");
+    setSuccessMessage("");
+    try {
+      await acceptTeamInvite(invite.id);
+      await reloadDashboard();
+      setSuccessMessage("Bem-vindo à equipe!");
+    } catch (requestError) {
+      setError(requestError.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function handleDeclineInvite(invite) {
+    setInviteAlert(null);
+    setConfirmation({
+      title: "Recusar convite",
+      message: `Deseja recusar o convite de ${invite.businessName}?`,
+      confirmLabel: "Sim, recusar",
+      danger: true,
+      action: () =>
+        run(async () => {
+          await declineTeamInvite(invite.id);
+          setDashboard((currentDashboard) => ({
+            ...currentDashboard,
+            pendingInvites: currentDashboard.pendingInvites.filter(
+              (pendingInvite) => pendingInvite.id !== invite.id,
+            ),
+          }));
+          setSuccessMessage("Convite recusado.");
+        }),
+    });
+  }
+
+  async function handleSendInvite(email) {
+    setLoading(true);
+    setError("");
+    setSuccessMessage("");
+    try {
+      const invite = await sendTeamInvite(email);
+      if (invite?.id) {
+        setSentInvites((current) => [invite, ...current.filter((item) => item.id !== invite.id)]);
+      }
+      setSuccessMessage(`Convite enviado para ${invite?.email || email}.`);
+      return true;
+    } catch (requestError) {
+      setError(requestError.message);
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleQuickAdd(name) {
+    if (name.trim().length < 2) return false;
+    setLoading(true);
+    setError("");
+    setSuccessMessage("");
+    try {
+      const member = await createQuickTeamMember(name);
+      setDashboard((currentDashboard) => ({
+        ...currentDashboard,
+        team: member?.id
+          ? [...currentDashboard.team.filter((item) => item.id !== member.id), member]
+          : currentDashboard.team,
+      }));
+      await reloadDashboard();
+      setSuccessMessage(`${member?.name || name} foi adicionado à equipe.`);
+      return true;
+    } catch (requestError) {
+      setError(requestError.message);
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function handleRemoveTeamMember(member) {
+    if (busyMemberIds.has(String(member.id))) {
+      setConfirmation({
+        title: "Profissional em atendimento",
+        message:
+          `${member.name} está com um atendimento ativo. Finalize ou cancele ` +
+          "esse atendimento antes de remover o profissional da equipe.",
+        backLabel: "Entendi",
+        hideConfirm: true,
+      });
+      return;
+    }
+    setConfirmation({
+      title: "Remover profissional",
+      message:
+        `Deseja remover ${member.name} da equipe? ` +
+        "O profissional deixará de aparecer no modo quiosque.",
+      confirmLabel: "Sim, remover",
+      danger: true,
+      action: () =>
+        run(async () => {
+          await removeTeamMember(member.id);
+          setDashboard((currentDashboard) => ({
+            ...currentDashboard,
+            team: currentDashboard.team.filter(
+              (teamMember) => String(teamMember.id) !== String(member.id),
+            ),
+          }));
+          setSuccessMessage(`${member.name} foi removido da equipe.`);
+        }),
+    });
+  }
+
   const waiting = (
     dashboard?.activeQueue?.filter((entry) => entry.status === "WAITING") || []
   ).sort((first, second) => Number(first.position) - Number(second.position));
-  const current = findCurrentEntry(dashboard?.activeQueue);
+  const activeServices = useMemo(
+    () =>
+      (dashboard?.activeQueue || []).filter((entry) =>
+        ["CALLED", "IN_SERVICE"].includes(entry.status),
+      ),
+    [dashboard?.activeQueue],
+  );
+  const selectedActiveService =
+    activeServices.find(
+      (entry) => String(entry.id) === String(selectedActiveEntryId),
+    ) || activeServices[0] || null;
+  const selectedServiceColorState = selectedActiveService
+    ? selectedActiveService.status === "IN_SERVICE"
+      ? "is-in-service"
+      : expiredCountdowns.has(
+            `${selectedActiveService.id}:${selectedActiveService.toleranceExpiresAt || ""}`,
+          )
+        ? "is-expired"
+        : "is-running"
+    : "";
+  const hasBusiness = Boolean(dashboard?.businessId);
   const hasSession = Boolean(dashboard?.sessionId);
+  const busyMemberIds = new Set(
+    (dashboard?.activeQueue || [])
+      .filter((entry) => ["CALLED", "IN_SERVICE"].includes(entry.status))
+      .map((entry) => String(entry.servedByMemberId || ""))
+      .filter(Boolean),
+  );
+  const availableTeam = (dashboard?.team || []).filter(
+    (member) => !busyMemberIds.has(String(member.id)),
+  );
+
+  useEffect(() => {
+    activeServices.forEach(prepareCallCountdown);
+  }, [activeServices]);
+
+  useEffect(() => {
+    const currentIds = new Set(
+      activeServices.map((entry) => String(entry.id)),
+    );
+    const newlyCalledEntries = activeServices.filter(
+      (entry) => !previousActiveEntryIds.current.has(String(entry.id)),
+    );
+
+    if (!activeServices.length) {
+      setSelectedActiveEntryId("");
+      previousActiveEntryIds.current = currentIds;
+      return;
+    }
+
+    if (newlyCalledEntries.length) {
+      setSelectedActiveEntryId(
+        String(newlyCalledEntries[newlyCalledEntries.length - 1].id),
+      );
+    } else if (
+      !activeServices.some(
+        (entry) => String(entry.id) === String(selectedActiveEntryId),
+      )
+    ) {
+      setSelectedActiveEntryId(String(activeServices[0].id));
+    }
+
+    previousActiveEntryIds.current = currentIds;
+  }, [activeServices, selectedActiveEntryId]);
+
 
   function replaceQueueEntry(updatedEntry) {
     if (!updatedEntry?.id) return;
@@ -205,17 +444,17 @@ export default function ProfessionalDashboard() {
     );
   }
 
-  async function handleCancel() {
-    if (!current) return;
+  async function handleCancel(targetEntry) {
+    if (!targetEntry) return;
     setConfirmation({
       title: "Cancelar cliente",
-      message: `Deseja cancelar a vez de ${current.clientName}?`,
+      message: `Deseja cancelar a vez de ${targetEntry.clientName}?`,
       confirmLabel: "Sim, cancelar",
       danger: true,
       action: () =>
         run(async () => {
-          await cancelEntry(current.id);
-          removeQueueEntry(current.id);
+          await cancelEntry(targetEntry.id);
+          removeQueueEntry(targetEntry.id);
         }),
     });
   }
@@ -242,20 +481,20 @@ export default function ProfessionalDashboard() {
     );
   }
 
-  async function handleRequeue() {
-    if (!current) return;
+  async function handleRequeue(targetEntry) {
+    if (!targetEntry) return;
     setConfirmation({
       title: "Realocar cliente",
-      message: `Deseja devolver ${current.clientName} para a fila como ausente?`,
+      message: `Deseja devolver ${targetEntry.clientName} para a fila como ausente?`,
       confirmLabel: "Sim, realocar",
       action: () =>
         run(async () => {
-          const requeuedEntry = await requeueEntry(current.id);
+          const requeuedEntry = await requeueEntry(targetEntry.id);
           preserveRequeuedEntry(
-            current,
+            targetEntry,
             requeuedEntry?.id
               ? requeuedEntry
-              : { ...current, status: "WAITING" },
+              : { ...targetEntry, status: "WAITING" },
           );
         }),
     });
@@ -264,13 +503,22 @@ export default function ProfessionalDashboard() {
   function handleCallNext() {
     const nextClient = waiting[0];
     if (!nextClient) return;
+    setSelectingMember(true);
+  }
+
+  function handleMemberSelection(member) {
+    const nextClient = waiting[0];
+    if (!nextClient || !member?.id) return;
+    setSelectingMember(false);
     setConfirmation({
       title: "Chamar próximo",
-      message: `Deseja chamar ${nextClient.clientName || "o próximo cliente"} para atendimento?`,
+      message:
+        `${member.name} deseja chamar ` +
+        `${nextClient.clientName || "o próximo cliente"} para atendimento?`,
       confirmLabel: "Sim, chamar",
       action: () =>
         run(async () => {
-          const calledEntry = await callNext(dashboard.sessionId);
+          const calledEntry = await callNext(dashboard.sessionId, member.id);
           replaceQueueEntry(
             calledEntry?.id
               ? calledEntry
@@ -280,19 +528,19 @@ export default function ProfessionalDashboard() {
     });
   }
 
-  function handleStartService() {
-    if (!current) return;
+  function handleStartService(targetEntry) {
+    if (!targetEntry) return;
     setConfirmation({
       title: "Iniciar atendimento",
-      message: `Deseja iniciar o atendimento de ${current.clientName}?`,
+      message: `Deseja iniciar o atendimento de ${targetEntry.clientName}?`,
       confirmLabel: "Sim, iniciar",
       action: () =>
         run(async () => {
-          const startedEntry = await startService(current.id);
+          const startedEntry = await startService(targetEntry.id);
           replaceQueueEntry(
             startedEntry?.id
               ? startedEntry
-              : { ...current, status: "IN_SERVICE" },
+              : { ...targetEntry, status: "IN_SERVICE" },
           );
         }),
     });
@@ -380,19 +628,19 @@ export default function ProfessionalDashboard() {
     });
   }
 
-  function handleFinishService() {
-    if (!current) return;
+  function handleFinishService(targetEntry) {
+    if (!targetEntry) return;
     setConfirmation({
       title: "Finalizar atendimento",
-      message: `Confirma a finalização do atendimento de ${current.clientName}?`,
+      message: `Confirma a finalização do atendimento de ${targetEntry.clientName}?`,
       confirmLabel: "Sim, finalizar",
       action: () =>
         run(async () => {
-          const finishedEntry = await finishService(current.id);
+          const finishedEntry = await finishService(targetEntry.id);
           replaceQueueEntry(
             finishedEntry?.id
               ? finishedEntry
-              : { ...current, status: "FINISHED" },
+              : { ...targetEntry, status: "FINISHED" },
           );
         }),
     });
@@ -420,20 +668,6 @@ export default function ProfessionalDashboard() {
                 }
               : currentDashboard,
           );
-        }),
-    });
-  }
-
-  function handleCreateQueue() {
-    setConfirmation({
-      title: "Criar fila",
-      message: "Deseja criar sua fila de atendimento agora?",
-      confirmLabel: "Sim, criar fila",
-      action: () =>
-        run(async () => {
-          await createQueueSession();
-          const createdDashboard = await getProfessionalDashboard();
-          setDashboard(createdDashboard || EMPTY_DASHBOARD);
         }),
     });
   }
@@ -478,8 +712,21 @@ export default function ProfessionalDashboard() {
     });
   }
 
+  function handleOpenInvites() {
+    const firstInvite = dashboard?.pendingInvites?.[0];
+    if (firstInvite) {
+      setInviteAlert(firstInvite);
+      return;
+    }
+    setSuccessMessage("Você não possui convites pendentes.");
+  }
+
   return (
-    <DashboardLayout>
+    <DashboardLayout
+      showInvites
+      pendingInviteCount={dashboard?.pendingInvites?.length || 0}
+      onOpenInvites={handleOpenInvites}
+    >
       <main className="salon-main">
         {confirmation && (
           <ConfirmationModal
@@ -487,6 +734,23 @@ export default function ProfessionalDashboard() {
             loading={loading}
             onBack={() => setConfirmation(null)}
             onConfirm={handleConfirmAction}
+          />
+        )}
+        {selectingMember && (
+          <MemberSelectionModal
+            team={availableTeam}
+            loading={loading}
+            onClose={() => setSelectingMember(false)}
+            onSelect={handleMemberSelection}
+          />
+        )}
+        {inviteAlert && (
+          <InviteAlertModal
+            invite={inviteAlert}
+            loading={loading}
+            onClose={() => setInviteAlert(null)}
+            onAccept={handleAcceptInvite}
+            onDecline={handleDeclineInvite}
           />
         )}
         <div className="panel-heading">
@@ -500,22 +764,38 @@ export default function ProfessionalDashboard() {
             {error}
           </div>
         )}
-        {dashboard && !hasSession && (
-          <section className="profile-card queue-create-card">
-            <span className="step">FILA DE ATENDIMENTO</span>
-            <h2>Crie sua primeira fila</h2>
-            <p>Uma fila só será criada quando você solicitar.</p>
+        {successMessage && (
+          <div className="toast" role="status" aria-live="polite">{successMessage}</div>
+        )}
+        {dashboard && (
+          <PendingInvites
+            invites={dashboard.pendingInvites || []}
+            loading={loading}
+            onAccept={handleAcceptInvite}
+            onDecline={handleDeclineInvite}
+          />
+        )}
+        {dashboard &&
+          !hasBusiness &&
+          (dashboard.pendingInvites || []).length > 0 && (
+          <section className="professional-welcome-card">
+            <div className="welcome-business-icon"><Building2 size={38} /></div>
+            <span className="step">BEM-VINDO AO CLICKFILA</span>
+            <h2>Seu próximo passo começa agora.</h2>
+            <p>
+              Crie seu próprio negócio para organizar a fila, montar sua equipe
+              e oferecer uma experiência melhor aos clientes.
+            </p>
             <button
-              className="login-auth-submit"
+              className="welcome-primary-action"
               type="button"
-              disabled={loading}
-              onClick={handleCreateQueue}
+              onClick={() => navigate("/professional/business/new")}
             >
-              Criar fila
+              <UserPlus size={20} /> Criar Meu Negócio
             </button>
           </section>
         )}
-        {dashboard && hasSession && (
+        {dashboard && hasBusiness && hasSession && (
           <QueueControlPanel
             dashboard={dashboard}
             loading={loading}
@@ -556,20 +836,90 @@ export default function ProfessionalDashboard() {
             onToggleStatus={handleToggleStatus}
           />
         )}
-        {dashboard && hasSession && (
+        {dashboard && hasBusiness && hasSession && (
           <section className="salon-grid">
-            <CurrentServiceCard
-              current={current}
-              waiting={waiting}
-              isActive={dashboard.isActive}
-              loading={loading}
-              onCallNext={handleCallNext}
-              onStart={handleStartService}
-              onFinish={handleFinishService}
-              onCancel={handleCancel}
-              onRequeue={handleRequeue}
-            />
+            <div className="active-service-list">
+              {activeServices.length ? (
+                <>
+                  <div
+                    className={`active-professional-selector ${selectedServiceColorState}`}
+                  >
+                    <label htmlFor="active-professional">
+                      Acompanhar atendimento
+                    </label>
+                    <select
+                      id="active-professional"
+                      value={String(selectedActiveService?.id || "")}
+                      onChange={(event) =>
+                        setSelectedActiveEntryId(event.target.value)
+                      }
+                    >
+                      {activeServices.map((entry) => (
+                        <option key={entry.id} value={entry.id}>
+                          {entry.servedByMemberName || "Profissional não identificado"} — {entry.clientName}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <CurrentServiceCard
+                    key={selectedActiveService.id}
+                    current={selectedActiveService}
+                    waiting={waiting}
+                    isActive={dashboard.isActive}
+                    loading={loading}
+                    onCallNext={handleCallNext}
+                    onStart={() => handleStartService(selectedActiveService)}
+                    onFinish={() => handleFinishService(selectedActiveService)}
+                    onCancel={() => handleCancel(selectedActiveService)}
+                    onRequeue={() => handleRequeue(selectedActiveService)}
+                    onCountdownExpired={() =>
+                      setExpiredCountdowns((currentCountdowns) => {
+                        const countdownKey =
+                          `${selectedActiveService.id}:` +
+                          `${selectedActiveService.toleranceExpiresAt || ""}`;
+                        if (currentCountdowns.has(countdownKey)) {
+                          return currentCountdowns;
+                        }
+                        const nextCountdowns = new Set(currentCountdowns);
+                        nextCountdowns.add(countdownKey);
+                        return nextCountdowns;
+                      })
+                    }
+                  />
+                </>
+              ) : (
+                <CurrentServiceCard
+                  current={null}
+                  waiting={waiting}
+                  isActive={dashboard.isActive}
+                  loading={loading}
+                  onCallNext={handleCallNext}
+                />
+              )}
+            </div>
             <WaitingList waiting={waiting} />
+          </section>
+        )}
+        {dashboard && hasBusiness && dashboard.loggedMemberRole === "OWNER" && (
+          <section className="team-management-shell">
+            <button
+              className="manage-team-trigger"
+              type="button"
+              onClick={() => setTeamManagementOpen((open) => !open)}
+            >
+              <UserPlus size={19} /> {teamManagementOpen ? "Fechar gestão da equipe" : "Gerenciar Equipe"}
+            </button>
+            {teamManagementOpen && (
+              <TeamManagement
+                team={dashboard.team || []}
+                sentInvites={sentInvites}
+                busyMemberIds={busyMemberIds}
+                loading={loading}
+                onInvite={handleSendInvite}
+                onQuickAdd={handleQuickAdd}
+                onRemove={handleRemoveTeamMember}
+              />
+            )}
           </section>
         )}
       </main>

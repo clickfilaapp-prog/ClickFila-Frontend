@@ -1,34 +1,67 @@
 import React, { useEffect, useState } from "react";
 import { RotateCcw, Scissors } from "lucide-react";
 
+const countdownDeadlines = new Map();
+
+function getCountdownDeadline(entryId, serverTimeNow, toleranceExpiresAt) {
+  const key = `${entryId}:${toleranceExpiresAt}`;
+  if (!countdownDeadlines.has(key)) {
+    const remainingMilliseconds = Math.max(
+      0,
+      new Date(toleranceExpiresAt).getTime() - new Date(serverTimeNow).getTime(),
+    );
+    countdownDeadlines.set(key, Date.now() + remainingMilliseconds);
+  }
+  return { key, deadline: countdownDeadlines.get(key) };
+}
+
+export function prepareCallCountdown(entry) {
+  if (
+    entry?.status === "CALLED" &&
+    entry.id &&
+    entry.serverTimeNow &&
+    entry.toleranceExpiresAt
+  ) {
+    getCountdownDeadline(
+      entry.id,
+      entry.serverTimeNow,
+      entry.toleranceExpiresAt,
+    );
+  }
+}
+
 function CallCountdown({
+  entryId,
   serverTimeNow,
   toleranceExpiresAt,
-  toleranceMinute,
+  onExpired,
 }) {
-  const initialSeconds = Math.max(
-    0,
-    Math.ceil(
-      (new Date(toleranceExpiresAt).getTime() -
-        new Date(serverTimeNow).getTime()) /
-        1000,
-    ),
+  const { key, deadline } = getCountdownDeadline(
+    entryId,
+    serverTimeNow,
+    toleranceExpiresAt,
   );
-  const [totalSeconds, setTotalSeconds] = useState(initialSeconds);
+  const getRemainingSeconds = () =>
+    Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
+  const [totalSeconds, setTotalSeconds] = useState(getRemainingSeconds);
 
   useEffect(() => {
-    setTotalSeconds(initialSeconds);
+    setTotalSeconds(getRemainingSeconds());
     const timer = window.setInterval(
-      () => setTotalSeconds((seconds) => Math.max(0, seconds - 1)),
+      () => setTotalSeconds(getRemainingSeconds()),
       1000,
     );
     return () => window.clearInterval(timer);
-  }, [initialSeconds]);
+  }, [key, deadline]);
+
+  useEffect(() => {
+    if (totalSeconds === 0) onExpired?.();
+  }, [totalSeconds]);
 
   const minutes = String(Math.floor(totalSeconds / 60)).padStart(2, "0");
   const seconds = String(totalSeconds % 60).padStart(2, "0");
   return (
-    <>
+    <div className={`call-countdown ${totalSeconds === 0 ? "is-expired" : "is-running"}`}>
       <div
         className={`salon-timer ${totalSeconds === 0 ? "expired" : ""}`}
         role="timer"
@@ -41,13 +74,7 @@ function CallCountdown({
           ? "Tempo de tolerância esgotado"
           : "Tempo de tolerância para comparecer"}
       </span>
-      {totalSeconds > 0 && Number.isFinite(Number(toleranceMinute)) && (
-        <span className="timer-caption">
-          Você tem {toleranceMinute} minuto
-          {Number(toleranceMinute) === 1 ? "" : "s"} para comparecer
-        </span>
-      )}
-    </>
+    </div>
   );
 }
 
@@ -61,6 +88,7 @@ export default function CurrentServiceCard({
   onFinish,
   onCancel,
   onRequeue,
+  onCountdownExpired,
 }) {
   const hasCountdownData =
     current?.status === "CALLED" &&
@@ -86,7 +114,7 @@ export default function CurrentServiceCard({
   }
 
   return (
-    <article className="now-card">
+    <article className={`now-card status-${current.status.toLowerCase().replace("_", "-")}`}>
       <Scissors size={34} />
       <span className="step">ATENDIMENTO ATUAL</span>
       <h2>{current.clientName}</h2>
@@ -97,18 +125,24 @@ export default function CurrentServiceCard({
         </span>
         <strong>{current.serviceName}</strong>
       </div>
-      <p>
+      <p className="current-service-status">
         {current.status === "CALLED"
           ? "Cliente chamado"
           : "Atendimento em andamento"}
       </p>
+      {current.servedByMemberName && (
+        <p className="served-by-member">
+          Atendimento por : <strong>{current.servedByMemberName}</strong>
+        </p>
+      )}
       {current.status === "CALLED" ? (
         <>
           {hasCountdownData ? (
             <CallCountdown
+              entryId={current.id}
               serverTimeNow={current.serverTimeNow}
               toleranceExpiresAt={current.toleranceExpiresAt}
-              toleranceMinute={current.toleranceMinute}
+              onExpired={onCountdownExpired}
             />
           ) : (
             <span className="timer-caption">Sincronizando tolerância...</span>
@@ -137,6 +171,16 @@ export default function CurrentServiceCard({
       ) : (
         <button className="next-after" disabled={loading} onClick={onFinish}>
           Finalizar atendimento
+        </button>
+      )}
+      {waiting.length > 0 && (
+        <button
+          className="call-another-client"
+          type="button"
+          disabled={loading || !isActive}
+          onClick={onCallNext}
+        >
+          Chamar outro cliente
         </button>
       )}
     </article>

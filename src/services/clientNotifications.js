@@ -1,25 +1,64 @@
-const LAST_NOTIFICATION_KEY = "queue-last-notification";
-const NOTIFICATION_ICON = "/click-fila-icon.svg";
+import { apiRequest } from "./api";
+import { API_ROUTES } from "../routes/apiRoutes";
+
+const WEB_PUSH_PUBLIC_KEY = import.meta.env.VITE_WEB_PUSH_PUBLIC_KEY;
 
 function supportsNotifications() {
   return typeof window !== "undefined" && "Notification" in window;
 }
 
-async function showClientNotification(title, options) {
-  if ("serviceWorker" in navigator) {
-    const registration = await navigator.serviceWorker.register(
-      "/notification-sw.js",
-    );
-    await navigator.serviceWorker.ready;
-    await registration.showNotification(title, options);
-    return;
+function supportsWebPush() {
+  return (
+    supportsNotifications() &&
+    window.isSecureContext &&
+    "serviceWorker" in navigator &&
+    "PushManager" in window
+  );
+}
+
+function urlBase64ToUint8Array(value) {
+  const padding = "=".repeat((4 - (value.length % 4)) % 4);
+  const base64 = (value + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const rawData = window.atob(base64);
+  return Uint8Array.from(rawData, (character) => character.charCodeAt(0));
+}
+
+async function registerNotificationServiceWorker() {
+  const registration = await navigator.serviceWorker.register(
+    "/notification-sw.js",
+  );
+  await navigator.serviceWorker.ready;
+  return registration;
+}
+
+async function subscribeToWebPush() {
+  if (!WEB_PUSH_PUBLIC_KEY) {
+    throw new Error("A chave pública de notificações não foi configurada.");
   }
 
-  const notification = new window.Notification(title, options);
-  notification.onclick = () => {
-    window.focus();
-    notification.close();
-  };
+  const registration = await registerNotificationServiceWorker();
+  let subscription = await registration.pushManager.getSubscription();
+
+  if (!subscription) {
+    subscription = await registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(WEB_PUSH_PUBLIC_KEY),
+    });
+  }
+
+  const json = subscription.toJSON();
+  await apiRequest(API_ROUTES.subscribeNotifications, {
+    method: "POST",
+    body: {
+      endpoint: json.endpoint,
+      keys: {
+        p256dh: json.keys?.p256dh,
+        auth: json.keys?.auth,
+      },
+    },
+  });
+
+  return subscription;
 }
 
 export function shouldExplainNotificationPermission() {
@@ -31,75 +70,23 @@ export function shouldExplainNotificationPermission() {
 }
 
 export async function requestClientNotificationPermission() {
-  if (!supportsNotifications()) return "unsupported";
-  if (!window.isSecureContext) return "insecure";
-  if (window.Notification.permission !== "default") {
-    return window.Notification.permission;
-  }
-  return window.Notification.requestPermission();
-}
-
-function getNotificationContent(previous, current) {
-  if (!current) return null;
-
-  if (previous?.status !== current.status) {
-    if (current.status === "CALLED")
-      return ["É a sua vez!", "Você foi chamado. Dirija-se ao profissional."];
-    if (current.status === "IN_SERVICE")
-      return ["Atendimento iniciado", "Seu atendimento está em andamento."];
-    if (current.status === "FINISHED")
-      return ["Atendimento finalizado", "Seu atendimento foi concluído."];
-    if (current.status === "CANCELLED")
-      return [
-        "Atendimento cancelado",
-        "Sua participação na fila foi cancelada.",
-      ];
-    if (current.status === "WAITING" && previous) {
-      return [
-        "Você voltou para a fila",
-        `Sua posição atual é ${current.position}.`,
-      ];
-    }
+  if (!supportsWebPush()) {
+    if (supportsNotifications() && !window.isSecureContext) return "insecure";
+    return "unsupported";
   }
 
-  if (current.status === "WAITING" && previous?.position !== current.position) {
-    return [
-      "Sua posição mudou",
-      `Agora você é o número ${current.position} da fila.`,
-    ];
-  }
+  const permission =
+    window.Notification.permission === "default"
+      ? await window.Notification.requestPermission()
+      : window.Notification.permission;
 
-  return null;
-}
-
-export async function notifyClientEntryChange(previous, current) {
-  if (!supportsNotifications() || window.Notification.permission !== "granted")
-    return false;
-
-  const content = getNotificationContent(previous, current);
-  if (!content) return false;
-
-  const signature = `${current.id}:${current.status}:${current.position ?? ""}`;
-  if (localStorage.getItem(LAST_NOTIFICATION_KEY) === signature) return false;
+  if (permission !== "granted") return permission;
 
   try {
-    await showClientNotification(content[0], {
-      body: content[1],
-      icon: NOTIFICATION_ICON,
-      badge: NOTIFICATION_ICON,
-      tag: signature,
-      renotify: true,
-      vibrate: [250, 120, 250],
-      data: { url: window.location.href },
-    });
-
-    localStorage.setItem(LAST_NOTIFICATION_KEY, signature);
-    return true;
-  } catch {
-    return false;
+    await subscribeToWebPush();
+    return "granted";
+  } catch (error) {
+    console.error("Não foi possível cadastrar o Web Push:", error);
+    return "subscription-failed";
   }
-}
-
-export function clearClientNotificationHistory() {
-  localStorage.removeItem(LAST_NOTIFICATION_KEY);
 }

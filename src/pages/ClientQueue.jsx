@@ -17,8 +17,6 @@ import {
 } from "../services/queue";
 import { subscribeToQueue } from "../services/queueSocket";
 import {
-  clearClientNotificationHistory,
-  notifyClientEntryChange,
   requestClientNotificationPermission,
   shouldExplainNotificationPermission,
 } from "../services/clientNotifications";
@@ -60,10 +58,6 @@ export default function ClientQueue() {
   }
 
   function updateEntry(nextEntry) {
-    const previous = entryRef.current;
-    if (previous?.id && String(previous.id) === String(nextEntry?.id)) {
-      notifyClientEntryChange(previous, nextEntry);
-    }
     entryRef.current = nextEntry;
     setEntry(nextEntry);
   }
@@ -78,7 +72,6 @@ export default function ClientQueue() {
       latest.id !== notifiedCancellationRef.current
     ) {
       notifiedCancellationRef.current = latest.id;
-      notifyClientEntryChange(entryRef.current, latest);
       setCancelAlert(true);
     }
   }
@@ -109,7 +102,6 @@ export default function ClientQueue() {
           latest.id !== notifiedCancellationRef.current
         ) {
           notifiedCancellationRef.current = latest.id;
-          notifyClientEntryChange(previous, latest);
           setCancelAlert(true);
         }
         updateEntry(null);
@@ -135,6 +127,18 @@ export default function ClientQueue() {
 
   useEffect(() => {
     loadActiveEntry();
+  }, []);
+
+  useEffect(() => {
+    if (window.Notification?.permission !== "granted") return;
+
+    requestClientNotificationPermission().then((result) => {
+      if (result !== "subscription-failed") return;
+      setMessageKind("error");
+      setMessage(
+        "Não foi possível sincronizar as notificações. Atualize a página e tente novamente.",
+      );
+    });
   }, []);
 
   useEffect(() => {
@@ -248,9 +252,12 @@ export default function ClientQueue() {
     setMessageKind("error");
     setMessage("");
     try {
-      const notificationPermission = requestNotifications
-        ? await requestClientNotificationPermission()
-        : window.Notification?.permission || "unsupported";
+      const currentPermission =
+        window.Notification?.permission || "unsupported";
+      const notificationPermission =
+        requestNotifications || currentPermission === "granted"
+          ? await requestClientNotificationPermission()
+          : currentPermission;
       if (notificationPermission === "denied") {
         setMessage(
           "As notificações estão bloqueadas. Libere a permissão nas configurações do navegador.",
@@ -262,9 +269,12 @@ export default function ClientQueue() {
         setMessage(
           "Este navegador não permite notificações nesta conexão. Acompanhe a fila por esta tela.",
         );
+      } else if (notificationPermission === "subscription-failed") {
+        setMessage(
+          "Não foi possível ativar as notificações agora. Você ainda pode acompanhar a fila por esta tela.",
+        );
       }
       const joinedEntry = await joinQueue(queue.sessionId, serviceName.trim());
-      clearClientNotificationHistory();
       setSessionId(queue.sessionId);
       localStorage.setItem("queue-client-session-id", queue.sessionId);
       updateEntry(joinedEntry);
@@ -320,7 +330,6 @@ export default function ClientQueue() {
     setMessage("");
     setMessageKind("error");
     setSessionId(null);
-    clearClientNotificationHistory();
     localStorage.removeItem("queue-client-session-id");
     localStorage.removeItem("queue-client-ticket-code");
   }

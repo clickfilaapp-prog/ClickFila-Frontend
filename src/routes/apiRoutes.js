@@ -7,6 +7,7 @@ export const API_ROUTES = Object.freeze({
   myUserProfile: "/api/users/me",
   myUserPassword: "/api/users/me/password",
   lgpdConsent: "/api/v1/lgpd-consents",
+  subscribeNotifications: "/api/notifications/subscribe",
 
   // --- PASSWORD RECOVERY ---
   requestPasswordReset: "/api/auth/password-resets",
@@ -27,6 +28,7 @@ export const API_ROUTES = Object.freeze({
   declineTeamInvite: (inviteId) =>
     `/api/team-invites/${encodeURIComponent(inviteId)}/decline`,
   quickTeamMember: "/api/team-members/quick-create",
+  leaveTeam: "/team-members/leave",
   removeTeamMember: (memberId) =>
     `/api/team-members/${encodeURIComponent(memberId)}`,
   queueByCode: (ticketCode) =>

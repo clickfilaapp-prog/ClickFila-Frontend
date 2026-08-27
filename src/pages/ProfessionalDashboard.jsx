@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Building2, UserPlus } from "lucide-react";
+import { Building2, LogOut, UserPlus } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import DashboardLayout from "../components/DashboardLayout";
 import {
@@ -30,6 +30,7 @@ import {
   acceptTeamInvite,
   createQuickTeamMember,
   declineTeamInvite,
+  leaveTeam,
   removeTeamMember,
   sendTeamInvite,
 } from "../services/team";
@@ -342,6 +343,25 @@ export default function ProfessionalDashboard() {
             ),
           }));
           setSuccessMessage(`${member.name} foi removido da equipe.`);
+        }),
+    });
+  }
+
+  function handleLeaveTeam() {
+    setConfirmation({
+      title: "Sair da equipe",
+      message:
+        `Deseja realmente sair da equipe ${dashboard.businessName || "atual"}? ` +
+        "Você perderá o acesso à fila e aos atendimentos desta barbearia.",
+      confirmLabel: "Sim, sair da equipe",
+      danger: true,
+      action: () =>
+        run(async () => {
+          await leaveTeam();
+          navigate("/professional/business/new", {
+            replace: true,
+            state: { message: "Você saiu da equipe com sucesso." },
+          });
         }),
     });
   }
@@ -922,6 +942,21 @@ export default function ProfessionalDashboard() {
             )}
           </section>
         )}
+        {dashboard &&
+          hasBusiness &&
+          dashboard.loggedMemberRole &&
+          dashboard.loggedMemberRole !== "OWNER" && (
+            <section className="leave-team-shell">
+              <button
+                className="leave-team-trigger"
+                type="button"
+                disabled={loading}
+                onClick={handleLeaveTeam}
+              >
+                <LogOut size={18} /> Sair da equipe
+              </button>
+            </section>
+          )}
       </main>
     </DashboardLayout>
   );

@@ -4245,6 +4245,32 @@ footer {
 .team-management-shell {
   text-align: right;
 }
+.leave-team-shell {
+  margin-top: 18px;
+  text-align: right;
+}
+.leave-team-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 16px;
+  border: 1px solid #d9aaaa;
+  border-radius: 10px;
+  color: #963c3c;
+  background: #fff7f6;
+  font-weight: 800;
+  cursor: pointer;
+}
+.leave-team-trigger:hover:not(:disabled) {
+  color: white;
+  background: #a34545;
+  border-color: #a34545;
+}
+.leave-team-trigger:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
 .manage-team-trigger {
   margin: 12px 0 0;
 }

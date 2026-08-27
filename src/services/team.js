@@ -21,5 +21,8 @@ export const createQuickTeamMember = (name) =>
     body: JSON.stringify({ name: name.trim() }),
   });
 
+export const leaveTeam = () =>
+  apiRequest(API_ROUTES.leaveTeam, { method: "POST" });
+
 export const removeTeamMember = (memberId) =>
   apiRequest(API_ROUTES.removeTeamMember(memberId), { method: "DELETE" });

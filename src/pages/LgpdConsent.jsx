@@ -41,13 +41,14 @@ export default function LgpdConsent() {
     try {
       const response = await acceptLgpdTerms();
       const token = response?.token;
+      const refreshToken = response?.refreshToken;
       const role = response?.role || session.role;
 
-      if (!token) {
+      if (!token || !refreshToken) {
         throw new Error("O servidor não retornou o novo token de acesso.");
       }
 
-      saveAuthSession(token, role);
+      saveAuthSession(token, refreshToken, role);
       const normalizedRole = String(role).replace(/^ROLE_/i, "").toUpperCase();
       navigate(getSafeReturnUrl(normalizedRole), { replace: true });
     } catch (requestError) {

@@ -1,3 +1,11 @@
+self.addEventListener("install", () => {
+  self.skipWaiting();
+});
+
+self.addEventListener("activate", (event) => {
+  event.waitUntil(self.clients.claim());
+});
+
 self.addEventListener("push", (event) => {
   let payload = {};
 
@@ -10,17 +18,14 @@ self.addEventListener("push", (event) => {
   }
 
   const notification = payload.notification || payload;
-  const title = notification.title || "Click Fila";
+  const title = notification.title || "";
   const options = {
-    body:
-      notification.body ||
-      payload.message ||
-      "Você recebeu uma nova atualização.",
-    icon: notification.icon || "/click-fila-icon.svg",
+    body: notification.body,
+    icon: notification.icon,
     tag: notification.tag,
     data: {
       ...(payload.data || {}),
-      url: notification.url || payload.data?.url || "/",
+      url: notification.url || payload.data?.url,
     },
   };
 

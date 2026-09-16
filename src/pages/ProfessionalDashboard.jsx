@@ -509,7 +509,10 @@ export default function ProfessionalDashboard() {
       confirmLabel: "Sim, realocar",
       action: () =>
         run(async () => {
-          const requeuedEntry = await requeueEntry(targetEntry.id);
+          const requeuedEntry = await requeueEntry(
+            targetEntry.id,
+            dashboard.sessionId,
+          );
           preserveRequeuedEntry(
             targetEntry,
             requeuedEntry?.id
@@ -556,7 +559,10 @@ export default function ProfessionalDashboard() {
       confirmLabel: "Sim, iniciar",
       action: () =>
         run(async () => {
-          const startedEntry = await startService(targetEntry.id);
+          const startedEntry = await startService(
+            targetEntry.id,
+            dashboard.sessionId,
+          );
           replaceQueueEntry(
             startedEntry?.id
               ? startedEntry
@@ -746,6 +752,7 @@ export default function ProfessionalDashboard() {
       showInvites
       pendingInviteCount={dashboard?.pendingInvites?.length || 0}
       onOpenInvites={handleOpenInvites}
+      tutorialReady={Boolean(dashboard?.businessId)}
     >
       <main className="salon-main">
         {confirmation && (

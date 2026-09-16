@@ -1,5 +1,5 @@
 import React from "react";
-import { ArrowLeft, Scissors, ShieldCheck } from "lucide-react";
+import { ArrowLeft, ShieldCheck } from "lucide-react";
 import { Link } from "react-router-dom";
 import SiteFooter from "../components/SiteFooter";
 
@@ -8,7 +8,7 @@ export default function PrivacyPolicy() {
     <div className="privacy-page">
       <header className="privacy-header">
         <Link className="brand" to="/" aria-label="Ir para o início">
-          <span className="brand-mark"><Scissors size={21} /></span>
+          <span className="brand-mark"><img src="/favicon.png" alt="" /></span>
           <span>Click <i>Fila</i></span>
         </Link>
         <Link className="privacy-back" to="/">

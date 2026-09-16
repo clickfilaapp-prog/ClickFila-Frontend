@@ -1,11 +1,23 @@
 import React, { useEffect, useState } from "react";
-import { Scissors, ShieldCheck, Sparkles } from "lucide-react";
+import { ShieldCheck, Sparkles } from "lucide-react";
 import salonHero from "../assets/salao-feminino-masculino.png";
 import salonHero2 from "../assets/salao-feminino-masculino-2.png";
 import salonHero3 from "../assets/salao-feminino-masculino-3.png";
+import clinicHero from "../assets/clinica-atendimento.png";
+import autoShopHero from "../assets/oficina-atendimento.png";
+import carWashHero from "../assets/lava-jato-atendimento.png";
+import veterinaryHero from "../assets/veterinaria-atendimento.png";
 import SiteFooter from "./SiteFooter";
 
-const IMAGES = [salonHero, salonHero2, salonHero3];
+const IMAGES = [
+  salonHero,
+  clinicHero,
+  salonHero2,
+  autoShopHero,
+  carWashHero,
+  salonHero3,
+  veterinaryHero,
+];
 
 const CONTENT = {
   "choose-role": {
@@ -34,12 +46,17 @@ const CONTENT = {
 /** Layout visual compartilhado; não é página e por isso fica em components. */
 export default function AuthenticationLayout({ page, children }) {
   const [activeImage, setActiveImage] = useState(0);
+  const [previousImage, setPreviousImage] = useState(null);
   const content = CONTENT[page];
 
   useEffect(() => {
     const timer = window.setInterval(
-      () => setActiveImage((current) => (current + 1) % IMAGES.length),
-      8000,
+      () =>
+        setActiveImage((current) => {
+          setPreviousImage(current);
+          return (current + 1) % IMAGES.length;
+        }),
+      9000,
     );
     return () => window.clearInterval(timer);
   }, []);
@@ -52,7 +69,7 @@ export default function AuthenticationLayout({ page, children }) {
           <div className="login-slideshow" aria-hidden="true">
             {IMAGES.map((image, index) => (
               <img
-                className={`login-hero-image ${index === activeImage ? "active" : ""}`}
+                className={`login-hero-image ${index === activeImage ? "active" : ""} ${index === previousImage ? "leaving" : ""}`}
                 src={image}
                 alt=""
                 key={image}
@@ -63,7 +80,7 @@ export default function AuthenticationLayout({ page, children }) {
           <div className="login-glow" />
           <div className="login-brand">
             <span>
-              <Scissors size={19} />
+              <img src="/favicon.png" alt="" />
             </span>{" "}
             Click <i>Fila</i>
           </div>
@@ -84,7 +101,7 @@ export default function AuthenticationLayout({ page, children }) {
         <div className="login-panel">
           <div className="login-heading">
             <span className="login-mobile-brand">
-              <Scissors size={17} /> Click Fila
+              <img src="/favicon.png" alt="" /> Click Fila
             </span>
             <span className="step">NOVO CADASTRO</span>
             <h2>{content.panel[0]}</h2>

@@ -12,6 +12,9 @@ export const updateMyUserProfile = (profile) =>
 export const deleteMyAccount = () =>
   apiRequest(API_ROUTES.myUserProfile, { method: "DELETE" });
 
+export const upgradeMyRole = () =>
+  apiRequest(API_ROUTES.upgradeMyRole, { method: "PATCH" });
+
 export const changeMyPassword = ({
   currentPassword,
   newPassword,

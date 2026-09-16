@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { RotateCcw, Scissors } from "lucide-react";
+import { RotateCcw, Ticket } from "lucide-react";
 
 const countdownDeadlines = new Map();
 
@@ -97,9 +97,9 @@ export default function CurrentServiceCard({
 
   if (!current) {
     return (
-      <article className="now-card">
+      <article className="now-card" data-tour="professional-service">
         <div className="nobody">
-          <Scissors size={34} />
+          <Ticket size={34} aria-hidden="true" />
           <h2>Nenhum atendimento em andamento</h2>
           <button
             className="next-after"
@@ -114,13 +114,13 @@ export default function CurrentServiceCard({
   }
 
   return (
-    <article className={`now-card status-${current.status.toLowerCase().replace("_", "-")}`}>
-      <Scissors size={34} />
+    <article data-tour="professional-service" className={`now-card status-${current.status.toLowerCase().replace("_", "-")}`}>
+      <Ticket size={34} aria-hidden="true" />
       <span className="step">ATENDIMENTO ATUAL</span>
       <h2>{current.clientName}</h2>
       <div className="current-service">
         <span>
-          <Scissors size={13} />
+          <Ticket size={16} aria-hidden="true" />
           SERVIÇO
         </span>
         <strong>{current.serviceName}</strong>

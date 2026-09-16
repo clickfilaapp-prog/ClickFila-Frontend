@@ -31,7 +31,8 @@ function RoleRoute({ role, children }) {
     return <Navigate to="/login" replace />;
   }
 
-  if (session.role !== role)
+  const allowedRoles = Array.isArray(role) ? role : [role];
+  if (!allowedRoles.includes(session.role))
     return <Navigate to={ROLE_HOME[session.role]} replace />;
 
   return children;
@@ -109,7 +110,7 @@ export default function AppRoutes() {
       <Route
         path="/clientQueue"
         element={
-          <RoleRoute role="USER">
+          <RoleRoute role={["USER", "PROFESSIONAL"]}>
             <ClientQueue />
           </RoleRoute>
         }

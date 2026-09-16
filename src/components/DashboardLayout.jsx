@@ -1,23 +1,53 @@
 import React, { useEffect, useState } from "react";
-import { LogOut, Mail, Scissors, UserRound } from "lucide-react";
+import {
+  CircleHelp,
+  LayoutDashboard,
+  ListPlus,
+  LogOut,
+  Mail,
+  UserRound,
+} from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { clearAuthSession } from "../auth/authStorage";
+import {
+  clearAuthSession,
+  loadAuthSession,
+  updateTutorialCompleted,
+} from "../auth/authStorage";
+import { completeTutorial } from "../services/auth";
 import { ProfileSettingsContent } from "../pages/ProfileSettings";
 import ConfirmationModal from "./professionalDashboard/ConfirmationModal";
 import SiteFooter from "./SiteFooter";
+import SystemTutorialModal from "./SystemTutorialModal";
 
 /** Estrutura reutilizada somente pelas áreas autenticadas. */
 export default function DashboardLayout({
   children,
   showInvites = false,
   pendingInviteCount = 0,
-  onOpenInvites,
+  onOpenInvites = null,
+  tutorialReady = true,
 }) {
-  const [profileOpen, setProfileOpen] = useState(false);
-  const [confirmLogout, setConfirmLogout] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const sessionRole = loadAuthSession()?.role || "USER";
+  const tutorialRole =
+    sessionRole === "PROFESSIONAL" && location.pathname === "/clientQueue"
+      ? "USER"
+      : sessionRole;
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [tutorialOpen, setTutorialOpen] = useState(
+    () =>
+      tutorialReady && loadAuthSession()?.tutorialCompleted === false,
+  );
+  const [completingTutorial, setCompletingTutorial] = useState(false);
+  const [confirmLogout, setConfirmLogout] = useState(false);
   const [toast, setToast] = useState(location.state?.toast || "");
+
+  useEffect(() => {
+    if (tutorialReady && loadAuthSession()?.tutorialCompleted === false) {
+      setTutorialOpen(true);
+    }
+  }, [tutorialReady]);
 
   useEffect(() => {
     if (!location.state?.toast) return undefined;
@@ -40,18 +70,70 @@ export default function DashboardLayout({
     navigate("/login", { replace: true });
   }
 
+  async function closeTutorial() {
+    if (completingTutorial) return;
+
+    if (loadAuthSession()?.tutorialCompleted !== false) {
+      setTutorialOpen(false);
+      return;
+    }
+
+    setCompletingTutorial(true);
+    try {
+      await completeTutorial();
+      updateTutorialCompleted(true);
+      setTutorialOpen(false);
+    } catch (error) {
+      setToast(
+        error?.message ||
+          "Não foi possível concluir o tutorial. Tente novamente.",
+      );
+    } finally {
+      setCompletingTutorial(false);
+    }
+  }
+
   return (
     <div className="app">
       <header>
         <Link className="brand" to={location.pathname}>
           <span className="brand-mark">
-            <Scissors size={21} />
+            <img src="/favicon.png" alt="" />
           </span>
           <span>
             Click <i>Fila</i>
           </span>
         </Link>
         <div className="session-bar">
+          {tutorialReady && (
+            <button className="account-action" type="button" onClick={() => setTutorialOpen(true)}>
+              <CircleHelp size={16} /> <span>Como funciona</span>
+            </button>
+          )}
+          {sessionRole === "PROFESSIONAL" && (
+            <button
+              className="account-action"
+              type="button"
+              onClick={() =>
+                navigate(
+                  location.pathname === "/clientQueue"
+                    ? "/professionalDashboard"
+                    : "/clientQueue",
+                )
+              }
+            >
+              {location.pathname === "/clientQueue" ? (
+                <LayoutDashboard size={16} />
+              ) : (
+                <ListPlus size={16} />
+              )}
+              <span>
+                {location.pathname === "/clientQueue"
+                  ? "Painel profissional"
+                  : "Entrar em uma fila"}
+              </span>
+            </button>
+          )}
           {showInvites && (
             <button
               className="account-action invites-header-action"
@@ -82,6 +164,13 @@ export default function DashboardLayout({
       </header>
       {profileOpen && (
         <ProfileSettingsContent onClose={() => setProfileOpen(false)} />
+      )}
+      {tutorialOpen && (
+        <SystemTutorialModal
+          role={tutorialRole}
+          onClose={closeTutorial}
+          isCompleting={completingTutorial}
+        />
       )}
       {confirmLogout && (
         <ConfirmationModal

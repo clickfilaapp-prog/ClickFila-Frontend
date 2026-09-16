@@ -8,7 +8,9 @@ import { getMyUserProfile } from "../services/profile";
 
 const AUTH_COOKIE_NAMES = Object.freeze({
   token: "TEMP_AUTH_TOKEN",
+  refreshToken: "TEMP_REFRESH_TOKEN",
   role: "TEMP_ROLE",
+  tutorialCompleted: "TEMP_TUTORIAL_COMPLETED",
 });
 
 const ROLE_HOME = Object.freeze({
@@ -33,6 +35,13 @@ function deleteCookie(name) {
   }
 }
 
+function deleteTemporaryCookies() {
+  document.cookie.split(";").forEach((cookie) => {
+    const name = decodeURIComponent(cookie.split("=")[0].trim());
+    if (name.startsWith("TEMP_")) deleteCookie(name);
+  });
+}
+
 export default function AuthCallback() {
   const navigate = useNavigate();
   const [error, setError] = useState("");
@@ -42,14 +51,21 @@ export default function AuthCallback() {
 
     async function completeGoogleLogin() {
       const token = readCookie(AUTH_COOKIE_NAMES.token);
+      const refreshToken = readCookie(AUTH_COOKIE_NAMES.refreshToken);
       const role = String(readCookie(AUTH_COOKIE_NAMES.role) || "")
         .replace(/^ROLE_/i, "")
         .toUpperCase();
+      const tutorialCookie = readCookie(AUTH_COOKIE_NAMES.tutorialCompleted);
+      const tutorialCompleted = tutorialCookie === "true";
 
-      deleteCookie(AUTH_COOKIE_NAMES.token);
-      deleteCookie(AUTH_COOKIE_NAMES.role);
+      deleteTemporaryCookies();
 
-      if (!token || !ROLE_HOME[role]) {
+      if (
+        !token ||
+        !refreshToken ||
+        !ROLE_HOME[role] ||
+        !["true", "false"].includes(tutorialCookie)
+      ) {
         if (active)
           setError(
             "Não foi possível concluir o login com Google. Tente novamente.",
@@ -58,7 +74,7 @@ export default function AuthCallback() {
       }
 
       try {
-        saveAuthSession(token, role);
+        saveAuthSession(token, refreshToken, role, tutorialCompleted);
 
         // Valida o token provisório antes de liberar o acesso. Caso o backend
         // responda LGPD_PENDING, o interceptor abre o modal e esta chamada

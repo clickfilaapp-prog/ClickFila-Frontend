@@ -9,6 +9,7 @@ import {
 import { ConfirmationModal } from "../components/professionalDashboard";
 import {
   cancelEntry,
+  finishService,
   getActiveEntry,
   getLatestEntry,
   getQueueState,
@@ -33,6 +34,7 @@ export default function ClientQueue() {
   const isTimerSyncingRef = useRef(false);
   const [cancelAlert, setCancelAlert] = useState(false);
   const [confirmCancellation, setConfirmCancellation] = useState(false);
+  const [confirmFinish, setConfirmFinish] = useState(false);
   const [showNotificationConsent, setShowNotificationConsent] = useState(false);
   const [message, setMessage] = useState("");
   const [messageKind, setMessageKind] = useState("error");
@@ -322,6 +324,24 @@ export default function ClientQueue() {
     }
   }
 
+  async function handleFinish() {
+    if (!entry?.id || entry.status !== "IN_SERVICE") return;
+    setConfirmFinish(false);
+    setLoading(true);
+    setMessage("");
+    try {
+      await finishService(entry.id);
+      updateEntry({ ...entry, status: "FINISHED" });
+      setSessionId(null);
+      localStorage.removeItem("queue-client-session-id");
+      localStorage.removeItem("queue-client-ticket-code");
+    } catch (error) {
+      setMessage(error.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   function resetTracking() {
     updateEntry(null);
     setQueue(null);
@@ -367,12 +387,26 @@ export default function ClientQueue() {
             onConfirm={handleCancel}
           />
         )}
+        {confirmFinish && (
+          <ConfirmationModal
+            confirmation={{
+              title: "Finalizar atendimento",
+              message:
+                "Confirma que seu atendimento já terminou? Esta ação encerrará sua ficha atual.",
+              confirmLabel: "Sim, já fui atendido",
+            }}
+            loading={loading}
+            onBack={() => setConfirmFinish(false)}
+            onConfirm={handleFinish}
+          />
+        )}
         {entry ? (
           <ClientStatus
             entry={entry}
             loading={loading}
             message={message}
             onCancel={() => setConfirmCancellation(true)}
+            onFinish={() => setConfirmFinish(true)}
             onDone={resetTracking}
           />
         ) : (

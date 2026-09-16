@@ -2,12 +2,28 @@ import React, { useEffect, useState } from "react";
 import { LogIn, Mail } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import salonHero from "../assets/salao-feminino-masculino.png";
+import salonHero2 from "../assets/salao-feminino-masculino-2.png";
+import salonHero3 from "../assets/salao-feminino-masculino-3.png";
+import clinicHero from "../assets/clinica-atendimento.png";
+import autoShopHero from "../assets/oficina-atendimento.png";
+import carWashHero from "../assets/lava-jato-atendimento.png";
+import veterinaryHero from "../assets/veterinaria-atendimento.png";
 import { saveAuthSession } from "../auth/authStorage";
 import PasswordField from "../components/PasswordField";
 import PasswordResetFlow from "../components/PasswordResetFlow";
 import ConfirmationModal from "../components/professionalDashboard/ConfirmationModal";
 import SiteFooter from "../components/SiteFooter";
 import { loginUser, reactivateUser } from "../services/auth";
+
+const LOGIN_IMAGES = [
+  salonHero,
+  clinicHero,
+  salonHero2,
+  autoShopHero,
+  carWashHero,
+  salonHero3,
+  veterinaryHero,
+];
 
 export default function Login() {
   const navigate = useNavigate();
@@ -23,6 +39,20 @@ export default function Login() {
   const [successMessage, setSuccessMessage] = useState(
     location.state?.message || "",
   );
+  const [activeImage, setActiveImage] = useState(0);
+  const [previousImage, setPreviousImage] = useState(null);
+
+  useEffect(() => {
+    const timer = window.setInterval(
+      () =>
+        setActiveImage((current) => {
+          setPreviousImage(current);
+          return (current + 1) % LOGIN_IMAGES.length;
+        }),
+      9000,
+    );
+    return () => window.clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     if (!successMessage) return undefined;
@@ -39,14 +69,19 @@ export default function Login() {
       .replace(/^ROLE_/i, "")
       .toUpperCase();
 
-    if (!response.token || !role) {
+    if (!response.token || !response.refreshToken || !role) {
       console.error("A API não retornou o token ou o perfil.", response);
       throw new Error(
         "Ocorreu um problema ao carregar sua conta. Por favor, tente novamente.",
       );
     }
 
-    saveAuthSession(response.token, role);
+    saveAuthSession(
+      response.token,
+      response.refreshToken,
+      role,
+      response.tutorialCompleted === true,
+    );
     navigate(
       role === "PROFESSIONAL" ? "/professionalDashboard" : "/clientQueue",
       {
@@ -124,9 +159,23 @@ export default function Login() {
           onConfirm={handleReactivation}
         />
       )}
+      <div className="login-auth-content">
+        <div className="login-auth-brand">
+          <img src="/favicon.png" alt="" />
+          <span>Click <i>Fila</i></span>
+        </div>
       <section className="login-auth-shell">
+        <div className="login-auth-visual-column">
         <aside className="login-auth-visual">
-          <img src={salonHero} alt="Interior de um salão de beleza moderno" />
+          {LOGIN_IMAGES.map((image, index) => (
+            <img
+              className={`login-hero-image ${index === activeImage ? "active" : ""} ${index === previousImage ? "leaving" : ""}`}
+              src={image}
+              alt=""
+              aria-hidden="true"
+              key={image}
+            />
+          ))}
           <div className="login-auth-overlay" />
           <div className="login-auth-copy">
             <span>SEU MOMENTO DE BRILHAR</span>
@@ -137,6 +186,7 @@ export default function Login() {
             </p>
           </div>
         </aside>
+        </div>
 
         <div className="login-auth-panel">
           {recoveringPassword ? (
@@ -147,7 +197,7 @@ export default function Login() {
           ) : (
             <>
               <div className="login-auth-heading">
-                <h1>Bem-vindo de volta</h1>
+                <h1>Bem-vindo ao Click Fila</h1>
                 <p>Informe suas credenciais para acessar sua conta.</p>
               </div>
 
@@ -242,6 +292,7 @@ export default function Login() {
           )}
         </div>
       </section>
+      </div>
       </main>
       <SiteFooter />
     </div>

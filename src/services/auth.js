@@ -7,12 +7,14 @@ const normalizePhone = (phone = "") => phone.replace(/\D/g, "");
 export const loginUser = (email, password) =>
   apiRequest(API_ROUTES.login, {
     method: "POST",
+    skipAuth: true,
     body: JSON.stringify({ login: normalizeEmail(email), password }),
   });
 
 export const reactivateUser = (email, password) =>
   apiRequest(API_ROUTES.reactivate, {
     method: "POST",
+    skipAuth: true,
     body: JSON.stringify({ login: normalizeEmail(email), password }),
   });
 
@@ -48,6 +50,9 @@ export const registerProfessional = ({
 
 export const acceptLgpdTerms = () =>
   apiRequest(API_ROUTES.lgpdConsent, { method: "POST" });
+
+export const completeTutorial = () =>
+  apiRequest(API_ROUTES.completeTutorial, { method: "PATCH" });
 
 export const requestPasswordReset = (email) =>
   apiRequest(API_ROUTES.requestPasswordReset, {

@@ -89,6 +89,7 @@ export default function BusinessOnboarding() {
       showInvites
       pendingInviteCount={pendingInviteCount}
       onOpenInvites={handleOpenInvites}
+      tutorialReady={false}
     >
       {inviteMessage && (
         <div className="toast" role="status" aria-live="polite">

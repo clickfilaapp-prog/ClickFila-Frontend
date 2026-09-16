@@ -104,11 +104,17 @@ export const callNext = (sessionId, actionMemberId) =>
     method: "POST",
     body: JSON.stringify({ actionMemberId }),
   });
-export const startService = (entryId) =>
-  apiRequest(API_ROUTES.startService(entryId), { method: "PATCH" });
+export const startService = (entryId, sessionId) =>
+  apiRequest(API_ROUTES.startService(entryId), {
+    method: "PATCH",
+    body: JSON.stringify({ sessionId }),
+  });
 export const finishService = (entryId) =>
   apiRequest(API_ROUTES.finishService(entryId), { method: "PATCH" });
 export const cancelEntry = (entryId) =>
   apiRequest(API_ROUTES.cancelEntry(entryId), { method: "PATCH" });
-export const requeueEntry = (entryId) =>
-  apiRequest(API_ROUTES.requeueEntry(entryId), { method: "PATCH" });
+export const requeueEntry = (entryId, sessionId) =>
+  apiRequest(API_ROUTES.requeueEntry(entryId), {
+    method: "PATCH",
+    body: JSON.stringify({ sessionId }),
+  });

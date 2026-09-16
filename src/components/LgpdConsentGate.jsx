@@ -1,16 +1,18 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { clearAuthSession, loadAuthSession, saveAuthSession } from "./auth/authStorage";
-import LgpdConsentModal from "./components/LgpdConsentModal";
-import { AppRoutes } from "./routes";
-import { acceptLgpdTerms } from "./services/auth";
+import {
+  clearAuthSession,
+  loadAuthSession,
+  saveAuthSession,
+} from "../auth/authStorage";
 import {
   cancelPendingLgpdConsent,
   completePendingLgpdConsent,
-} from "./services/api";
-import "./styles.css";
+} from "../services/api";
+import { acceptLgpdTerms } from "../services/auth";
+import LgpdConsentModal from "./LgpdConsentModal";
 
-export default function App() {
+export default function LgpdConsentGate({ children }) {
   const navigate = useNavigate();
   const [lgpdPending, setLgpdPending] = useState(false);
   const [acceptingLgpd, setAcceptingLgpd] = useState(false);
@@ -21,6 +23,7 @@ export default function App() {
       setLgpdError("");
       setLgpdPending(true);
     }
+
     window.addEventListener("barberflow:lgpd-consent-required", showLgpdTerms);
     return () =>
       window.removeEventListener(
@@ -40,15 +43,19 @@ export default function App() {
     if (acceptingLgpd) return;
     setAcceptingLgpd(true);
     setLgpdError("");
+
     try {
       const currentSession = loadAuthSession();
       const response = await acceptLgpdTerms();
       const newToken = response?.token;
+      const newRefreshToken = response?.refreshToken;
       const role = response?.role || currentSession?.role;
-      if (!newToken) {
+
+      if (!newToken || !newRefreshToken) {
         throw new Error("O servidor não retornou o novo token de acesso.");
       }
-      saveAuthSession(newToken, role);
+
+      saveAuthSession(newToken, newRefreshToken, role);
       setLgpdPending(false);
       completePendingLgpdConsent(newToken);
     } catch (error) {
@@ -56,7 +63,8 @@ export default function App() {
         leaveConsentFlow();
       } else {
         setLgpdError(
-          error?.message || "Não foi possível registrar o aceite. Tente novamente.",
+          error?.message ||
+            "Não foi possível registrar o aceite. Tente novamente.",
         );
       }
     } finally {
@@ -68,7 +76,7 @@ export default function App() {
 
   return (
     <>
-      <AppRoutes />
+      {children}
       {lgpdPending && (
         <LgpdConsentModal
           accessFlow

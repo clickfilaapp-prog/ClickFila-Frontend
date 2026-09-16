@@ -8,12 +8,7 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      "/auth": { target: "http://localhost:8080", changeOrigin: true },
       "/api": { target: "http://localhost:8080", changeOrigin: true, ws: true },
-      "/team-members": {
-        target: "http://localhost:8080",
-        changeOrigin: true,
-      },
     },
   },
 });

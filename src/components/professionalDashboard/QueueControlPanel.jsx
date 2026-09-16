@@ -33,14 +33,14 @@ export default function QueueControlPanel({
   onCancelToleranceEdit,
 }) {
   return (
-    <section className="issuer-panel">
+    <section className="issuer-panel" data-tour="professional-queue-control">
       <div className="issuer-copy">
         <div className="card-icon light">
           <Ticket size={23} />
         </div>
         <div>
           <span className="step">FILA DE ATENDIMENTO</span>
-          <h2>{dashboard.ticketCode}</h2>
+          <h2 data-tour="professional-ticket">{dashboard.ticketCode}</h2>
           <p>
             {dashboard.isActive
               ? "A fila está aberta."
@@ -50,6 +50,7 @@ export default function QueueControlPanel({
       </div>
       <div className="issuer-actions">
         <button
+          data-tour="professional-toggle-queue"
           className={`queue-status-button ${dashboard.isActive ? "active" : "closed"}`}
           type="button"
           disabled={loading}

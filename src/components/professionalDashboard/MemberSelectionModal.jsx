@@ -1,5 +1,5 @@
 import React from "react";
-import { Scissors, X } from "lucide-react";
+import { X } from "lucide-react";
 
 export default function MemberSelectionModal({
   team,
@@ -24,7 +24,7 @@ export default function MemberSelectionModal({
         >
           <X size={20} />
         </button>
-        <Scissors size={32} />
+        <img className="app-symbol-icon" src="/favicon.png" alt="" width="32" height="32" />
         <h2 id="member-selection-title">Quem está chamando?</h2>
         <p>Selecione o profissional que atenderá o próximo cliente.</p>
         <div className="member-selection-list">

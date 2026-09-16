@@ -1,9 +1,17 @@
 import axios from "axios";
+import {
+  clearAuthSession,
+  getRefreshToken,
+  loadAuthSession,
+  replaceAuthTokens,
+} from "../auth/authStorage";
 import { ErrorDictionary } from "../constants/errorMessages";
+import { API_ROUTES } from "../routes/apiRoutes";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "";
 const LGPD_REQUIRED_EVENT = "barberflow:lgpd-consent-required";
 let pendingLgpdConsent = null;
+let refreshRequest = null;
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -12,10 +20,59 @@ export const apiClient = axios.create({
 
 // Injeta o token em todas as requisições
 apiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
+  if (config.skipAuth) {
+    delete config.headers.Authorization;
+    return config;
+  }
+
+  const token = loadAuthSession()?.token;
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
+
+function redirectToLogin() {
+  clearAuthSession();
+  if (window.location.pathname !== "/login") window.location.replace("/login");
+}
+
+async function refreshSession() {
+  if (refreshRequest) return refreshRequest;
+
+  const refreshToken = getRefreshToken();
+  if (!refreshToken) {
+    redirectToLogin();
+    throw new Error("Sua sessão expirou. Entre novamente.");
+  }
+
+  refreshRequest = axios
+    .post(
+      `${API_BASE_URL}${API_ROUTES.refresh}`,
+      { refreshToken },
+      { headers: { "Content-Type": "application/json" } },
+    )
+    .then(({ data }) => {
+      if (!data?.accessToken || !data?.refreshToken) {
+        throw new Error("A API não retornou os novos tokens da sessão.");
+      }
+      replaceAuthTokens(data.accessToken, data.refreshToken);
+      return data.accessToken;
+    })
+    .catch((error) => {
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        redirectToLogin();
+      }
+      throw error;
+    })
+    .finally(() => {
+      refreshRequest = null;
+    });
+
+  return refreshRequest;
+}
+
+export function refreshAuthSession() {
+  return refreshSession();
+}
 
 // Desloga o usuário em caso de token expirado (exceto na tentativa de login)
 function isLgpdPending(responseData) {
@@ -74,7 +131,9 @@ apiClient.interceptors.response.use(
     const isConsentRequest = requestUrl.includes("/api/v1/lgpd-consents");
     const hasAuthenticatedSession = Boolean(localStorage.getItem("token"));
     const isPublicRequest =
+      requestError.config?.skipAuth ||
       requestUrl.includes("/auth/login") ||
+      requestUrl.includes("/auth/refresh") ||
       requestUrl.includes("/auth/reactivate") ||
       requestUrl.includes("/auth/password-resets") ||
       requestUrl.includes("/auth/passwords") ||
@@ -106,10 +165,26 @@ apiClient.interceptors.response.use(
       } catch (consentError) {
         return Promise.reject(consentError);
       }
-    } else if (status === 401 && !isPublicRequest) {
-      localStorage.removeItem("token");
-      localStorage.removeItem("role");
-      window.location.href = "/login";
+    } else if (
+      status === 401 &&
+      !isPublicRequest &&
+      !requestError.config?._authRetry
+    ) {
+      try {
+        const newToken = await refreshSession();
+        return apiClient.request({
+          ...requestError.config,
+          _authRetry: true,
+          headers: {
+            ...requestError.config.headers,
+            Authorization: `Bearer ${newToken}`,
+          },
+        });
+      } catch (refreshError) {
+        return Promise.reject(refreshError);
+      }
+    } else if (status === 401 && requestError.config?._authRetry) {
+      redirectToLogin();
     }
     return Promise.reject(requestError);
   },

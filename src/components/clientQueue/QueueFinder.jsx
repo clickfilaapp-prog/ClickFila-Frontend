@@ -35,7 +35,7 @@ export default function QueueFinder({
         </div>
       )}
       {!queue && (
-        <form className="queue-code-field" onSubmit={onSearch}>
+        <form className="queue-code-field" data-tour="client-ticket-search" onSubmit={onSearch}>
           <input
             aria-label="Código da fila"
             required
@@ -58,6 +58,7 @@ export default function QueueFinder({
       )}
       {queue && (
         <div
+          data-tour="client-join"
           className={`queue-preview ${!queue.isActive ? "queue-preview-closed" : ""}`}
         >
           <div className="client-queue-stats">

@@ -1,11 +1,14 @@
 export const API_ROUTES = Object.freeze({
   // --- AUTH & USERS ---
   login: "/api/auth/login",
+  refresh: "/api/auth/refresh",
   reactivate: "/api/auth/reactivate",
   registerClient: "/api/users/client",
   registerProfessional: "/api/users/professional",
   myUserProfile: "/api/users/me",
+  upgradeMyRole: "/api/users/me/upgrade-role",
   myUserPassword: "/api/users/me/password",
+  completeTutorial: "/api/users/me/tutorial",
   lgpdConsent: "/api/v1/lgpd-consents",
   subscribeNotifications: "/api/notifications/subscribe",
 
@@ -28,7 +31,7 @@ export const API_ROUTES = Object.freeze({
   declineTeamInvite: (inviteId) =>
     `/api/team-invites/${encodeURIComponent(inviteId)}/decline`,
   quickTeamMember: "/api/team-members/quick-create",
-  leaveTeam: "/team-members/leave",
+  leaveTeam: "/api/team-members/leave",
   removeTeamMember: (memberId) =>
     `/api/team-members/${encodeURIComponent(memberId)}`,
   queueByCode: (ticketCode) =>

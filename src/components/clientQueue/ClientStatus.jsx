@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { CheckCircle2, Clock3, Scissors, Ticket } from "lucide-react";
+import { CheckCircle2, Clock3, Ticket } from "lucide-react";
 
 const STATUS = {
   WAITING: {
@@ -68,6 +68,7 @@ export default function ClientStatus({
   loading,
   message,
   onCancel,
+  onFinish,
   onDone,
 }) {
   const status = STATUS[entry.status] || STATUS.WAITING;
@@ -79,6 +80,7 @@ export default function ClientStatus({
 
   return (
     <section
+      data-tour="client-status"
       className={`client-status-card status-${entry.status?.toLowerCase() || "waiting"}`}
       aria-live="polite"
     >
@@ -86,7 +88,7 @@ export default function ClientStatus({
         {finished ? (
           <CheckCircle2 size={30} />
         ) : entry.status === "IN_SERVICE" ? (
-          <Scissors size={30} />
+          <img className="app-symbol-icon" src="/favicon.png" alt="" width="30" height="30" />
         ) : (
           <Ticket size={30} />
         )}
@@ -164,16 +166,23 @@ export default function ClientStatus({
         <button className="login-auth-submit" type="button" onClick={onDone}>
           Buscar outra fila
         </button>
+      ) : entry.status === "IN_SERVICE" ? (
+        <button
+          className="login-auth-submit"
+          type="button"
+          disabled={loading}
+          onClick={onFinish}
+        >
+          {loading ? "Finalizando..." : "Já fui atendido"}
+        </button>
       ) : (
         <button
           className="cancel-queue"
           type="button"
-          disabled={loading || entry.status !== "WAITING"}
+          disabled={loading || !["WAITING", "CALLED"].includes(entry.status)}
           onClick={onCancel}
         >
-          {entry.status === "WAITING"
-            ? "Sair da fila"
-            : "Atendimento em andamento"}
+          {loading ? "Saindo..." : "Sair da fila"}
         </button>
       )}
     </section>

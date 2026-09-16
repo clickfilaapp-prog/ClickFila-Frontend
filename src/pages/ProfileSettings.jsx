@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import {
+  BriefcaseBusiness,
   Building2,
   KeyRound,
   Mail,
@@ -11,15 +12,23 @@ import {
   X,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { clearAuthSession, loadAuthSession } from "../auth/authStorage";
+import {
+  clearAuthSession,
+  loadAuthSession,
+  removeAccessToken,
+  updateAuthRole,
+  updateTutorialCompleted,
+} from "../auth/authStorage";
 import DashboardLayout from "../components/DashboardLayout";
 import ChangePasswordModal from "../components/ChangePasswordModal";
 import ConfirmationModal from "../components/professionalDashboard/ConfirmationModal";
 import {
   deleteMyAccount,
   getMyUserProfile,
+  upgradeMyRole,
   updateMyUserProfile,
 } from "../services/profile";
+import { refreshAuthSession } from "../services/api";
 import {
   getProfessionalDashboard,
   updateMyBusiness,
@@ -52,6 +61,8 @@ export function ProfileSettingsContent({ onClose = null }) {
   const [changingPassword, setChangingPassword] = useState(false);
   const [confirmingDeletion, setConfirmingDeletion] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [confirmingUpgrade, setConfirmingUpgrade] = useState(false);
+  const [upgrading, setUpgrading] = useState(false);
 
   useEffect(() => {
     if (!success) return undefined;
@@ -76,6 +87,31 @@ export function ProfileSettingsContent({ onClose = null }) {
     }
   }
 
+  async function confirmRoleUpgrade() {
+    setUpgrading(true);
+    setError("");
+    try {
+      const updatedProfile = await upgradeMyRole();
+      const updatedRole = String(updatedProfile?.role)
+        .replace(/^ROLE_/i, "")
+        .toUpperCase();
+      if (updatedRole !== "PROFESSIONAL") {
+        throw new Error("O servidor não confirmou o upgrade para profissional.");
+      }
+
+      removeAccessToken();
+      await refreshAuthSession();
+      updateAuthRole("PROFESSIONAL");
+      updateTutorialCompleted(false);
+      navigate("/professionalDashboard", { replace: true });
+    } catch (requestError) {
+      setConfirmingUpgrade(false);
+      setError(requestError.message);
+    } finally {
+      setUpgrading(false);
+    }
+  }
+
   useEffect(() => {
     let active = true;
 
@@ -96,7 +132,11 @@ export function ProfileSettingsContent({ onClose = null }) {
           name: loadedName,
           phone: formatPhone(user?.phone),
           login,
-          businessName: dashboard?.businessName || "",
+          businessName:
+            dashboard?.businessName ||
+            user?.businessName ||
+            user?.business?.name ||
+            "",
         };
         setForm(loadedForm);
         setInitialForm(loadedForm);
@@ -232,6 +272,21 @@ export function ProfileSettingsContent({ onClose = null }) {
           loading={deleting}
           onBack={() => setConfirmingDeletion(false)}
           onConfirm={confirmAccountDeletion}
+        />
+      )}
+      {confirmingUpgrade && (
+        <ConfirmationModal
+          confirmation={{
+            title: "Tornar-se profissional",
+            message:
+              "Ao continuar, sua conta será alterada para profissional e, no próximo acesso, você deverá cadastrar o nome do negócio. Deseja realmente continuar?",
+            backLabel: "Não, continuar como cliente",
+            confirmLabel: "Sim, tornar-me profissional",
+            danger: true,
+          }}
+          loading={upgrading}
+          onBack={() => setConfirmingUpgrade(false)}
+          onConfirm={confirmRoleUpgrade}
         />
       )}
       <main className="profile-main">
@@ -394,6 +449,16 @@ export function ProfileSettingsContent({ onClose = null }) {
               >
                 <KeyRound size={17} /> Alterar senha
               </button>
+              {!isProfessional && (
+                <button
+                  className="profile-password-button"
+                  type="button"
+                  disabled={saving || upgrading}
+                  onClick={() => setConfirmingUpgrade(true)}
+                >
+                  <BriefcaseBusiness size={17} /> Quero ser profissional
+                </button>
+              )}
               <button
                 className="profile-delete-button"
                 type="button"

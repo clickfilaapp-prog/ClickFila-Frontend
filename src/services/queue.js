@@ -1,8 +1,41 @@
 import { API_ROUTES } from "../routes/apiRoutes";
 import { apiRequest } from "./api";
 
-export const getQueueByCode = (ticketCode) =>
-  apiRequest(API_ROUTES.queueByCode(ticketCode));
+function normalizeQueueSummary(queue) {
+  if (!queue) return queue;
+
+  const status = String(queue.status || queue.queueStatus || "").toUpperCase();
+  const rawActive =
+    queue.isActive ??
+    queue.active ??
+    queue.isOpen ??
+    queue.open ??
+    queue.queueActive;
+  const closedStatuses = new Set([
+    "CLOSE",
+    "CLOSED",
+    "INACTIVE",
+    "PAUSED",
+    "FINISHED",
+  ]);
+  const openStatuses = new Set(["OPEN", "OPENED", "ACTIVE", "RUNNING"]);
+
+  let isActive;
+  if (closedStatuses.has(status)) isActive = false;
+  else if (openStatuses.has(status)) isActive = true;
+  else if (typeof rawActive === "string") {
+    isActive = ["true", "1", "yes", "open", "active"].includes(
+      rawActive.toLowerCase(),
+    );
+  } else {
+    isActive = Boolean(rawActive);
+  }
+
+  return { ...queue, status, isActive };
+}
+
+export const getQueueByCode = async (ticketCode) =>
+  normalizeQueueSummary(await apiRequest(API_ROUTES.queueByCode(ticketCode)));
 export const getMyQueueStatus = () => apiRequest(API_ROUTES.myQueueStatus);
 export const getQueueState = getMyQueueStatus;
 export const getActiveEntry = async () =>
@@ -80,11 +113,30 @@ export async function getProfessionalDashboard({ force = false } = {}) {
   }
 }
 
+export function hasProfessionalSetup(dashboard) {
+  return Boolean(
+    dashboard?.businessId ||
+      dashboard?.business?.id ||
+      dashboard?.sessionId ||
+      dashboard?.ticketCode,
+  );
+}
+
+export function clearProfessionalDashboardCache() {
+  dashboardCache = null;
+  dashboardCacheTime = 0;
+}
+
 async function loadProfessionalDashboard() {
   const dashboard = await apiRequest(API_ROUTES.professionalDashboard);
   if (!dashboard) return null;
   return {
     ...dashboard,
+    businessId:
+      dashboard.businessId ||
+      dashboard.business?.id ||
+      dashboard.business?.businessId ||
+      null,
     sessionId: dashboard.sessionId || dashboard.id || null,
     activeQueue: (dashboard.activeQueue || []).map(normalizeQueueEntry),
   };

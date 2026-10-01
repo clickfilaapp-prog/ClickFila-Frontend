@@ -15,6 +15,9 @@ export const deleteMyAccount = () =>
 export const upgradeMyRole = () =>
   apiRequest(API_ROUTES.upgradeMyRole, { method: "PATCH" });
 
+export const downgradeToClient = () =>
+  apiRequest(API_ROUTES.downgradeToClient, { method: "PATCH" });
+
 export const changeMyPassword = ({
   currentPassword,
   newPassword,

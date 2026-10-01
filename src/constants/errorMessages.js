@@ -16,6 +16,11 @@ export const ErrorDictionary = {
   SESSION_NOT_FOUND:
     "A fila solicitada não foi encontrada ou o código é inválido.",
 
+  QUEUE_IS_ACTIVE: "Feche a fila antes de alterar sua conta para cliente.",
+  MEMBER_BUSY:
+    "Finalize ou cancele o cliente chamado ou em atendimento antes de alterar sua conta.",
+  ALREADY_CLIENT: "Sua conta já é do tipo cliente.",
+
   // Erros de Integração e Sistema (Falhas técnicas genéricas ocultadas do cliente)
   USER_NOT_FOUND: "Erro de sincronização. Por favor, faça login novamente.",
   PROFESSIONAL_NOT_FOUND:

@@ -7,6 +7,7 @@ export const API_ROUTES = Object.freeze({
   registerProfessional: "/api/users/professional",
   myUserProfile: "/api/users/me",
   upgradeMyRole: "/api/users/me/upgrade-role",
+  downgradeToClient: "/api/users/me/downgrade-to-client",
   myUserPassword: "/api/users/me/password",
   completeTutorial: "/api/users/me/tutorial",
   lgpdConsent: "/api/v1/lgpd-consents",

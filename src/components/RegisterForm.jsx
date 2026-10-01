@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { ArrowLeft, Mail, UserPlus, UserRound } from "lucide-react";
 import { Link } from "react-router-dom";
 import PasswordField from "./PasswordField";
-import LgpdConsentModal from "./LgpdConsentModal";
 
 const EMPTY_FORM = {
   name: "",
@@ -33,7 +32,8 @@ export default function RegisterForm({
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [validationError, setValidationError] = useState("");
-  const [showLgpdTerms, setShowLgpdTerms] = useState(false);
+  const [privacyAccepted, setPrivacyAccepted] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const isProfessional = role === "professional";
 
   function updateField(field, value) {
@@ -56,16 +56,16 @@ export default function RegisterForm({
       setValidationError("As senhas não conferem.");
       return;
     }
-    setShowLgpdTerms(true);
-  }
-
-  async function confirmRegistration() {
+    if (!privacyAccepted || !termsAccepted) {
+      setValidationError(
+        "Aceite a Política de Privacidade e os Termos de Uso para continuar.",
+      );
+      return;
+    }
     await onSubmit({ ...form, termsAccepted: true });
-    setShowLgpdTerms(false);
   }
 
   return (
-    <>
     <form className="auth-form auth-form-transition" onSubmit={handleSubmit}>
       {(validationError || requestError) && (
         <div className="login-auth-error" role="alert">
@@ -142,22 +142,54 @@ export default function RegisterForm({
         placeholder="Digite a senha novamente"
         visibilityLabel="confirmação"
       />
-      <p className="registration-legal-note">
-        Ao criar sua conta, você declara ter lido e concordado com nossa{" "}
-        <Link
-          to="/politica-de-privacidade"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Política de Privacidade
-        </Link>{" "}
-        e com os{" "}
-        <Link to="/termos-de-uso" target="_blank" rel="noopener noreferrer">
-          Termos de Uso
-        </Link>
-        .
-      </p>
-      <button className="dark" type="submit" disabled={isSubmitting}>
+      <div className="registration-consent-options">
+        <label className="lgpd-consent-check">
+          <input
+            type="checkbox"
+            required
+            checked={privacyAccepted}
+            disabled={isSubmitting}
+            onChange={(event) => setPrivacyAccepted(event.target.checked)}
+          />
+          <span>
+            Li e aceito a{" "}
+            <Link
+              to="/politica-de-privacidade"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Política de Privacidade
+            </Link>
+            .
+          </span>
+        </label>
+
+        <label className="lgpd-consent-check">
+          <input
+            type="checkbox"
+            required
+            checked={termsAccepted}
+            disabled={isSubmitting}
+            onChange={(event) => setTermsAccepted(event.target.checked)}
+          />
+          <span>
+            Li e concordo com os{" "}
+            <Link
+              to="/termos-de-uso"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Termos de Uso
+            </Link>
+            , incluindo as regras de funcionamento da fila.
+          </span>
+        </label>
+      </div>
+      <button
+        className="dark"
+        type="submit"
+        disabled={!privacyAccepted || !termsAccepted || isSubmitting}
+      >
         {isSubmitting
           ? "Criando cadastro..."
           : isProfessional
@@ -169,14 +201,5 @@ export default function RegisterForm({
         <ArrowLeft size={16} /> Voltar
       </button>
     </form>
-    {showLgpdTerms && (
-      <LgpdConsentModal
-        isProfessional={isProfessional}
-        isSubmitting={isSubmitting}
-        onClose={() => setShowLgpdTerms(false)}
-        onConfirm={confirmRegistration}
-      />
-    )}
-    </>
   );
 }

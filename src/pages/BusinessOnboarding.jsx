@@ -3,9 +3,11 @@ import { Building2, Smartphone, UsersRound, WandSparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import DashboardLayout from "../components/DashboardLayout";
 import {
+  clearProfessionalDashboardCache,
   createBusiness,
   createQueueSession,
   getProfessionalDashboard,
+  hasProfessionalSetup,
 } from "../services/queue";
 
 const BENEFITS = [
@@ -33,20 +35,27 @@ export default function BusinessOnboarding() {
   const [error, setError] = useState("");
   const [pendingInviteCount, setPendingInviteCount] = useState(0);
   const [inviteMessage, setInviteMessage] = useState("");
+  const [checkingSetup, setCheckingSetup] = useState(true);
 
   useEffect(() => {
     let active = true;
-    getProfessionalDashboard()
+    getProfessionalDashboard({ force: true })
       .then((dashboard) => {
-        if (active) {
-          setPendingInviteCount(dashboard?.pendingInvites?.length || 0);
+        if (!active) return;
+        if (hasProfessionalSetup(dashboard)) {
+          navigate("/professionalDashboard", { replace: true });
+          return;
         }
+        setPendingInviteCount(dashboard?.pendingInvites?.length || 0);
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => {
+        if (active) setCheckingSetup(false);
+      });
     return () => {
       active = false;
     };
-  }, []);
+  }, [navigate]);
 
   useEffect(() => {
     if (!inviteMessage) return undefined;
@@ -73,9 +82,13 @@ export default function BusinessOnboarding() {
     try {
       await createBusiness(name);
       await createQueueSession();
+      clearProfessionalDashboardCache();
       navigate("/professionalDashboard", {
         replace: true,
-        state: { message: "Seu negócio foi criado com sucesso!" },
+        state: {
+          message: "Seu negócio foi criado com sucesso!",
+          setupCreated: true,
+        },
       });
     } catch (requestError) {
       setError(requestError.message);
@@ -97,7 +110,7 @@ export default function BusinessOnboarding() {
         </div>
       )}
       <main className="business-onboarding">
-        <section className="onboarding-hero">
+        {!checkingSetup && <section className="onboarding-hero">
           <div className="onboarding-copy">
             <span className="step">COMECE SEU NEGÓCIO</span>
             <h1>Um negócio mais organizado começa aqui.</h1>
@@ -159,7 +172,7 @@ export default function BusinessOnboarding() {
               {loading ? "Criando seu negócio..." : "Criar meu negócio"}
             </button>
           </form>
-        </section>
+        </section>}
       </main>
     </DashboardLayout>
   );

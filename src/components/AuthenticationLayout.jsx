@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { ShieldCheck, Sparkles } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import salonHero from "../assets/salao-feminino-masculino.png";
 import salonHero2 from "../assets/salao-feminino-masculino-2.png";
 import salonHero3 from "../assets/salao-feminino-masculino-3.png";
@@ -91,17 +91,12 @@ export default function AuthenticationLayout({ page, children }) {
             <h1>{content.title}</h1>
             <p>{content.description}</p>
           </div>
-          <div className="login-trust">
-            <ShieldCheck size={18} />
-            <span>
-              <strong>Acesso seguro</strong>Seus dados ficam protegidos.
-            </span>
-          </div>
         </div>
         <div className="login-panel">
           <div className="login-heading">
             <span className="login-mobile-brand">
-              <img src="/favicon.png" alt="" /> Click Fila
+              <img src="/favicon.png" alt="" />
+              <span>Click <i>Fila</i></span>
             </span>
             <span className="step">NOVO CADASTRO</span>
             <h2>{content.panel[0]}</h2>

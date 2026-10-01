@@ -20,7 +20,7 @@ export default function WaitingList({ waiting }) {
               <strong>
                 {index + 1}. {entry.clientName}
               </strong>
-              <small>
+              <small className="client-request-note">
                 <b>OBS:</b> {entry.serviceName}
               </small>
             </div>

@@ -8,14 +8,14 @@ export default function ConfirmationModal({
 }) {
   return (
     <div
-      className="confirmation-modal"
+      className={`confirmation-modal ${confirmation.danger ? "danger" : ""}`}
       role="alertdialog"
       aria-modal="true"
       aria-labelledby="confirmation-title"
     >
       <div>
         <div
-          className={`confirmation-icon ${confirmation.danger ? "danger" : ""}`}
+          className={`confirmation-icon ${confirmation.danger || confirmation.redIcon ? "danger" : ""}`}
         >
           {confirmation.danger ? "!" : "?"}
         </div>
@@ -39,7 +39,7 @@ export default function ConfirmationModal({
           {!confirmation.hideConfirm && (
             <button
               type="button"
-              className={`confirmation-accept ${confirmation.danger ? "danger" : ""}`}
+              className={`confirmation-accept ${confirmation.danger ? "danger" : ""} ${confirmation.success ? "success" : ""}`}
               disabled={loading}
               onClick={onConfirm}
             >

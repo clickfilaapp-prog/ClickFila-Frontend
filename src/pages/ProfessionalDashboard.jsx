@@ -18,6 +18,7 @@ import {
   cancelEntry,
   finishService,
   getProfessionalDashboard,
+  hasProfessionalSetup,
   refreshQueueCode,
   requeueEntry,
   setQueueStatus,
@@ -73,6 +74,8 @@ export default function ProfessionalDashboard() {
   const navigate = useNavigate();
   const location = useLocation();
   const isRefreshing = useRef(false);
+  const setupJustCreated = useRef(Boolean(location.state?.setupCreated));
+  const setupSyncAttempts = useRef(0);
   const showedInviteAlert = useRef(false);
   const previousActiveEntryIds = useRef(new Set());
   const [dashboard, setDashboard] = useState(null);
@@ -102,7 +105,7 @@ export default function ProfessionalDashboard() {
       setError("");
     }
     try {
-      let persistedDashboard = await getProfessionalDashboard();
+      let persistedDashboard = await getProfessionalDashboard({ force: !silent });
       setDashboard((currentDashboard) => {
         const nextDashboard = persistedDashboard || EMPTY_DASHBOARD;
         return {
@@ -149,10 +152,31 @@ export default function ProfessionalDashboard() {
   }, [dashboard]);
 
   useEffect(() => {
+    if (hasProfessionalSetup(dashboard)) {
+      setupJustCreated.current = false;
+      return undefined;
+    }
+    if (
+      !dashboard ||
+      !setupJustCreated.current ||
+      setupSyncAttempts.current >= 4
+    ) {
+      return undefined;
+    }
+
+    const timer = window.setTimeout(() => {
+      setupSyncAttempts.current += 1;
+      refresh({ silent: true });
+    }, 400);
+    return () => window.clearTimeout(timer);
+  }, [dashboard]);
+
+  useEffect(() => {
     if (
       dashboard &&
-      !dashboard.businessId &&
-      !(dashboard.pendingInvites || []).length
+      !hasProfessionalSetup(dashboard) &&
+      !(dashboard.pendingInvites || []).length &&
+      !setupJustCreated.current
     ) {
       navigate("/professional/business/new", { replace: true });
     }
@@ -389,7 +413,7 @@ export default function ProfessionalDashboard() {
         ? "is-expired"
         : "is-running"
     : "";
-  const hasBusiness = Boolean(dashboard?.businessId);
+  const hasBusiness = hasProfessionalSetup(dashboard);
   const hasSession = Boolean(dashboard?.sessionId);
   const busyMemberIds = new Set(
     (dashboard?.activeQueue || [])
@@ -507,6 +531,7 @@ export default function ProfessionalDashboard() {
       title: "Realocar cliente",
       message: `Deseja devolver ${targetEntry.clientName} para a fila como ausente?`,
       confirmLabel: "Sim, realocar",
+      success: true,
       action: () =>
         run(async () => {
           const requeuedEntry = await requeueEntry(
@@ -539,6 +564,7 @@ export default function ProfessionalDashboard() {
         `${member.name} deseja chamar ` +
         `${nextClient.clientName || "o próximo cliente"} para atendimento?`,
       confirmLabel: "Sim, chamar",
+      success: true,
       action: () =>
         run(async () => {
           const calledEntry = await callNext(dashboard.sessionId, member.id);
@@ -681,6 +707,8 @@ export default function ProfessionalDashboard() {
         : "Deseja fechar a fila? Novos clientes não poderão entrar.",
       confirmLabel: opening ? "Sim, abrir" : "Sim, fechar",
       danger: !opening,
+      success: opening,
+      redIcon: opening,
       action: () =>
         run(async () => {
           const updatedSession = await setQueueStatus(opening);
@@ -752,7 +780,7 @@ export default function ProfessionalDashboard() {
       showInvites
       pendingInviteCount={dashboard?.pendingInvites?.length || 0}
       onOpenInvites={handleOpenInvites}
-      tutorialReady={Boolean(dashboard?.businessId)}
+      tutorialReady={hasProfessionalSetup(dashboard)}
     >
       <main className="salon-main">
         {confirmation && (
@@ -930,7 +958,7 @@ export default function ProfessionalDashboard() {
         {dashboard && hasBusiness && dashboard.loggedMemberRole === "OWNER" && (
           <section className="team-management-shell">
             <button
-              className="manage-team-trigger"
+              className={`manage-team-trigger ${teamManagementOpen ? "close-action" : ""}`}
               type="button"
               onClick={() => setTeamManagementOpen((open) => !open)}
             >

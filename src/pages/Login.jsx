@@ -160,10 +160,6 @@ export default function Login() {
         />
       )}
       <div className="login-auth-content">
-        <div className="login-auth-brand">
-          <img src="/favicon.png" alt="" />
-          <span>Click <i>Fila</i></span>
-        </div>
       <section className="login-auth-shell">
         <div className="login-auth-visual-column">
         <aside className="login-auth-visual">
@@ -177,6 +173,10 @@ export default function Login() {
             />
           ))}
           <div className="login-auth-overlay" />
+          <div className="login-auth-brand">
+            <img src="/favicon.png" alt="" />
+            <span>Click <i>Fila</i></span>
+          </div>
           <div className="login-auth-copy">
             <span>SEU MOMENTO DE BRILHAR</span>
             <h1>Cuide do seu tempo e acompanhe seu atendimento.</h1>
@@ -246,11 +246,11 @@ export default function Login() {
                     setRecoveringPassword(true);
                   }}
                 >
-                  Esqueceu sua senha?
+                  Esqueceu sua senha
                 </button>
 
                 <button
-                  className="login-auth-submit"
+                  className="login-auth-submit login-account-submit"
                   type="submit"
                   disabled={isLoading}
                 >
@@ -280,12 +280,12 @@ export default function Login() {
               </p>
 
               <div className="login-auth-professional">
-                <strong>É profissional da beleza?</strong>
+                <strong>Você trabalha com atendimento ao público?</strong>
                 <span>
-                  Organize sua fila e seus atendimentos em um só lugar.
+                  Organize sua fila, sua equipe e seus atendimentos em um só lugar.
                 </span>
                 <Link to="/professionalRegister">
-                  Venha trabalhar conosco →
+                  Quero organizar minha fila →
                 </Link>
               </div>
             </>

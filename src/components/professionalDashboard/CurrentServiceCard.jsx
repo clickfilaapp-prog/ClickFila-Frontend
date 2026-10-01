@@ -159,7 +159,7 @@ export default function CurrentServiceCard({
               Cancelar
             </button>
             <button
-              className="cancel-call"
+              className="cancel-call requeue-action"
               disabled={loading}
               onClick={onRequeue}
             >

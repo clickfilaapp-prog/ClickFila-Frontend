@@ -94,7 +94,7 @@ export default function TeamManagement({
               placeholder="profissional@email.com"
               aria-label="E-mail do profissional"
             />
-            <button type="submit" disabled={loading}>
+            <button className="team-invite-submit" type="submit" disabled={loading}>
               Enviar convite
             </button>
           </form>
@@ -115,7 +115,7 @@ export default function TeamManagement({
               onChange={(event) => setName(event.target.value)}
               placeholder="Nome do profissional"
             />
-            <button type="submit" disabled={loading}>
+            <button className="team-add-submit" type="submit" disabled={loading}>
               Adicionar à equipe
             </button>
           </form>

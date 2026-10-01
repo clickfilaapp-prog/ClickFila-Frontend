@@ -1,5 +1,12 @@
 import React from "react";
-import { Store, Ticket, UsersRound } from "lucide-react";
+import {
+  CheckCircle2,
+  CircleX,
+  PauseCircle,
+  Store,
+  Ticket,
+  UsersRound,
+} from "lucide-react";
 
 export default function QueueFinder({
   ticketCode,
@@ -15,6 +22,18 @@ export default function QueueFinder({
   onJoin,
   onBackToSearch,
 }) {
+  const queueStatus = String(queue?.status || "").toUpperCase();
+  const isPaused = queueStatus === "PAUSED";
+  const hasClosedQueueMessage = String(message || "")
+    .toLowerCase()
+    .includes("fila está fechada");
+  const isClosed = Boolean(queue) && (!queue.isActive || hasClosedQueueMessage);
+  const queuePreviewState = isPaused
+    ? "queue-preview-paused"
+    : isClosed
+      ? "queue-preview-closed"
+      : "";
+
   return (
     <section className="code-screen">
       <div className="card-icon light">
@@ -59,7 +78,7 @@ export default function QueueFinder({
       {queue && (
         <div
           data-tour="client-join"
-          className={`queue-preview ${!queue.isActive ? "queue-preview-closed" : ""}`}
+          className={`queue-preview ${queuePreviewState}`}
         >
           <div className="client-queue-stats">
             <article>
@@ -73,12 +92,20 @@ export default function QueueFinder({
               <strong>{peopleInQueue}</strong>
             </article>
             <article>
-              <Ticket size={20} />
+              {isPaused ? (
+                <PauseCircle size={20} aria-hidden="true" />
+              ) : !isClosed ? (
+                <CheckCircle2 size={20} aria-hidden="true" />
+              ) : (
+                <CircleX size={20} aria-hidden="true" />
+              )}
               <span>Status</span>
-              <strong>{queue.isActive ? "Fila aberta" : "Fila fechada"}</strong>
+              <strong>
+                {isPaused ? "Pausada" : isClosed ? "Fechada" : "Aberta"}
+              </strong>
             </article>
           </div>
-          {queue.isActive && (
+          {!isClosed && !isPaused && (
             <form className="login-auth-form" onSubmit={onJoin}>
               <p>Confira a quantidade de pessoas e decida se deseja entrar.</p>
               <input
@@ -94,7 +121,7 @@ export default function QueueFinder({
               </button>
             </form>
           )}
-          {!queue.isActive && (
+          {(isClosed || isPaused) && (
             <button
               className="login-auth-submit"
               type="button"

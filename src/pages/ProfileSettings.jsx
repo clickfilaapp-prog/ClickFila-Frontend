@@ -24,12 +24,14 @@ import ChangePasswordModal from "../components/ChangePasswordModal";
 import ConfirmationModal from "../components/professionalDashboard/ConfirmationModal";
 import {
   deleteMyAccount,
+  downgradeToClient,
   getMyUserProfile,
   upgradeMyRole,
   updateMyUserProfile,
 } from "../services/profile";
 import { refreshAuthSession } from "../services/api";
 import {
+  clearProfessionalDashboardCache,
   getProfessionalDashboard,
   updateMyBusiness,
 } from "../services/queue";
@@ -63,6 +65,8 @@ export function ProfileSettingsContent({ onClose = null }) {
   const [deleting, setDeleting] = useState(false);
   const [confirmingUpgrade, setConfirmingUpgrade] = useState(false);
   const [upgrading, setUpgrading] = useState(false);
+  const [confirmingDowngrade, setConfirmingDowngrade] = useState(false);
+  const [downgrading, setDowngrading] = useState(false);
 
   useEffect(() => {
     if (!success) return undefined;
@@ -109,6 +113,39 @@ export function ProfileSettingsContent({ onClose = null }) {
       setError(requestError.message);
     } finally {
       setUpgrading(false);
+    }
+  }
+
+  async function confirmRoleDowngrade() {
+    setDowngrading(true);
+    setError("");
+    try {
+      const updatedProfile = await downgradeToClient();
+      const updatedRole = String(updatedProfile?.role)
+        .replace(/^ROLE_/i, "")
+        .toUpperCase();
+      if (updatedRole !== "USER") {
+        throw new Error("O servidor não confirmou a alteração para cliente.");
+      }
+
+      // O JWT atual ainda possui a role PROFESSIONAL. Remova-o antes do
+      // refresh para impedir que a permissão antiga seja reutilizada.
+      removeAccessToken();
+      await refreshAuthSession();
+      updateAuthRole("USER");
+      updateTutorialCompleted(updatedProfile?.tutorialCompleted === true);
+      clearProfessionalDashboardCache();
+
+      // A troca de rota desmonta o dashboard e descarta seu estado em memória.
+      navigate("/clientQueue", {
+        replace: true,
+        state: { toast: "Sua conta agora está no perfil de cliente." },
+      });
+    } catch (requestError) {
+      setConfirmingDowngrade(false);
+      setError(requestError.message);
+    } finally {
+      setDowngrading(false);
     }
   }
 
@@ -289,6 +326,20 @@ export function ProfileSettingsContent({ onClose = null }) {
           onConfirm={confirmRoleUpgrade}
         />
       )}
+      {confirmingDowngrade && (
+        <ConfirmationModal
+          confirmation={{
+            title: "Mudar para cliente",
+            message:
+              "Você deixará de acessar o painel profissional. Se for dono, feche a fila antes de continuar; se estiver atendendo, finalize ou cancele o atendimento atual.",
+            backLabel: "Não, continuar como profissional",
+            confirmLabel: "Sim, mudar para cliente",
+          }}
+          loading={downgrading}
+          onBack={() => setConfirmingDowngrade(false)}
+          onConfirm={confirmRoleDowngrade}
+        />
+      )}
       <main className="profile-main">
         <section className="profile-card">
           {onClose && (
@@ -457,6 +508,16 @@ export function ProfileSettingsContent({ onClose = null }) {
                   onClick={() => setConfirmingUpgrade(true)}
                 >
                   <BriefcaseBusiness size={17} /> Quero ser profissional
+                </button>
+              )}
+              {isProfessional && (
+                <button
+                  className="profile-password-button"
+                  type="button"
+                  disabled={saving || downgrading}
+                  onClick={() => setConfirmingDowngrade(true)}
+                >
+                  <UserRound size={17} /> Quero ser cliente
                 </button>
               )}
               <button

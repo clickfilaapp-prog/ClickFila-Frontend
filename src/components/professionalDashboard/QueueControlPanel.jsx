@@ -130,7 +130,7 @@ export default function QueueControlPanel({
               </form>
             ) : (
               <button
-                className="queue-setting-action"
+                className="queue-setting-action edit-action"
                 disabled={loading}
                 onClick={onStartPrefixEdit}
               >
@@ -190,7 +190,7 @@ export default function QueueControlPanel({
               </form>
             ) : (
               <button
-                className="queue-setting-action"
+                className="queue-setting-action edit-action"
                 disabled={loading}
                 onClick={onStartToleranceEdit}
               >

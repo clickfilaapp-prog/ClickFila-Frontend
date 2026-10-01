@@ -133,8 +133,8 @@ export default function SystemTutorialModal({
           ))}
         </div>
         <article className="system-tutorial-slide" key={`${role}-${currentSlide}`}>
-          <div className="system-tutorial-slide-icon"><SlideIcon size={38} /></div>
-          <span>PASSO {currentSlide + 1} DE {tutorial.slides.length}</span>
+          <div className={`system-tutorial-slide-icon ${role === "PROFESSIONAL" && currentSlide === 0 ? "queue-open" : ""} ${role === "PROFESSIONAL" && currentSlide === 1 ? "queue-ticket" : ""} ${role === "PROFESSIONAL" && currentSlide === 2 ? "queue-clients" : ""} ${role === "PROFESSIONAL" && currentSlide === 3 ? "queue-service" : ""} ${role === "PROFESSIONAL" && currentSlide === 4 ? "queue-finish" : ""}`}><SlideIcon size={38} /></div>
+          <span className={role === "PROFESSIONAL" ? "professional-step-label" : ""}>PASSO {currentSlide + 1} DE {tutorial.slides.length}</span>
           <h3>{slide.title}</h3>
           <p>{slide.text}</p>
           <small>{slide.hint}</small>

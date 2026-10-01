@@ -2592,15 +2592,15 @@ select {
   display: grid;
   gap: 4px;
   text-align: left;
-  background: #0B1F3B;
-  border: 1px solid #0B1F3B;
+  background: rgba(204, 157, 48, 0.12);
+  border: 1px solid #9F7B30;
   border-radius: 10px;
 }
 .current-service span {
   display: flex;
   align-items: center;
   gap: 6px;
-  color: #c99b9e;
+  color: #EAD7A2;
   font-size: 8px;
   font-weight: 700;
   letter-spacing: 0.12em;
@@ -4371,11 +4371,40 @@ footer {
   border-radius: 22px;
 }
 
+.system-tutorial-slide-icon.queue-open {
+  color: #567A56;
+  background: #EEF5EE;
+}
+
+.system-tutorial-slide-icon.queue-ticket {
+  color: #007BFF;
+  background: #E3F0FF;
+}
+
+.system-tutorial-slide-icon.queue-clients {
+  color: #B8860B;
+  background: #FFF7D6;
+}
+
+.system-tutorial-slide-icon.queue-service {
+  color: #567A56;
+  background: #E4EFE4;
+}
+
+.system-tutorial-slide-icon.queue-finish {
+  color: #2F5D3A;
+  background: #DCEBDD;
+}
+
 .system-tutorial-slide > span {
   color: #0096D6;
   font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.12em;
+}
+
+.system-tutorial-slide > span.professional-step-label {
+  color: #B8860B;
 }
 
 .system-tutorial-slide h3 {

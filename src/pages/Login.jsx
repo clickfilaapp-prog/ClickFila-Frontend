@@ -246,7 +246,7 @@ export default function Login() {
                     setRecoveringPassword(true);
                   }}
                 >
-                  Esqueceu sua senha
+                  Esqueceu sua senha?
                 </button>
 
                 <button

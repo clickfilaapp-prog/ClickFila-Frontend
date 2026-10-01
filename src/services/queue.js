@@ -47,8 +47,6 @@ export const joinQueue = (queueSessionId, serviceName) =>
     method: "POST",
     body: JSON.stringify({ queueSessionId, serviceName }),
   });
-export const createQueueSession = () =>
-  apiRequest(API_ROUTES.createQueueSession, { method: "POST" });
 export const setQueueStatus = (activate) =>
   apiRequest(API_ROUTES.updateQueueStatus, {
     method: "PATCH",
@@ -64,6 +62,26 @@ export const updateQueueTolerance = (toleranceMinutes) =>
   updateQueueSettings({ toleranceMinutes });
 export const refreshQueueCode = () =>
   apiRequest(API_ROUTES.refreshQueueCode, { method: "POST" });
+
+export const createQueueSession = async () => {
+  try {
+    return await apiRequest(API_ROUTES.createQueueSession, { method: "POST" });
+  } catch (error) {
+    if (error.status === 409 && error.code === "QUEUE_ALREADY_EXISTS") {
+      console.log("Fila inativa encontrada. A carregar sessão existente...");
+      
+      const dashboard = await getProfessionalDashboard({ force: true });
+      
+      return {
+        id: dashboard?.sessionId,
+        ticketCode: dashboard?.ticketCode,
+        isActive: dashboard?.isActive ?? false,
+      };
+    }
+    
+    throw error;
+  }
+};
 
 function normalizeQueueEntry(entry) {
   if (!entry) return entry;

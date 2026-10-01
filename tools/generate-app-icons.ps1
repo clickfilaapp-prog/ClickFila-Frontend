@@ -1,5 +1,5 @@
 param(
-  [string]$Source = "src/assets/app-icon-master-v2.png",
+  [string]$Source = "public/favicon.png",
   [string]$OutputDirectory = "public"
 )
 
@@ -55,11 +55,11 @@ function New-AppIcon {
   $bitmap.Dispose()
 }
 
-New-AppIcon -Size 192 -FileName "app-icon-v2-192.png" -Rounded $true
-New-AppIcon -Size 512 -FileName "app-icon-v2-512.png" -Rounded $true
-New-AppIcon -Size 192 -FileName "app-icon-maskable-v2-192.png" -Rounded $false
-New-AppIcon -Size 512 -FileName "app-icon-maskable-v2-512.png" -Rounded $false
-New-AppIcon -Size 180 -FileName "apple-touch-icon-v2.png" -Rounded $true
-New-AppIcon -Size 64 -FileName "favicon-v2.png" -Rounded $true
+New-AppIcon -Size 192 -FileName "app-icon-v3-192.png" -Rounded $true
+New-AppIcon -Size 512 -FileName "app-icon-v3-512.png" -Rounded $true
+New-AppIcon -Size 192 -FileName "app-icon-maskable-v3-192.png" -Rounded $false
+New-AppIcon -Size 512 -FileName "app-icon-maskable-v3-512.png" -Rounded $false
+New-AppIcon -Size 180 -FileName "apple-touch-icon-v3.png" -Rounded $true
+New-AppIcon -Size 64 -FileName "favicon-v3.png" -Rounded $true
 
 $sourceImage.Dispose()

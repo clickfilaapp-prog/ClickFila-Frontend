@@ -6275,3 +6275,94 @@ main > *,
     display: none;
   }
 }
+/* ==========================================================================
+   BLOQUEIO DE ROLAGEM EM SOBREPOSIÇÕES MÓVEIS
+   A página fica imóvel; somente menu, modal ou painel ativo pode rolar.
+   ========================================================================== */
+@media (max-width: 1100px) {
+  body.mobile-overlay-open {
+    height: 100dvh;
+    overflow: hidden !important;
+    overscroll-behavior: none;
+  }
+
+  body.mobile-overlay-open .dashboard-navigation-list,
+  body.mobile-overlay-open .profile-modal,
+  body.mobile-overlay-open .password-modal,
+  body.mobile-overlay-open .confirmation-modal,
+  body.mobile-overlay-open .cancellation-modal,
+  body.mobile-overlay-open .lgpd-modal,
+  body.mobile-overlay-open .notification-consent-modal,
+  body.mobile-overlay-open .system-tutorial-modal,
+  body.mobile-overlay-open .team-management-mobile-open {
+    touch-action: pan-y;
+    overscroll-behavior: contain;
+  }
+
+  .mobile-navigation-trigger[aria-expanded="true"] {
+    color: #FFFFFF;
+    background: #8F1D1D;
+    border-color: #8F1D1D;
+  }
+
+  .mobile-navigation-trigger[aria-expanded="true"]:hover,
+  .mobile-navigation-trigger[aria-expanded="true"]:focus-visible {
+    color: #FFFFFF;
+    background: #6F1515;
+    border-color: #6F1515;
+  }
+
+  .profile-modal,
+  .password-modal,
+  .confirmation-modal,
+  .cancellation-modal,
+  .lgpd-modal,
+  .notification-consent-modal,
+  .system-tutorial-modal {
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .password-modal > section,
+  .confirmation-modal > div,
+  .cancellation-modal > div,
+  .notification-consent-modal > section {
+    max-height: calc(100dvh - 2rem);
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .team-management-shell.team-management-mobile-open {
+    position: fixed;
+    z-index: 1040;
+    inset: 0;
+    width: 100%;
+    height: 100dvh;
+    margin: 0;
+    padding: 0.75rem clamp(0.625rem, 3vw, 1.25rem) 1.5rem;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    background: #F0F7FF;
+    text-align: left;
+  }
+
+  .team-management-mobile-open > .manage-team-trigger.close-action {
+    position: sticky;
+    z-index: 3;
+    top: 0;
+    width: 100%;
+    min-height: 3rem;
+    margin: 0 0 0.75rem;
+    background: #8F1D1D;
+    border-color: #8F1D1D;
+    box-shadow: 0 0.5rem 1.5rem rgba(143, 29, 29, 0.2);
+  }
+
+  .team-management-mobile-open > .team-management-layout {
+    margin-top: 0;
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+}

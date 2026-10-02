@@ -956,7 +956,7 @@ export default function ProfessionalDashboard() {
           </section>
         )}
         {dashboard && hasBusiness && dashboard.loggedMemberRole === "OWNER" && (
-          <section className="team-management-shell">
+          <section className={`team-management-shell${teamManagementOpen ? " team-management-mobile-open" : ""}`}>
             <button
               className={`manage-team-trigger ${teamManagementOpen ? "close-action" : ""}`}
               type="button"

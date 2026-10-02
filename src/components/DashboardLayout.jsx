@@ -5,7 +5,9 @@ import {
   ListPlus,
   LogOut,
   Mail,
+  Menu,
   UserRound,
+  X,
 } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
@@ -41,7 +43,23 @@ export default function DashboardLayout({
   );
   const [completingTutorial, setCompletingTutorial] = useState(false);
   const [confirmLogout, setConfirmLogout] = useState(false);
+  const [navigationOpen, setNavigationOpen] = useState(false);
   const [toast, setToast] = useState(location.state?.toast || "");
+
+  useEffect(() => {
+    setNavigationOpen(false);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    if (!navigationOpen) return undefined;
+
+    function closeOnEscape(event) {
+      if (event.key === "Escape") setNavigationOpen(false);
+    }
+
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, [navigationOpen]);
 
   useEffect(() => {
     if (tutorialReady && loadAuthSession()?.tutorialCompleted === false) {
@@ -104,7 +122,23 @@ export default function DashboardLayout({
             Click <i>Fila</i>
           </span>
         </Link>
-        <div className="session-bar">
+        <button
+          className="mobile-navigation-trigger"
+          type="button"
+          aria-label={navigationOpen ? "Fechar menu" : "Abrir menu"}
+          aria-controls="session-navigation"
+          aria-expanded={navigationOpen}
+          onClick={() => setNavigationOpen((open) => !open)}
+        >
+          {navigationOpen ? <X size={22} /> : <Menu size={22} />}
+          <span>Menu</span>
+        </button>
+        <div
+          id="session-navigation"
+          className={`dashboard-navigation-list${navigationOpen ? " navigation-open" : ""}`}
+          role="navigation"
+          aria-label="Navegação da conta"
+        >
           {tutorialReady && (
             <button className="account-action" type="button" onClick={() => setTutorialOpen(true)}>
               <CircleHelp size={16} /> <span>Como funciona</span>

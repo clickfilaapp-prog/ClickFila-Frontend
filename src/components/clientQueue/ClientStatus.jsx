@@ -31,25 +31,25 @@ const STATUS = {
 
 const TIMELINE = ["Na fila", "Chamado", "Em atendimento", "Finalizado"];
 
-function ClientCallCountdown({ serverTimeNow, toleranceExpiresAt }) {
-  const initialSeconds = Math.max(
-    0,
-    Math.ceil(
-      (new Date(toleranceExpiresAt).getTime() -
-        new Date(serverTimeNow).getTime()) /
-        1000,
-    ),
+function getRemainingSeconds(toleranceExpiresAt) {
+  const expirationTime = new Date(toleranceExpiresAt).getTime();
+  if (!Number.isFinite(expirationTime)) return 0;
+  return Math.max(0, Math.ceil((expirationTime - Date.now()) / 1000));
+}
+
+function ClientCallCountdown({ toleranceExpiresAt }) {
+  const [totalSeconds, setTotalSeconds] = useState(() =>
+    getRemainingSeconds(toleranceExpiresAt),
   );
-  const [totalSeconds, setTotalSeconds] = useState(initialSeconds);
 
   useEffect(() => {
-    setTotalSeconds(initialSeconds);
-    const timer = window.setInterval(
-      () => setTotalSeconds((seconds) => Math.max(0, seconds - 1)),
-      1000,
-    );
+    const updateCountdown = () =>
+      setTotalSeconds(getRemainingSeconds(toleranceExpiresAt));
+
+    updateCountdown();
+    const timer = window.setInterval(updateCountdown, 1000);
     return () => window.clearInterval(timer);
-  }, [initialSeconds]);
+  }, [toleranceExpiresAt]);
 
   return (
     <strong
@@ -74,9 +74,7 @@ export default function ClientStatus({
   const status = STATUS[entry.status] || STATUS.WAITING;
   const finished = entry.status === "FINISHED";
   const canShowTimer =
-    entry.status === "CALLED" &&
-    entry.serverTimeNow &&
-    entry.toleranceExpiresAt;
+    entry.status === "CALLED" && entry.toleranceExpiresAt;
 
   return (
     <section
@@ -108,7 +106,6 @@ export default function ClientStatus({
           {entry.status === "CALLED" ? (
             canShowTimer ? (
               <ClientCallCountdown
-                serverTimeNow={entry.serverTimeNow}
                 toleranceExpiresAt={entry.toleranceExpiresAt}
               />
             ) : (

@@ -1,62 +1,29 @@
 import React, { useEffect, useState } from "react";
 import { RotateCcw, Ticket } from "lucide-react";
 
-const countdownDeadlines = new Map();
-
-function getCountdownDeadline(entryId, serverTimeNow, toleranceExpiresAt) {
-  const key = `${entryId}:${toleranceExpiresAt}`;
-  if (!countdownDeadlines.has(key)) {
-    const remainingMilliseconds = Math.max(
-      0,
-      new Date(toleranceExpiresAt).getTime() - new Date(serverTimeNow).getTime(),
-    );
-    countdownDeadlines.set(key, Date.now() + remainingMilliseconds);
-  }
-  return { key, deadline: countdownDeadlines.get(key) };
+function getRemainingSeconds(toleranceExpiresAt) {
+  const expirationTime = new Date(toleranceExpiresAt).getTime();
+  if (!Number.isFinite(expirationTime)) return 0;
+  return Math.max(0, Math.ceil((expirationTime - Date.now()) / 1000));
 }
 
-export function prepareCallCountdown(entry) {
-  if (
-    entry?.status === "CALLED" &&
-    entry.id &&
-    entry.serverTimeNow &&
-    entry.toleranceExpiresAt
-  ) {
-    getCountdownDeadline(
-      entry.id,
-      entry.serverTimeNow,
-      entry.toleranceExpiresAt,
-    );
-  }
-}
-
-function CallCountdown({
-  entryId,
-  serverTimeNow,
-  toleranceExpiresAt,
-  onExpired,
-}) {
-  const { key, deadline } = getCountdownDeadline(
-    entryId,
-    serverTimeNow,
-    toleranceExpiresAt,
+function CallCountdown({ toleranceExpiresAt, onExpired }) {
+  const [totalSeconds, setTotalSeconds] = useState(() =>
+    getRemainingSeconds(toleranceExpiresAt),
   );
-  const getRemainingSeconds = () =>
-    Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
-  const [totalSeconds, setTotalSeconds] = useState(getRemainingSeconds);
 
   useEffect(() => {
-    setTotalSeconds(getRemainingSeconds());
-    const timer = window.setInterval(
-      () => setTotalSeconds(getRemainingSeconds()),
-      1000,
-    );
+    const updateCountdown = () =>
+      setTotalSeconds(getRemainingSeconds(toleranceExpiresAt));
+
+    updateCountdown();
+    const timer = window.setInterval(updateCountdown, 1000);
     return () => window.clearInterval(timer);
-  }, [key, deadline]);
+  }, [toleranceExpiresAt]);
 
   useEffect(() => {
     if (totalSeconds === 0) onExpired?.();
-  }, [totalSeconds]);
+  }, [totalSeconds, onExpired]);
 
   const minutes = String(Math.floor(totalSeconds / 60)).padStart(2, "0");
   const seconds = String(totalSeconds % 60).padStart(2, "0");
@@ -91,9 +58,7 @@ export default function CurrentServiceCard({
   onCountdownExpired,
 }) {
   const hasCountdownData =
-    current?.status === "CALLED" &&
-    current.serverTimeNow &&
-    current.toleranceExpiresAt;
+    current?.status === "CALLED" && current.toleranceExpiresAt;
 
   if (!current) {
     return (
@@ -139,8 +104,6 @@ export default function CurrentServiceCard({
         <>
           {hasCountdownData ? (
             <CallCountdown
-              entryId={current.id}
-              serverTimeNow={current.serverTimeNow}
               toleranceExpiresAt={current.toleranceExpiresAt}
               onExpired={onCountdownExpired}
             />

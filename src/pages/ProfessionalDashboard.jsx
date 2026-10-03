@@ -8,7 +8,6 @@ import {
   InviteAlertModal,
   MemberSelectionModal,
   PendingInvites,
-  prepareCallCountdown,
   QueueControlPanel,
   TeamManagement,
   WaitingList,
@@ -425,9 +424,6 @@ export default function ProfessionalDashboard() {
     (member) => !busyMemberIds.has(String(member.id)),
   );
 
-  useEffect(() => {
-    activeServices.forEach(prepareCallCountdown);
-  }, [activeServices]);
 
   useEffect(() => {
     const currentIds = new Set(

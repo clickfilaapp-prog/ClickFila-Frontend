@@ -4915,6 +4915,9 @@ footer {
   font-weight: 800;
   white-space: nowrap;
 }
+.team-roster-more {
+  display: none;
+}
 .team-items {
   display: grid;
   gap: 10px;
@@ -5014,6 +5017,14 @@ footer {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 15px;
+}
+.team-invite-toggle,
+.team-quick-toggle {
+  display: none !important;
+}
+.team-invite-fields,
+.team-quick-fields {
+  display: contents;
 }
 .team-management-forms form {
   display: grid;
@@ -5427,6 +5438,81 @@ footer {
   .team-management-forms p {
     min-height: 0;
     margin-bottom: 6px;
+  }
+  .team-management-forms .team-invite-form,
+  .team-management-forms .team-quick-form {
+    grid-template-rows: auto;
+    padding: 0;
+    overflow: hidden;
+    border: 1px solid #D9E8F7;
+  }
+  .team-invite-form > .team-form-icon,
+  .team-quick-form > .team-form-icon,
+  .team-invite-desktop-title,
+  .team-quick-desktop-title {
+    display: none !important;
+  }
+  .team-management-forms .team-invite-toggle,
+  .team-management-forms .team-quick-toggle {
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    min-height: 52px;
+    padding: 13px 15px;
+    color: #0B1F3B;
+    background: #F0F7FF;
+    border: 0;
+    border-radius: 0;
+    font-size: 16px;
+  }
+  .team-invite-toggle > span,
+  .team-quick-toggle > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .team-invite-toggle > svg,
+  .team-quick-toggle > svg {
+    transition: transform 0.2s ease;
+  }
+  .team-invite-form.is-expanded .team-invite-toggle > svg,
+  .team-quick-form.is-expanded .team-quick-toggle > svg {
+    transform: rotate(180deg);
+  }
+  .team-invite-fields,
+  .team-quick-fields {
+    display: none;
+  }
+  .team-invite-form.is-expanded .team-invite-fields,
+  .team-quick-form.is-expanded .team-quick-fields {
+    display: grid;
+    gap: 10px;
+    padding: 0 15px 15px;
+  }
+  .team-roster-card.has-mobile-collapse:not(.is-expanded) .team-item:nth-child(n + 4) {
+    display: none;
+  }
+  .team-roster-card.has-mobile-collapse .team-roster-more {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    width: 100%;
+    margin-top: 12px;
+    padding: 10px 12px;
+    color: #0B1F3B;
+    background: #E6F7FF;
+    border: 0;
+    border-radius: 9px;
+    font-weight: 800;
+    cursor: pointer;
+  }
+  .team-roster-more > svg {
+    transition: transform 0.2s ease;
+  }
+  .team-roster-card.is-expanded .team-roster-more > svg {
+    transform: rotate(180deg);
   }
 }
 @media (min-width: 821px) and (max-width: 1100px) {
@@ -6347,6 +6433,8 @@ main > *,
     overscroll-behavior: contain;
     background: #F0F7FF;
     text-align: left;
+    touch-action: pan-y;
+    -webkit-overflow-scrolling: touch;
   }
 
   .team-management-mobile-open > .manage-team-trigger.close-action {
@@ -6364,5 +6452,11 @@ main > *,
   .team-management-mobile-open > .team-management-layout {
     margin-top: 0;
     padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+  .team-management-mobile-open .team-actions-card,
+  .team-management-mobile-open .team-roster-list {
+    max-height: none;
+    overflow: visible;
+    overscroll-behavior: auto;
   }
 }

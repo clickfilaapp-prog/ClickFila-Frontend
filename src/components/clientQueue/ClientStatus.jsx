@@ -68,7 +68,6 @@ export default function ClientStatus({
   loading,
   message,
   onCancel,
-  onFinish,
   onDone,
 }) {
   const status = STATUS[entry.status] || STATUS.WAITING;
@@ -163,16 +162,7 @@ export default function ClientStatus({
         <button className="login-auth-submit" type="button" onClick={onDone}>
           Buscar outra fila
         </button>
-      ) : entry.status === "IN_SERVICE" ? (
-        <button
-          className="login-auth-submit"
-          type="button"
-          disabled={loading}
-          onClick={onFinish}
-        >
-          {loading ? "Finalizando..." : "Já fui atendido"}
-        </button>
-      ) : (
+      ) : ["WAITING", "CALLED"].includes(entry.status) ? (
         <button
           className="cancel-queue"
           type="button"
@@ -181,7 +171,7 @@ export default function ClientStatus({
         >
           {loading ? "Saindo..." : "Sair da fila"}
         </button>
-      )}
+      ) : null}
     </section>
   );
 }

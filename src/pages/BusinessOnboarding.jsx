@@ -7,7 +7,7 @@ import {
   createBusiness,
   createQueueSession,
   getProfessionalDashboard,
-  hasProfessionalSetup,
+  reactivateBusiness,
 } from "../services/queue";
 
 const BENEFITS = [
@@ -31,6 +31,8 @@ const BENEFITS = [
 export default function BusinessOnboarding() {
   const navigate = useNavigate();
   const [name, setName] = useState("");
+  const [cpfCnpj, setCpfCnpj] = useState("");
+  const [business, setBusiness] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [pendingInviteCount, setPendingInviteCount] = useState(0);
@@ -42,10 +44,11 @@ export default function BusinessOnboarding() {
     getProfessionalDashboard({ force: true })
       .then((dashboard) => {
         if (!active) return;
-        if (hasProfessionalSetup(dashboard)) {
+        if (dashboard?.businessIsActive === true) {
           navigate("/professionalDashboard", { replace: true });
           return;
         }
+        setBusiness(dashboard);
         setPendingInviteCount(dashboard?.pendingInvites?.length || 0);
       })
       .catch(() => {})
@@ -77,10 +80,15 @@ export default function BusinessOnboarding() {
       setError("Informe um nome com pelo menos 2 caracteres.");
       return;
     }
+    const documentDigits = cpfCnpj.replace(/\D/g, "");
+    if (![11, 14].includes(documentDigits.length)) {
+      setError("Informe um CPF ou CNPJ válido.");
+      return;
+    }
     setLoading(true);
     setError("");
     try {
-      await createBusiness(name);
+      await createBusiness(name, cpfCnpj);
       await createQueueSession();
       clearProfessionalDashboardCache();
       navigate("/professionalDashboard", {
@@ -97,12 +105,36 @@ export default function BusinessOnboarding() {
     }
   }
 
+  async function handleReactivation() {
+    setLoading(true);
+    setError("");
+    try {
+      await reactivateBusiness();
+      clearProfessionalDashboardCache();
+      navigate("/professionalDashboard", {
+        replace: true,
+        state: { message: "Barbearia reativada com sucesso!" },
+      });
+    } catch (requestError) {
+      setError(requestError.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <DashboardLayout
       showInvites
       pendingInviteCount={pendingInviteCount}
       onOpenInvites={handleOpenInvites}
       tutorialReady={false}
+      emailVerified={business?.emailVerified}
+      emailVerificationInline
+      onEmailVerified={() =>
+        setBusiness((current) =>
+          current ? { ...current, emailVerified: true } : current,
+        )
+      }
     >
       {inviteMessage && (
         <div className="toast" role="status" aria-live="polite">
@@ -110,7 +142,25 @@ export default function BusinessOnboarding() {
         </div>
       )}
       <main className="business-onboarding">
-        {!checkingSetup && <section className="onboarding-hero">
+        {!checkingSetup && business?.businessIsActive === false && (
+          <section className="onboarding-reactivation onboarding-form">
+            <div className="onboarding-form-heading">
+              <div className="onboarding-form-icon"><Building2 size={26} /></div>
+              <div>
+                <span className="step">BEM-VINDO DE VOLTA</span>
+                <h2>Deseja reativar a barbearia {business.businessName}?</h2>
+              </div>
+            </div>
+            <p className="onboarding-form-description">
+              Reative sua barbearia para voltar a gerenciar a fila e os atendimentos.
+            </p>
+            {error && <div className="login-auth-error" role="alert">{error}</div>}
+            <button className="login-auth-submit" type="button" disabled={loading} onClick={handleReactivation}>
+              {loading ? "Reativando..." : "Reativar barbearia"}
+            </button>
+          </section>
+        )}
+        {!checkingSetup && business?.businessIsActive !== false && <section className="onboarding-hero">
           <div className="onboarding-copy">
             <span className="step">COMECE SEU NEGÓCIO</span>
             <h1>Um negócio mais organizado começa aqui.</h1>
@@ -157,6 +207,20 @@ export default function BusinessOnboarding() {
                   setError("");
                 }}
                 placeholder="Ex.: Studio Essência"
+              />
+            </div>
+            <div className="onboarding-field">
+              <label htmlFor="onboarding-business-document">CPF ou CNPJ</label>
+              <input
+                id="onboarding-business-document"
+                required
+                inputMode="numeric"
+                value={cpfCnpj}
+                onChange={(event) => {
+                  setCpfCnpj(event.target.value);
+                  setError("");
+                }}
+                placeholder="Digite o CPF ou CNPJ"
               />
             </div>
             {error && (

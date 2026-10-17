@@ -217,7 +217,7 @@ function getErrorMessage(data, status) {
   if (typeof data === "string" && data.trim()) return data.trim();
 
   if (typeof data === "object") {
-    const errorCode = data.errorCode ?? data.code;
+    const errorCode = data.errorCode ?? data.code ?? data.error;
     if (errorCode && ErrorDictionary[errorCode]) {
       return ErrorDictionary[errorCode];
     }

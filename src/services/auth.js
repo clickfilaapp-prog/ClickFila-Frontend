@@ -54,6 +54,15 @@ export const acceptLgpdTerms = () =>
 export const completeTutorial = () =>
   apiRequest(API_ROUTES.completeTutorial, { method: "PATCH" });
 
+export const verifyEmail = (code) =>
+  apiRequest(API_ROUTES.verifyEmail, {
+    method: "POST",
+    body: JSON.stringify({ code }),
+  });
+
+export const resendEmailOtp = () =>
+  apiRequest(API_ROUTES.resendEmailOtp, { method: "POST" });
+
 export const requestPasswordReset = (email) =>
   apiRequest(API_ROUTES.requestPasswordReset, {
     method: "POST",

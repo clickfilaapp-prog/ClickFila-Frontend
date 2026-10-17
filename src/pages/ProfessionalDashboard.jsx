@@ -173,8 +173,7 @@ export default function ProfessionalDashboard() {
   useEffect(() => {
     if (
       dashboard &&
-      !hasProfessionalSetup(dashboard) &&
-      !(dashboard.pendingInvites || []).length &&
+      dashboard.businessIsActive !== true &&
       !setupJustCreated.current
     ) {
       navigate("/professional/business/new", { replace: true });
@@ -777,6 +776,12 @@ export default function ProfessionalDashboard() {
       pendingInviteCount={dashboard?.pendingInvites?.length || 0}
       onOpenInvites={handleOpenInvites}
       tutorialReady={hasProfessionalSetup(dashboard)}
+      emailVerified={dashboard?.emailVerified}
+      onEmailVerified={() =>
+        setDashboard((current) =>
+          current ? { ...current, emailVerified: true } : current,
+        )
+      }
     >
       <main className="salon-main">
         {confirmation && (

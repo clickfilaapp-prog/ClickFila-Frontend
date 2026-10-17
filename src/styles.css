@@ -5332,6 +5332,50 @@ footer {
   padding: 30px clamp(20px, 5vw, 72px) 60px;
   background: radial-gradient(circle at top left, #E6F7FF, transparent 44%);
 }
+
+.email-verification-notice {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 1000;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 9px;
+  width: min(420px, calc(100vw - 48px));
+  padding: 12px 17px;
+  color: #fff;
+  background: #8a5700;
+  border-radius: 10px;
+  box-shadow: 0 10px 35px #0002;
+  font-size: 13px;
+  animation: notification-in 0.25s ease-out;
+}
+.email-verification-notice div { display: grid; gap: 2px; }
+.email-verification-notice span { font-size: 13px; }
+.email-verification-notice button { padding: 9px 12px; color: #5f3b00; background: #fff4ce; border: 0; border-radius: 8px; font-weight: 800; cursor: pointer; }
+.email-verification-modal { position: fixed; inset: 0; z-index: 1160; display: grid; place-items: center; padding: 22px; background: rgba(11, 31, 59, 0.58); backdrop-filter: blur(3px); }
+.email-verification-modal > section { position: relative; width: min(440px, 100%); padding: 34px; background: #fff; border-radius: 20px; box-shadow: 0 24px 70px rgba(0, 0, 0, 0.25); text-align: center; }
+.email-verification-page { min-height: calc(100vh - 80px); display: grid; place-items: center; padding: 30px 20px 60px; background: radial-gradient(circle at top left, #e6f7ff, transparent 44%); }
+.email-verification-inline { width: min(440px, 100%); padding: 38px; background: #fff; border: 1px solid #d9e8f7; border-radius: 22px; box-shadow: 0 24px 70px rgba(55, 34, 38, 0.14); text-align: center; }
+.email-verification-close { position: absolute; top: 14px; right: 14px; display: grid; place-items: center; padding: 7px; border: 0; border-radius: 50%; background: #eef5fb; cursor: pointer; }
+.email-verification-icon { color: #00b4ff; }
+.email-verification-modal h2, .email-verification-inline h2 { margin: 12px 0 8px; color: #0b1f3b; }
+.email-verification-modal > section > p, .email-verification-inline > p { margin: 0 0 22px; color: #6b7280; }
+.email-verification-modal form, .email-verification-inline form { display: grid; grid-template-columns: minmax(0, 1fr); width: 100%; gap: 13px; text-align: left; }
+.email-verification-modal label, .email-verification-inline label { display: block; width: 100%; margin: 0; color: #0b1f3b; font-size: 12px; font-weight: 800; }
+.email-verification-modal input, .email-verification-inline input { box-sizing: border-box; display: block; width: 100%; margin: 0; padding: 13px; border: 1px solid #d9e8f7; border-radius: 10px; font-size: 22px; letter-spacing: 0.3em; text-align: center; text-indent: 0.3em; }
+.email-verification-modal .login-auth-submit, .email-verification-inline .login-auth-submit { width: 100%; margin: 0; }
+.email-verification-resend { border: 0; color: #0077a8; background: transparent; font-weight: 800; cursor: pointer; }
+@media (max-width: 620px) {
+  .email-verification-notice { top: 14px; right: 14px; grid-template-columns: auto minmax(0, 1fr); width: calc(100vw - 28px); }
+  .email-verification-notice button { grid-column: 1 / -1; width: 100%; }
+}
+
+.onboarding-reactivation {
+  max-width: 560px;
+  margin: clamp(40px, 10vh, 100px) auto;
+}
 .onboarding-hero {
   display: grid;
   grid-template-columns: minmax(0, 1.1fr) minmax(340px, 0.75fr);

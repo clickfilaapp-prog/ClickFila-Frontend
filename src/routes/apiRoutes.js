@@ -9,6 +9,8 @@ export const API_ROUTES = Object.freeze({
   upgradeMyRole: "/api/users/me/upgrade-role",
   downgradeToClient: "/api/users/me/downgrade-to-client",
   myUserPassword: "/api/users/me/password",
+  verifyEmail: "/api/users/verify-email",
+  resendEmailOtp: "/api/users/resend-otp",
   completeTutorial: "/api/users/me/tutorial",
   lgpdConsent: "/api/v1/lgpd-consents",
   subscribeNotifications: "/api/notifications/subscribe",
@@ -25,6 +27,7 @@ export const API_ROUTES = Object.freeze({
   refreshQueueCode: "/api/queue-sessions/me/ticket-code",
   professionalDashboard: "/api/dashboard/professional",
   businesses: "/api/businesses",
+  reactivateBusiness: "/api/businesses/reactivate",
   myBusiness: "/api/businesses/me",
   teamInvites: "/api/team-invites",
   acceptTeamInvite: (inviteId) =>

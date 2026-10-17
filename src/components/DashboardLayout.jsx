@@ -18,6 +18,7 @@ import {
 import { completeTutorial } from "../services/auth";
 import { ProfileSettingsContent } from "../pages/ProfileSettings";
 import ConfirmationModal from "./professionalDashboard/ConfirmationModal";
+import EmailVerificationNotice from "./EmailVerificationNotice";
 import SiteFooter from "./SiteFooter";
 import SystemTutorialModal from "./SystemTutorialModal";
 
@@ -28,6 +29,9 @@ export default function DashboardLayout({
   pendingInviteCount = 0,
   onOpenInvites = null,
   tutorialReady = true,
+  emailVerified = null,
+  onEmailVerified = null,
+  emailVerificationInline = false,
 }) {
   const navigate = useNavigate();
   const location = useLocation();
@@ -70,6 +74,7 @@ export default function DashboardLayout({
       ".cancellation-modal",
       ".lgpd-modal",
       ".notification-consent-modal",
+      ".email-verification-modal",
       ".system-tutorial-modal",
     ].join(",");
     const mobileQuery = window.matchMedia("(max-width: 1100px)");
@@ -261,6 +266,12 @@ export default function DashboardLayout({
           </button>
         </div>
       </header>
+      {emailVerified === false && (
+        <EmailVerificationNotice
+          onVerified={onEmailVerified}
+          inline={emailVerificationInline}
+        />
+      )}
       {profileOpen && (
         <ProfileSettingsContent onClose={() => setProfileOpen(false)} />
       )}
@@ -288,7 +299,7 @@ export default function DashboardLayout({
           {toast}
         </div>
       )}
-      {children}
+      {!(emailVerificationInline && emailVerified === false) && children}
       <SiteFooter />
     </div>
   );

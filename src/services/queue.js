@@ -159,11 +159,16 @@ async function loadProfessionalDashboard() {
     activeQueue: (dashboard.activeQueue || []).map(normalizeQueueEntry),
   };
 }
-export const createBusiness = (name) =>
+export const createBusiness = (name, cpfCnpj) =>
   apiRequest(API_ROUTES.businesses, {
     method: "POST",
-    body: JSON.stringify({ name: name.trim() }),
+    body: JSON.stringify({
+      name: name.trim(),
+      cpfCnpj: cpfCnpj.replace(/\D/g, ""),
+    }),
   });
+export const reactivateBusiness = () =>
+  apiRequest(API_ROUTES.reactivateBusiness, { method: "PUT" });
 export const updateMyBusiness = (name) =>
   apiRequest(API_ROUTES.myBusiness, {
     method: "PATCH",

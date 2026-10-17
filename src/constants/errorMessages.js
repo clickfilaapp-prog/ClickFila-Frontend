@@ -7,6 +7,8 @@ export const ErrorDictionary = {
   // Erros de Negócio (Fluxo esperado / Tratável pelo usuário)
   // =========================================================================
   INVALID_CREDENTIALS: "E-mail ou senha incorretos.",
+  INVALID_OTP: "O código informado é inválido. Confira e tente novamente.",
+  EMAIL_NOT_VERIFIED: "Confirme seu e-mail para realizar esta ação.",
   USER_ALREADY_EXISTS: "Já existe uma conta cadastrada com estes dados.",
   ALREADY_IN_QUEUE: "Você já está aguardando nesta fila.",
   QUEUE_CLOSED: "Esta fila está fechada no momento.",

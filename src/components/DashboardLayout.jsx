@@ -294,29 +294,14 @@ export default function DashboardLayout({
               <CircleHelp size={16} /> <span>Como funciona</span>
             </button>
           )}
-          {sessionRole === "PROFESSIONAL" && (
-            <button
-              className="account-action"
-              type="button"
-              onClick={() => {
-                setNavigationOpen(false);
-                navigate(
-                  location.pathname === "/professionalDashboard"
-                    ? "/clientQueue"
-                    : "/professionalDashboard",
-                );
-              }}
-            >
-              {location.pathname !== "/professionalDashboard" ? (
-                <LayoutDashboard size={16} />
-              ) : (
-                <ListPlus size={16} />
-              )}
-              <span>
-                {location.pathname !== "/professionalDashboard"
-                  ? "Painel profissional"
-                  : "Entrar em uma fila"}
-              </span>
+          {sessionRole === "PROFESSIONAL" && location.pathname !== "/professionalDashboard" && (
+            <button className="account-action" type="button" onClick={() => { setNavigationOpen(false); navigate("/professionalDashboard"); }}>
+              <LayoutDashboard size={16} /> <span>Painel profissional</span>
+            </button>
+          )}
+          {sessionRole === "PROFESSIONAL" && location.pathname !== "/clientQueue" && (
+            <button className="account-action" type="button" onClick={() => { setNavigationOpen(false); navigate("/clientQueue"); }}>
+              <ListPlus size={16} /> <span>Entrar em uma fila</span>
             </button>
           )}
           {sessionRole === "PROFESSIONAL" && (

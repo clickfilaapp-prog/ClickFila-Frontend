@@ -14,6 +14,7 @@ import {
   PrivacyPolicy,
   TermsOfUse,
   RoleChoice,
+  Billing,
 } from "../pages";
 
 const ROLE_HOME = Object.freeze({
@@ -128,6 +129,22 @@ export default function AppRoutes() {
         element={
           <RoleRoute role="PROFESSIONAL">
             <BusinessOnboarding />
+          </RoleRoute>
+        }
+      />
+      <Route
+        path="/billing"
+        element={
+          <RoleRoute role="PROFESSIONAL">
+            <Billing />
+          </RoleRoute>
+        }
+      />
+      <Route
+        path="/pricing"
+        element={
+          <RoleRoute role="PROFESSIONAL">
+            <Billing />
           </RoleRoute>
         }
       />

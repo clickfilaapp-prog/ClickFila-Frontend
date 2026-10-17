@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import {
   CircleHelp,
+  CreditCard,
   LayoutDashboard,
   ListPlus,
   LogOut,
@@ -250,6 +251,11 @@ export default function DashboardLayout({
               {pendingInviteCount > 0 && (
                 <b className="header-invite-count">{pendingInviteCount}</b>
               )}
+            </button>
+          )}
+          {sessionRole === "PROFESSIONAL" && (
+            <button className="account-action" type="button" onClick={() => { setNavigationOpen(false); navigate("/billing"); }}>
+              <CreditCard size={16} /> <span>Minha assinatura</span>
             </button>
           )}
           <button

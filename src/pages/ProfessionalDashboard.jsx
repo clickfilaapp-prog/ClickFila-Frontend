@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Building2, LogOut, UserPlus } from "lucide-react";
+import { AlertTriangle, Building2, LogOut, UserPlus } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import DashboardLayout from "../components/DashboardLayout";
 import {
@@ -15,6 +15,7 @@ import {
 import {
   callNext,
   cancelEntry,
+  deactivateBusiness,
   finishService,
   getProfessionalDashboard,
   hasProfessionalSetup,
@@ -95,6 +96,7 @@ export default function ProfessionalDashboard() {
   const [sentInvites, setSentInvites] = useState([]);
   const [selectedActiveEntryId, setSelectedActiveEntryId] = useState("");
   const [expiredCountdowns, setExpiredCountdowns] = useState(() => new Set());
+  const [blockedInvite, setBlockedInvite] = useState(null);
 
   async function refresh({ silent = false } = {}) {
     if (isRefreshing.current) return;
@@ -252,6 +254,24 @@ export default function ProfessionalDashboard() {
     }
   }
 
+  async function handleReplaceTeam() {
+    if (!blockedInvite) return;
+    setLoading(true);
+    setError("");
+    try {
+      if (dashboard?.loggedMemberRole === "OWNER") await deactivateBusiness();
+      else await leaveTeam();
+      await acceptTeamInvite(blockedInvite.id);
+      setBlockedInvite(null);
+      await reloadDashboard();
+      setSuccessMessage("Vínculo anterior encerrado e novo convite aceito com sucesso!");
+    } catch (requestError) {
+      setError(requestError.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   async function reloadDashboard() {
     const updatedDashboard = await getProfessionalDashboard({ force: true });
     setDashboard(updatedDashboard || EMPTY_DASHBOARD);
@@ -267,7 +287,11 @@ export default function ProfessionalDashboard() {
       await reloadDashboard();
       setSuccessMessage("Bem-vindo à equipe!");
     } catch (requestError) {
-      setError(requestError.message);
+      if (requestError.status === 409 && requestError.code === "ALREADY_IN_TEAM") {
+        setBlockedInvite(invite);
+      } else {
+        setError(requestError.message);
+      }
     } finally {
       setLoading(false);
     }
@@ -423,6 +447,11 @@ export default function ProfessionalDashboard() {
   const availableTeam = (dashboard?.team || []).filter(
     (member) => !busyMemberIds.has(String(member.id)),
   );
+  const subscriptionStatus = String(dashboard?.subscriptionStatus || "").toUpperCase();
+  const subscriptionLocked = ["SUSPENDED", "CANCELED"].includes(subscriptionStatus);
+  const trialDaysLeft = dashboard?.currentPeriodEnd
+    ? Math.max(0, Math.ceil((new Date(`${dashboard.currentPeriodEnd}T23:59:59`).getTime() - Date.now()) / 86400000))
+    : null;
 
 
   useEffect(() => {
@@ -784,7 +813,7 @@ export default function ProfessionalDashboard() {
         )
       }
     >
-      <main className="salon-main">
+      <main className={`salon-main${subscriptionLocked ? " subscription-is-locked" : ""}`}>
         {confirmation && (
           <ConfirmationModal
             confirmation={confirmation}
@@ -810,6 +839,22 @@ export default function ProfessionalDashboard() {
             onDecline={handleDeclineInvite}
           />
         )}
+        {blockedInvite && (
+          <ConfirmationModal
+            confirmation={{
+              title: "Vínculo Ativo Encontrado",
+              message: "Você já está vinculado a uma barbearia. Para aceitar este novo convite, você precisa encerrar seu vínculo atual.",
+              confirmLabel: dashboard?.loggedMemberRole === "OWNER"
+                ? "Desativar minha barbearia"
+                : "Sair da equipe atual",
+              backLabel: "Cancelar",
+              danger: true,
+            }}
+            loading={loading}
+            onBack={() => setBlockedInvite(null)}
+            onConfirm={handleReplaceTeam}
+          />
+        )}
         <div className="panel-heading">
           <div>
             <span className="step">PAINEL PROFISSIONAL</span>
@@ -823,6 +868,27 @@ export default function ProfessionalDashboard() {
         )}
         {successMessage && (
           <div className="toast" role="status" aria-live="polite">{successMessage}</div>
+        )}
+        {subscriptionStatus === "TRIAL" && (
+          <div className="subscription-banner trial" role="status">
+            <span>Você está no período de testes. Faltam {trialDaysLeft ?? "—"} dias para expirar.</span>
+            <button type="button" onClick={() => navigate("/billing")}>Ver planos</button>
+          </div>
+        )}
+        {subscriptionStatus === "PAST_DUE" && (
+          <div className="subscription-banner past-due" role="alert">
+            <span>Sua fatura está atrasada. Efetue o pagamento para evitar o bloqueio do sistema.</span>
+            <button type="button" onClick={() => navigate("/billing")}>Pagar agora</button>
+          </div>
+        )}
+        {subscriptionLocked && (
+          <section className="subscription-hard-lock" role="alert">
+            <AlertTriangle size={42} />
+            <span className="step">ACESSO BLOQUEADO</span>
+            <h2>{subscriptionStatus === "CANCELED" ? "Plano cancelado" : "Acesso suspenso"}</h2>
+            <p>{subscriptionStatus === "CANCELED" ? "Escolha uma nova assinatura para voltar a usar o sistema." : "Regularize sua assinatura para voltar a usar o sistema."}</p>
+            <button type="button" onClick={() => navigate("/billing")}>{subscriptionStatus === "CANCELED" ? "Escolher nova assinatura" : "Regularizar assinatura"}</button>
+          </section>
         )}
         {dashboard && (
           <PendingInvites

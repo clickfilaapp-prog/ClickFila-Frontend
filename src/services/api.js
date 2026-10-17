@@ -140,6 +140,15 @@ apiClient.interceptors.response.use(
       (requestMethod === "POST" &&
         ["/api/users/client", "/api/users/professional"].includes(requestUrl));
 
+    if (status === 402) {
+      const isBillingRequest =
+        requestUrl.includes("/api/subscriptions/") ||
+        requestUrl.includes("/api/plans");
+      if (!isBillingRequest && window.location.pathname !== "/billing") {
+        window.location.replace("/billing");
+      }
+    }
+
     if (
       status === 403 &&
       hasAuthenticatedSession &&
@@ -206,7 +215,7 @@ export async function apiRequest(path, options = {}) {
     const error = new Error(getErrorMessage(data, status));
     error.status = status;
     error.data = data;
-    error.code = data?.code ?? data?.errorCode;
+    error.code = data?.code ?? data?.errorCode ?? data?.error;
 
     throw error;
   }

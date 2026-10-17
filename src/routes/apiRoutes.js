@@ -29,6 +29,12 @@ export const API_ROUTES = Object.freeze({
   businesses: "/api/businesses",
   reactivateBusiness: "/api/businesses/reactivate",
   myBusiness: "/api/businesses/me",
+  deactivateBusiness: "/api/businesses/deactivate",
+  plans: "/api/plans",
+  mySubscription: "/api/subscriptions/me",
+  subscriptionCheckout: "/api/subscriptions/checkout",
+  cancelSubscription: (businessId) =>
+    `/api/subscriptions/cancel/${encodeURIComponent(businessId)}`,
   teamInvites: "/api/team-invites",
   acceptTeamInvite: (inviteId) =>
     `/api/team-invites/${encodeURIComponent(inviteId)}/accept`,

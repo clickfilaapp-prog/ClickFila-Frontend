@@ -6504,3 +6504,39 @@ main > *,
     overscroll-behavior: auto;
   }
 }
+/* Assinaturas, cobrança e bloqueios financeiros. */
+.billing-main { width: min(1120px, calc(100% - 32px)); margin: 0 auto; padding: 42px 0 70px; }
+.subscription-summary, .plans-section, .billing-danger-zone { background: #fff; border: 1px solid #dce8f3; border-radius: 20px; box-shadow: 0 12px 35px rgba(11,31,59,.08); }
+.subscription-summary { display: flex; align-items: center; gap: 18px; padding: 24px; margin-bottom: 24px; border-left: 6px solid #16a34a; }
+.subscription-summary.status-trial { border-left-color: #2563eb; }
+.subscription-summary.status-past_due, .subscription-summary.status-suspended, .subscription-summary.status-canceled { border-left-color: #dc2626; }
+.subscription-summary > div:nth-child(2) { flex: 1; }
+.subscription-summary h2, .plans-heading h2, .billing-danger-zone h2 { margin: 4px 0; color: #0b1f3b; }
+.subscription-summary p, .plans-heading p, .billing-danger-zone p { margin: 3px 0 0; color: #64748b; }
+.subscription-status-icon { color: #0f766e; }
+.plans-section { padding: 26px; }
+.plans-heading { display: flex; align-items: center; gap: 14px; margin-bottom: 22px; color: #147db3; }
+.plans-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px; }
+.plan-card { display: flex; flex-direction: column; padding: 24px; border: 1px solid #dbe7f2; border-radius: 16px; background: linear-gradient(160deg,#fff,#f5faff); }
+.plan-card h3 { margin: 10px 0; color: #0b1f3b; }
+.plan-card > strong { margin-bottom: 16px; color: #147db3; font-size: 30px; }
+.plan-card p { display: flex; align-items: center; gap: 7px; color: #64748b; }
+.billing-primary, .subscription-hard-lock button, .subscription-banner button { border: 0; border-radius: 10px; padding: 12px 18px; background: #147db3; color: #fff; font-weight: 800; cursor: pointer; }
+.plan-card .billing-primary { width: 100%; margin-top: auto; }
+.billing-primary:disabled { opacity: .6; cursor: wait; }
+.billing-danger-zone { display: flex; justify-content: space-between; align-items: center; gap: 20px; margin-top: 24px; padding: 22px 26px; border-color: #fecaca; }
+.billing-danger-zone button { border: 1px solid #dc2626; border-radius: 10px; padding: 11px 16px; background: #fff; color: #b91c1c; font-weight: 800; cursor: pointer; }
+.subscription-banner { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 20px; padding: 15px 18px; border-radius: 12px; font-weight: 700; }
+.subscription-banner.trial { background: #dbeafe; color: #1e3a8a; }
+.subscription-banner.past-due { background: #fee2e2; color: #991b1b; }
+.subscription-banner.past-due button { background: #b91c1c; }
+.subscription-hard-lock { width: min(580px, 100%); margin: 70px auto; padding: 42px; border: 1px solid #fecaca; border-radius: 22px; background: #fff; box-shadow: 0 25px 70px rgba(127,29,29,.18); text-align: center; color: #b91c1c; }
+.subscription-hard-lock h2 { margin: 10px 0; color: #7f1d1d; font-size: 30px; }
+.subscription-hard-lock p { color: #64748b; }
+.subscription-is-locked > :not(.panel-heading):not(.subscription-hard-lock) { display: none !important; }
+@media (max-width: 700px) {
+  .subscription-summary, .billing-danger-zone { align-items: stretch; flex-direction: column; }
+  .billing-main { width: min(100% - 22px, 1120px); padding-top: 24px; }
+  .plans-section { padding: 18px; }
+  .subscription-hard-lock { margin: 30px auto; padding: 28px 20px; }
+}

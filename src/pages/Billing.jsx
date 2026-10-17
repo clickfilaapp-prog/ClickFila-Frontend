@@ -11,6 +11,22 @@ import {
   getPlans,
 } from "../services/billing";
 
+const DEFAULT_PLANS = Object.freeze([
+  {
+    id: "plan-pro-monthly-001",
+    code: "PRO_MONTHLY",
+    name: "Plano PRO (Mensal)",
+    price: 49.9,
+    billingCycle: "MONTHLY",
+  },
+  {
+    id: "plan-pro-yearly-001",
+    code: "PRO_YEARLY",
+    name: "Plano PRO (Anual)",
+    price: 499,
+    billingCycle: "YEARLY",
+  },
+]);
 const money = new Intl.NumberFormat("pt-BR", {
   style: "currency",
   currency: "BRL",
@@ -46,7 +62,7 @@ export default function Billing() {
             throw requestError;
           }),
         ]);
-      setPlans(Array.isArray(availablePlans) ? availablePlans : []);
+      setPlans(Array.isArray(availablePlans) && availablePlans.length ? availablePlans : DEFAULT_PLANS);
       setBusinessId(dashboard?.businessId || null);
       setSubscription(currentSubscription);
     } catch (requestError) {
@@ -181,7 +197,7 @@ export default function Billing() {
                   </button>
                 </article>
               ))}
-              {!plans.length && <p>Nenhum plano está disponível no momento.</p>}
+
             </div>
           )}
         </section>

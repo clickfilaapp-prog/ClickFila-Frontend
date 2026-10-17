@@ -35,7 +35,7 @@ export default function BusinessOnboarding() {
   const [business, setBusiness] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [pendingInviteCount, setPendingInviteCount] = useState(0);
+  const [pendingInvites, setPendingInvites] = useState([]);
   const [inviteMessage, setInviteMessage] = useState("");
   const [checkingSetup, setCheckingSetup] = useState(true);
 
@@ -49,7 +49,7 @@ export default function BusinessOnboarding() {
           return;
         }
         setBusiness(dashboard);
-        setPendingInviteCount(dashboard?.pendingInvites?.length || 0);
+        setPendingInvites(dashboard?.pendingInvites || []);
       })
       .catch(() => {})
       .finally(() => {
@@ -67,7 +67,7 @@ export default function BusinessOnboarding() {
   }, [inviteMessage]);
 
   function handleOpenInvites() {
-    if (pendingInviteCount > 0) {
+    if (pendingInvites.length > 0) {
       navigate("/professionalDashboard", { replace: true });
       return;
     }
@@ -125,7 +125,8 @@ export default function BusinessOnboarding() {
   return (
     <DashboardLayout
       showInvites
-      pendingInviteCount={pendingInviteCount}
+      pendingInviteCount={pendingInvites.length}
+      pendingInvites={pendingInvites}
       onOpenInvites={handleOpenInvites}
       tutorialReady={false}
       emailVerified={business?.emailVerified}

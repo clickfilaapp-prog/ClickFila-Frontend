@@ -11,22 +11,6 @@ import {
   getPlans,
 } from "../services/billing";
 
-const DEFAULT_PLANS = Object.freeze([
-  {
-    id: "plan-pro-monthly-001",
-    code: "PRO_MONTHLY",
-    name: "Plano PRO (Mensal)",
-    price: 49.9,
-    billingCycle: "MONTHLY",
-  },
-  {
-    id: "plan-pro-yearly-001",
-    code: "PRO_YEARLY",
-    name: "Plano PRO (Anual)",
-    price: 499,
-    billingCycle: "YEARLY",
-  },
-]);
 const money = new Intl.NumberFormat("pt-BR", {
   style: "currency",
   currency: "BRL",
@@ -62,7 +46,7 @@ export default function Billing() {
             throw requestError;
           }),
         ]);
-      setPlans(Array.isArray(availablePlans) && availablePlans.length ? availablePlans : DEFAULT_PLANS);
+      setPlans(Array.isArray(availablePlans) ? availablePlans : []);
       setBusinessId(dashboard?.businessId || null);
       setSubscription(currentSubscription);
     } catch (requestError) {
@@ -175,18 +159,7 @@ export default function Billing() {
           <div className="plans-heading"><CreditCard /><div><h2>Escolha seu plano</h2><p>Valores atualizados diretamente pela plataforma.</p></div></div>
           {loading ? <p>Carregando planos...</p> : (
             <div className="plans-grid">
-              <article className={`plan-card free-plan${status === "TRIAL" ? " current-plan" : ""}`}>
-                <div className="plan-card-labels">
-                  <span className="step">GRÁTIS</span>
-                  {status === "TRIAL" && <span className="current-plan-badge">Plano atual</span>}
-                </div>
-                <h3>Teste grátis</h3>
-                <strong>{money.format(0)}</strong>
-                <p><CalendarDays size={17} /> 30 dias para conhecer a plataforma</p>
-                <button className="billing-secondary" type="button" disabled>
-                  {status === "TRIAL" ? "Seu plano atual" : "Disponível ao criar a conta"}
-                </button>
-              </article>              {plans.map((plan) => (
+              {plans.map((plan) => (
                 <article className={`plan-card${status === "ACTIVE" && [plan.code, plan.name].includes(subscription?.planName) ? " current-plan" : ""}`} key={plan.id || plan.code}>
                   <div className="plan-card-labels"><span className="step">{plan.billingCycle === "YEARLY" ? "ANUAL" : "MENSAL"}</span>{status === "ACTIVE" && [plan.code, plan.name].includes(subscription?.planName) && <span className="current-plan-badge">Plano atual</span>}</div>
                   <h3>{plan.name}</h3>
@@ -197,7 +170,7 @@ export default function Billing() {
                   </button>
                 </article>
               ))}
-
+              {!plans.length && <p>Nenhum plano está disponível no momento.</p>}
             </div>
           )}
         </section>

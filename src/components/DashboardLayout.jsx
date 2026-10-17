@@ -31,6 +31,7 @@ export default function DashboardLayout({
   children,
   showInvites = false,
   pendingInviteCount = 0,
+  pendingInvites = [],
   onOpenInvites = null,
   tutorialReady = true,
   emailVerified = null,
@@ -166,6 +167,10 @@ export default function DashboardLayout({
   async function loadGlobalInvites({ open = false } = {}) {
     if (sessionRole !== "PROFESSIONAL") return;
     if (open) setInvitesOpen(true);
+    if (showInvites) {
+      setGlobalInvites(Array.isArray(pendingInvites) ? pendingInvites : []);
+      return;
+    }
     setInvitesLoading(true);
     setInvitesError("");
     try {
@@ -179,8 +184,14 @@ export default function DashboardLayout({
   }
 
   useEffect(() => {
-    if (sessionRole === "PROFESSIONAL") loadGlobalInvites();
-  }, [sessionRole]);
+    if (sessionRole === "PROFESSIONAL" && !showInvites) loadGlobalInvites();
+  }, [sessionRole, showInvites]);
+
+  useEffect(() => {
+    if (showInvites) {
+      setGlobalInvites(Array.isArray(pendingInvites) ? pendingInvites : []);
+    }
+  }, [showInvites, pendingInvites]);
 
   async function handleGlobalAccept(invite) {
     setInvitesLoading(true);

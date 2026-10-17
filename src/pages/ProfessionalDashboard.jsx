@@ -803,6 +803,7 @@ export default function ProfessionalDashboard() {
     <DashboardLayout
       showInvites
       pendingInviteCount={dashboard?.pendingInvites?.length || 0}
+      pendingInvites={dashboard?.pendingInvites || []}
       onOpenInvites={handleOpenInvites}
       tutorialReady={hasProfessionalSetup(dashboard)}
       emailVerified={dashboard?.emailVerified}

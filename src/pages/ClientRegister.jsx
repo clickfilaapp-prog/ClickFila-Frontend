@@ -2,7 +2,8 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AuthenticationLayout from "../components/AuthenticationLayout";
 import RegisterForm from "../components/RegisterForm";
-import { registerUser } from "../services/auth";
+import { saveAuthSession } from "../auth/authStorage";
+import { loginUser, registerUser } from "../services/auth";
 
 export default function ClientRegister() {
   const navigate = useNavigate();
@@ -14,8 +15,18 @@ export default function ClientRegister() {
     setError("");
     try {
       await registerUser(form);
-      navigate("/login", {
-        state: { message: "Cadastro criado. Entre com seu e-mail e senha." },
+      const response = await loginUser(form.email, form.password);
+
+      saveAuthSession(
+        response.token,
+        response.refreshToken,
+        response.role,
+        response.tutorialCompleted === true,
+        response.emailVerified ?? response.email_verified,
+      );
+      navigate("/clientQueue", {
+        replace: true,
+        state: { toast: "Cadastro criado com sucesso!" },
       });
     } catch (requestError) {
       setError(requestError.message);

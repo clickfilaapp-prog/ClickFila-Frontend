@@ -2,7 +2,8 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AuthenticationLayout from "../components/AuthenticationLayout";
 import RegisterForm from "../components/RegisterForm";
-import { registerProfessional } from "../services/auth";
+import { saveAuthSession } from "../auth/authStorage";
+import { loginUser, registerProfessional } from "../services/auth";
 
 export default function ProfessionalRegister() {
   const navigate = useNavigate();
@@ -14,10 +15,19 @@ export default function ProfessionalRegister() {
     setError("");
     try {
       await registerProfessional(form);
-      navigate("/login", {
+      const response = await loginUser(form.email, form.password);
+
+      saveAuthSession(
+        response.token,
+        response.refreshToken,
+        response.role,
+        response.tutorialCompleted === true,
+        response.emailVerified ?? response.email_verified,
+      );
+      navigate("/professionalDashboard", {
+        replace: true,
         state: {
-          message:
-            "Cadastro profissional criado. Entre com seu e-mail e senha.",
+          toast: "Cadastro profissional criado com sucesso!",
         },
       });
     } catch (requestError) {

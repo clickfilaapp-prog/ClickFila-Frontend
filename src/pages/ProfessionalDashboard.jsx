@@ -174,6 +174,7 @@ export default function ProfessionalDashboard() {
     if (
       dashboard &&
       dashboard.businessIsActive !== true &&
+      (dashboard.pendingInvites || []).length === 0 &&
       !setupJustCreated.current
     ) {
       navigate("/professional/business/new", { replace: true });

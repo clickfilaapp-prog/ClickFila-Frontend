@@ -7,7 +7,6 @@ import {
   CurrentServiceCard,
   InviteAlertModal,
   MemberSelectionModal,
-  PendingInvites,
   QueueControlPanel,
   TeamManagement,
   WaitingList,
@@ -889,14 +888,6 @@ export default function ProfessionalDashboard() {
             <p>{subscriptionStatus === "CANCELED" ? "Escolha uma nova assinatura para voltar a usar o sistema." : "Regularize sua assinatura para voltar a usar o sistema."}</p>
             <button type="button" onClick={() => navigate("/billing")}>{subscriptionStatus === "CANCELED" ? "Escolher nova assinatura" : "Regularizar assinatura"}</button>
           </section>
-        )}
-        {dashboard && (
-          <PendingInvites
-            invites={dashboard.pendingInvites || []}
-            loading={loading}
-            onAccept={handleAcceptInvite}
-            onDecline={handleDeclineInvite}
-          />
         )}
         {dashboard &&
           !hasBusiness &&

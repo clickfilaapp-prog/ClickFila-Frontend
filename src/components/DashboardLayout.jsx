@@ -301,19 +301,19 @@ export default function DashboardLayout({
               onClick={() => {
                 setNavigationOpen(false);
                 navigate(
-                  location.pathname === "/clientQueue"
-                    ? "/professionalDashboard"
-                    : "/clientQueue",
+                  location.pathname === "/professionalDashboard"
+                    ? "/clientQueue"
+                    : "/professionalDashboard",
                 );
               }}
             >
-              {location.pathname === "/clientQueue" ? (
+              {location.pathname !== "/professionalDashboard" ? (
                 <LayoutDashboard size={16} />
               ) : (
                 <ListPlus size={16} />
               )}
               <span>
-                {location.pathname === "/clientQueue"
+                {location.pathname !== "/professionalDashboard"
                   ? "Painel profissional"
                   : "Entrar em uma fila"}
               </span>

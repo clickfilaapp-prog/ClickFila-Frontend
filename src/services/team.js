@@ -3,6 +3,8 @@ import { apiRequest } from "./api";
 
 const normalizeEmail = (email = "") => email.trim().toLowerCase();
 
+export const getMyTeamInvites = () => apiRequest(API_ROUTES.myTeamInvites);
+
 export const sendTeamInvite = (email) =>
   apiRequest(API_ROUTES.teamInvites, {
     method: "POST",

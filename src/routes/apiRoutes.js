@@ -36,6 +36,7 @@ export const API_ROUTES = Object.freeze({
   cancelSubscription: (businessId) =>
     `/api/subscriptions/cancel/${encodeURIComponent(businessId)}`,
   teamInvites: "/api/team-invites",
+  myTeamInvites: "/api/team-invites/me",
   acceptTeamInvite: (inviteId) =>
     `/api/team-invites/${encodeURIComponent(inviteId)}/accept`,
   declineTeamInvite: (inviteId) =>

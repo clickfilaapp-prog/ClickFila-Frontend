@@ -6540,3 +6540,25 @@ main > *,
   .plans-section { padding: 18px; }
   .subscription-hard-lock { margin: 30px auto; padding: 28px 20px; }
 }
+
+/* Lista global de convites acessível pelo cabeçalho profissional. */
+.invites-list-modal > div { width: min(720px, 100%); max-height: min(82vh, 760px); overflow-y: auto; text-align: left; }
+.invites-list-modal > div > .step,
+.invites-list-modal > div > h2,
+.invites-list-modal > div > p { display: block; text-align: center; }
+.invites-list-modal .invite-alert-icon { margin-inline: auto; }
+.invites-list-modal .pending-invites-card { margin: 22px 0 0; padding: 0; border: 0; box-shadow: none; }
+.invites-list-modal .pending-invites-heading { display: none; }
+.invites-list-modal .team-item { grid-template-columns: auto minmax(0, 1fr) auto; }
+.invites-empty { display: grid; justify-items: center; gap: 7px; margin-top: 22px; padding: 28px 18px; border: 1px dashed #bfd3e5; border-radius: 14px; color: #64748b; text-align: center; }
+.invites-empty strong { color: #0b1f3b; }
+@media (max-width: 640px) {
+  .invites-list-modal .team-item { grid-template-columns: auto 1fr; }
+  .invites-list-modal .team-item-actions { grid-column: 1 / -1; width: 100%; }
+  .invites-list-modal .team-item-actions button { flex: 1; }
+}
+.plan-card-labels { display: flex; justify-content: space-between; align-items: center; gap: 10px; min-height: 24px; }
+.plan-card.current-plan { border: 2px solid #147db3; box-shadow: 0 12px 30px rgba(20,125,179,.15); }
+.plan-card.free-plan { background: linear-gradient(160deg, #fff, #f0fdf4); }
+.current-plan-badge { padding: 5px 9px; border-radius: 999px; background: #dcfce7; color: #166534; font-size: 11px; font-weight: 900; text-transform: uppercase; }
+.billing-secondary { width: 100%; margin-top: auto; padding: 12px 18px; border: 1px solid #cbd5e1; border-radius: 10px; background: #f8fafc; color: #64748b; font-weight: 800; }

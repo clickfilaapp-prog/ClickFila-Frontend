@@ -159,14 +159,25 @@ export default function Billing() {
           <div className="plans-heading"><CreditCard /><div><h2>Escolha seu plano</h2><p>Valores atualizados diretamente pela plataforma.</p></div></div>
           {loading ? <p>Carregando planos...</p> : (
             <div className="plans-grid">
-              {plans.map((plan) => (
-                <article className="plan-card" key={plan.id || plan.code}>
-                  <span className="step">{plan.billingCycle === "YEARLY" ? "ANUAL" : "MENSAL"}</span>
+              <article className={`plan-card free-plan${status === "TRIAL" ? " current-plan" : ""}`}>
+                <div className="plan-card-labels">
+                  <span className="step">GRÁTIS</span>
+                  {status === "TRIAL" && <span className="current-plan-badge">Plano atual</span>}
+                </div>
+                <h3>Teste grátis</h3>
+                <strong>{money.format(0)}</strong>
+                <p><CalendarDays size={17} /> 30 dias para conhecer a plataforma</p>
+                <button className="billing-secondary" type="button" disabled>
+                  {status === "TRIAL" ? "Seu plano atual" : "Disponível ao criar a conta"}
+                </button>
+              </article>              {plans.map((plan) => (
+                <article className={`plan-card${status === "ACTIVE" && [plan.code, plan.name].includes(subscription?.planName) ? " current-plan" : ""}`} key={plan.id || plan.code}>
+                  <div className="plan-card-labels"><span className="step">{plan.billingCycle === "YEARLY" ? "ANUAL" : "MENSAL"}</span>{status === "ACTIVE" && [plan.code, plan.name].includes(subscription?.planName) && <span className="current-plan-badge">Plano atual</span>}</div>
                   <h3>{plan.name}</h3>
                   <strong>{money.format(Number(plan.price || 0))}</strong>
                   <p><CalendarDays size={17} /> Cobrança {plan.billingCycle === "YEARLY" ? "anual" : "mensal"}</p>
-                  <button className="billing-primary" type="button" disabled={Boolean(busyPlan)} onClick={() => subscribe(plan.code)}>
-                    {busyPlan === plan.code ? "Abrindo checkout..." : status === "CANCELED" ? "Reativar plano" : "Assinar"}
+                  <button className="billing-primary" type="button" disabled={Boolean(busyPlan) || (status === "ACTIVE" && [plan.code, plan.name].includes(subscription?.planName))} onClick={() => subscribe(plan.code)}>
+                    {status === "ACTIVE" && [plan.code, plan.name].includes(subscription?.planName) ? "Seu plano atual" : busyPlan === plan.code ? "Abrindo checkout..." : status === "CANCELED" ? "Reativar plano" : "Assinar"}
                   </button>
                 </article>
               ))}

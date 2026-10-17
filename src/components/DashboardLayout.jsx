@@ -17,8 +17,11 @@ import {
   updateTutorialCompleted,
 } from "../auth/authStorage";
 import { completeTutorial } from "../services/auth";
+import { acceptTeamInvite, declineTeamInvite, getMyTeamInvites, leaveTeam } from "../services/team";
+import { deactivateBusiness, getProfessionalDashboard } from "../services/queue";
 import { ProfileSettingsContent } from "../pages/ProfileSettings";
 import ConfirmationModal from "./professionalDashboard/ConfirmationModal";
+import PendingInvites from "./professionalDashboard/PendingInvites";
 import EmailVerificationNotice from "./EmailVerificationNotice";
 import SiteFooter from "./SiteFooter";
 import SystemTutorialModal from "./SystemTutorialModal";
@@ -52,6 +55,11 @@ export default function DashboardLayout({
   const [confirmLogout, setConfirmLogout] = useState(false);
   const [navigationOpen, setNavigationOpen] = useState(false);
   const [toast, setToast] = useState(location.state?.toast || "");
+  const [globalInvites, setGlobalInvites] = useState([]);
+  const [invitesOpen, setInvitesOpen] = useState(false);
+  const [invitesLoading, setInvitesLoading] = useState(false);
+  const [invitesError, setInvitesError] = useState("");
+  const [blockedInvite, setBlockedInvite] = useState(null);
 
   useEffect(() => {
     setNavigationOpen(false);
@@ -155,6 +163,76 @@ export default function DashboardLayout({
     return () => window.clearTimeout(timer);
   }, [toast]);
 
+  async function loadGlobalInvites({ open = false } = {}) {
+    if (sessionRole !== "PROFESSIONAL") return;
+    if (open) setInvitesOpen(true);
+    setInvitesLoading(true);
+    setInvitesError("");
+    try {
+      const invites = await getMyTeamInvites();
+      setGlobalInvites(Array.isArray(invites) ? invites : []);
+    } catch (error) {
+      setInvitesError(error.message);
+    } finally {
+      setInvitesLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    if (sessionRole === "PROFESSIONAL") loadGlobalInvites();
+  }, [sessionRole]);
+
+  async function handleGlobalAccept(invite) {
+    setInvitesLoading(true);
+    setInvitesError("");
+    try {
+      await acceptTeamInvite(invite.id);
+      window.location.assign("/professionalDashboard");
+    } catch (error) {
+      if (error.status === 409 && error.code === "ALREADY_IN_TEAM") {
+        try {
+          const dashboard = await getProfessionalDashboard({ force: true });
+          setBlockedInvite({ invite, role: dashboard?.loggedMemberRole });
+        } catch (dashboardError) {
+          setInvitesError(dashboardError.message);
+        }
+      } else {
+        setInvitesError(error.message);
+      }
+    } finally {
+      setInvitesLoading(false);
+    }
+  }
+
+  async function handleGlobalDecline(invite) {
+    setInvitesLoading(true);
+    setInvitesError("");
+    try {
+      await declineTeamInvite(invite.id);
+      setGlobalInvites((current) => current.filter((item) => item.id !== invite.id));
+      setToast("Convite recusado.");
+    } catch (error) {
+      setInvitesError(error.message);
+    } finally {
+      setInvitesLoading(false);
+    }
+  }
+
+  async function handleReplaceTeam() {
+    setInvitesLoading(true);
+    setInvitesError("");
+    try {
+      if (blockedInvite.role === "OWNER") await deactivateBusiness();
+      else await leaveTeam();
+      await acceptTeamInvite(blockedInvite.invite.id);
+      window.location.assign("/professionalDashboard");
+    } catch (error) {
+      setInvitesError(error.message);
+      setBlockedInvite(null);
+    } finally {
+      setInvitesLoading(false);
+    }
+  }
   function handleLogout() {
     clearAuthSession();
     navigate("/login", { replace: true });
@@ -241,15 +319,15 @@ export default function DashboardLayout({
               </span>
             </button>
           )}
-          {showInvites && (
+          {sessionRole === "PROFESSIONAL" && (
             <button
               className="account-action invites-header-action"
               type="button"
-              onClick={() => { setNavigationOpen(false); onOpenInvites?.(); }}
+              onClick={() => { setNavigationOpen(false); loadGlobalInvites({ open: true }); }}
             >
               <Mail size={16} /> <span>Meus convites</span>
-              {pendingInviteCount > 0 && (
-                <b className="header-invite-count">{pendingInviteCount}</b>
+              {globalInvites.length > 0 && (
+                <b className="header-invite-count">{globalInvites.length}</b>
               )}
             </button>
           )}
@@ -280,7 +358,31 @@ export default function DashboardLayout({
           inline={emailVerificationInline}
         />
       )}
-      {profileOpen && (
+      {invitesOpen && (
+        <div className="confirmation-modal invites-list-modal" role="dialog" aria-modal="true" aria-labelledby="global-invites-title">
+          <div>
+            <button className="member-modal-close" type="button" disabled={invitesLoading} onClick={() => setInvitesOpen(false)} aria-label="Fechar convites"><X size={20} /></button>
+            <div className="invite-alert-icon"><Mail size={26} /></div>
+            <span className="step">EQUIPE</span>
+            <h2 id="global-invites-title">Meus convites</h2>
+            <p>Convites pendentes enviados para sua conta.</p>
+            {invitesError && <div className="login-auth-error" role="alert">{invitesError}</div>}
+            {invitesLoading && !globalInvites.length ? <p>Carregando convites...</p> : globalInvites.length ? (
+              <PendingInvites invites={globalInvites} loading={invitesLoading} onAccept={handleGlobalAccept} onDecline={handleGlobalDecline} />
+            ) : (
+              <div className="invites-empty"><Mail size={28} /><strong>Nenhum convite pendente</strong><span>Quando uma barbearia convidar você, ele aparecerá aqui.</span></div>
+            )}
+          </div>
+        </div>
+      )}
+      {blockedInvite && (
+        <ConfirmationModal
+          confirmation={{ title: "Vínculo Ativo Encontrado", message: "Você já está vinculado a uma barbearia. Para aceitar este novo convite, você precisa encerrar seu vínculo atual.", confirmLabel: blockedInvite.role === "OWNER" ? "Desativar minha barbearia" : "Sair da equipe atual", backLabel: "Cancelar", danger: true }}
+          loading={invitesLoading}
+          onBack={() => setBlockedInvite(null)}
+          onConfirm={handleReplaceTeam}
+        />
+      )}      {profileOpen && (
         <ProfileSettingsContent onClose={() => setProfileOpen(false)} />
       )}
       {tutorialOpen && (

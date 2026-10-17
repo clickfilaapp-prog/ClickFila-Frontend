@@ -36,6 +36,8 @@ export default function DashboardLayout({
   const navigate = useNavigate();
   const location = useLocation();
   const sessionRole = loadAuthSession()?.role || "USER";
+  const sessionEmailVerified = loadAuthSession()?.emailVerified === true;
+  const isEmailVerified = emailVerified === true || sessionEmailVerified;
   const tutorialRole =
     sessionRole === "PROFESSIONAL" && location.pathname === "/clientQueue"
       ? "USER"
@@ -266,7 +268,7 @@ export default function DashboardLayout({
           </button>
         </div>
       </header>
-      {emailVerified === false && (
+      {emailVerified === false && !isEmailVerified && (
         <EmailVerificationNotice
           onVerified={onEmailVerified}
           inline={emailVerificationInline}
@@ -299,7 +301,8 @@ export default function DashboardLayout({
           {toast}
         </div>
       )}
-      {!(emailVerificationInline && emailVerified === false) && children}
+      {!(emailVerificationInline && emailVerified === false && !isEmailVerified) &&
+        children}
       <SiteFooter />
     </div>
   );

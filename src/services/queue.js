@@ -150,6 +150,12 @@ async function loadProfessionalDashboard() {
   if (!dashboard) return null;
   return {
     ...dashboard,
+    emailVerified:
+      dashboard.emailVerified ??
+      dashboard.email_verified ??
+      dashboard.user?.emailVerified ??
+      dashboard.user?.email_verified ??
+      null,
     businessId:
       dashboard.businessId ||
       dashboard.business?.id ||

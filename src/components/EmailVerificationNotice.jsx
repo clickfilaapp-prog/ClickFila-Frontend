@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { MailCheck, X } from "lucide-react";
+import { updateEmailVerified } from "../auth/authStorage";
 import { refreshAuthSession } from "../services/api";
 import { resendEmailOtp, verifyEmail } from "../services/auth";
 
@@ -22,6 +23,7 @@ export default function EmailVerificationNotice({ onVerified, inline = false }) 
     try {
       await verifyEmail(code);
       await refreshAuthSession();
+      updateEmailVerified(true);
       setOpen(false);
       onVerified?.();
     } catch (requestError) {

@@ -2,14 +2,38 @@ const TOKEN_KEY = "token";
 const REFRESH_TOKEN_KEY = "refreshToken";
 const ROLE_KEY = "role";
 const TUTORIAL_COMPLETED_KEY = "tutorialCompleted";
+const EMAIL_VERIFIED_KEY = "emailVerified";
 const USER_DATA_KEYS = [
   TOKEN_KEY,
   REFRESH_TOKEN_KEY,
   ROLE_KEY,
   TUTORIAL_COMPLETED_KEY,
+  EMAIL_VERIFIED_KEY,
   "queue-client-session-id",
   "queue-client-ticket-code",
 ];
+
+function getEmailVerifiedFromToken(token) {
+  try {
+    const payload = JSON.parse(
+      decodeURIComponent(
+        atob(token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/"))
+          .split("")
+          .map((character) =>
+            `%${character.charCodeAt(0).toString(16).padStart(2, "0")}`,
+          )
+          .join(""),
+      ),
+    );
+    return (
+      payload.emailVerified ??
+      payload.email_verified ??
+      (payload.email_verified_at != null ? true : null)
+    );
+  } catch {
+    return null;
+  }
+}
 
 function normalizeRole(role) {
   return String(role || "")
@@ -17,12 +41,27 @@ function normalizeRole(role) {
     .toUpperCase();
 }
 
-export function saveAuthSession(token, refreshToken, role, tutorialCompleted) {
+export function saveAuthSession(
+  token,
+  refreshToken,
+  role,
+  tutorialCompleted,
+  emailVerified,
+) {
   localStorage.setItem(TOKEN_KEY, token);
   localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
   localStorage.setItem(ROLE_KEY, normalizeRole(role));
   if (typeof tutorialCompleted === "boolean") {
     localStorage.setItem(TUTORIAL_COMPLETED_KEY, String(tutorialCompleted));
+  }
+  const verified =
+    typeof emailVerified === "boolean"
+      ? emailVerified
+      : getEmailVerifiedFromToken(token);
+  if (typeof verified === "boolean") {
+    localStorage.setItem(EMAIL_VERIFIED_KEY, String(verified));
+  } else {
+    localStorage.removeItem(EMAIL_VERIFIED_KEY);
   }
 }
 
@@ -37,6 +76,9 @@ export function loadAuthSession() {
           localStorage.getItem(TUTORIAL_COMPLETED_KEY) === null
             ? null
             : localStorage.getItem(TUTORIAL_COMPLETED_KEY) === "true",
+        emailVerified:
+          localStorage.getItem(EMAIL_VERIFIED_KEY) === "true" ||
+          getEmailVerifiedFromToken(token) === true,
       }
     : null;
 }
@@ -44,6 +86,17 @@ export function loadAuthSession() {
 export function replaceAuthTokens(token, refreshToken) {
   localStorage.setItem(TOKEN_KEY, token);
   localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+  const verified = getEmailVerifiedFromToken(token);
+  if (
+    verified === true ||
+    (verified === false && localStorage.getItem(EMAIL_VERIFIED_KEY) === null)
+  ) {
+    localStorage.setItem(EMAIL_VERIFIED_KEY, String(verified));
+  }
+}
+
+export function updateEmailVerified(verified) {
+  localStorage.setItem(EMAIL_VERIFIED_KEY, String(verified === true));
 }
 
 export function getRefreshToken() {

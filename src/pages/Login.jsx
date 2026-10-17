@@ -81,6 +81,7 @@ export default function Login() {
       response.refreshToken,
       role,
       response.tutorialCompleted === true,
+      response.emailVerified ?? response.email_verified,
     );
     navigate(
       role === "PROFESSIONAL" ? "/professionalDashboard" : "/clientQueue",

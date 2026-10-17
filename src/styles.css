@@ -6530,7 +6530,8 @@ main > *,
 .subscription-banner.trial { background: #dbeafe; color: #1e3a8a; }
 .subscription-banner.past-due { background: #fee2e2; color: #991b1b; }
 .subscription-banner.past-due button { background: #b91c1c; }
-.subscription-hard-lock { width: min(580px, 100%); margin: 70px auto; padding: 42px; border: 1px solid #fecaca; border-radius: 22px; background: #fff; box-shadow: 0 25px 70px rgba(127,29,29,.18); text-align: center; color: #b91c1c; }
+.subscription-hard-lock { display: flex; flex-direction: column; align-items: center; width: min(580px, 100%); margin: 70px auto; padding: 42px; border: 1px solid #fecaca; border-radius: 22px; background: #fff; box-shadow: 0 25px 70px rgba(127,29,29,.18); text-align: center; color: #b91c1c; }
+.subscription-hard-lock > svg { display: block; margin: 0 auto 10px; flex: 0 0 auto; }
 .subscription-hard-lock h2 { margin: 10px 0; color: #7f1d1d; font-size: 30px; }
 .subscription-hard-lock p { color: #64748b; }
 .subscription-is-locked > :not(.panel-heading):not(.subscription-hard-lock) { display: none !important; }

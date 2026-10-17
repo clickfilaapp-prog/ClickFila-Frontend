@@ -178,7 +178,10 @@ export default function ProfessionalDashboard() {
       (dashboard.pendingInvites || []).length === 0 &&
       !setupJustCreated.current
     ) {
-      navigate("/professional/business/new", { replace: true });
+      navigate("/professional/business/new", {
+        replace: true,
+        state: { dashboard },
+      });
     }
   }, [dashboard, navigate]);
 
@@ -807,11 +810,7 @@ export default function ProfessionalDashboard() {
       onOpenInvites={handleOpenInvites}
       tutorialReady={hasProfessionalSetup(dashboard)}
       emailVerified={dashboard?.emailVerified}
-      onEmailVerified={() =>
-        setDashboard((current) =>
-          current ? { ...current, emailVerified: true } : current,
-        )
-      }
+      onEmailVerified={() => refresh()}
     >
       <main className={`salon-main${subscriptionLocked ? " subscription-is-locked" : ""}`}>
         {confirmation && (

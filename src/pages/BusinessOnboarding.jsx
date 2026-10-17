@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Building2, Smartphone, UsersRound, WandSparkles } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import DashboardLayout from "../components/DashboardLayout";
 import {
   clearProfessionalDashboardCache,
@@ -30,16 +30,19 @@ const BENEFITS = [
 
 export default function BusinessOnboarding() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const initialDashboard = location.state?.dashboard || null;
   const [name, setName] = useState("");
   const [cpfCnpj, setCpfCnpj] = useState("");
-  const [business, setBusiness] = useState(null);
+  const [business, setBusiness] = useState(initialDashboard);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [pendingInvites, setPendingInvites] = useState([]);
   const [inviteMessage, setInviteMessage] = useState("");
-  const [checkingSetup, setCheckingSetup] = useState(true);
+  const [checkingSetup, setCheckingSetup] = useState(!initialDashboard);
 
   useEffect(() => {
+    if (initialDashboard) return undefined;
     let active = true;
     getProfessionalDashboard({ force: true })
       .then((dashboard) => {
@@ -58,7 +61,7 @@ export default function BusinessOnboarding() {
     return () => {
       active = false;
     };
-  }, [navigate]);
+  }, [initialDashboard, navigate]);
 
   useEffect(() => {
     if (!inviteMessage) return undefined;
@@ -132,9 +135,7 @@ export default function BusinessOnboarding() {
       emailVerified={business?.emailVerified}
       emailVerificationInline
       onEmailVerified={() =>
-        setBusiness((current) =>
-          current ? { ...current, emailVerified: true } : current,
-        )
+        getProfessionalDashboard({ force: true }).then(setBusiness)
       }
     >
       {inviteMessage && (

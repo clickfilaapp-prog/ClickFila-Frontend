@@ -12,6 +12,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || "";
 const LGPD_REQUIRED_EVENT = "barberflow:lgpd-consent-required";
 let pendingLgpdConsent = null;
 let refreshRequest = null;
+const pendingMutationRequests = new Map();
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -196,7 +197,26 @@ apiClient.interceptors.response.use(
   },
 );
 
-export async function apiRequest(path, options = {}) {
+export function apiRequest(path, options = {}) {
+  const method = String(options.method || "GET").toUpperCase();
+  const isMutation = ["POST", "PUT", "PATCH", "DELETE"].includes(method);
+
+  if (!isMutation) return executeApiRequest(path, options);
+
+  const requestKey = `${method}:${path}:${serializeRequestBody(options.body)}`;
+  const pendingRequest = pendingMutationRequests.get(requestKey);
+  if (pendingRequest) return pendingRequest;
+
+  const request = executeApiRequest(path, options).finally(() => {
+    if (pendingMutationRequests.get(requestKey) === request) {
+      pendingMutationRequests.delete(requestKey);
+    }
+  });
+  pendingMutationRequests.set(requestKey, request);
+  return request;
+}
+
+async function executeApiRequest(path, options) {
   const { body, ...requestOptions } = options;
   try {
     const response = await apiClient.request({
@@ -215,6 +235,16 @@ export async function apiRequest(path, options = {}) {
     error.code = data?.code ?? data?.errorCode ?? data?.error;
 
     throw error;
+  }
+}
+
+function serializeRequestBody(body) {
+  if (body === undefined) return "";
+  if (typeof body === "string") return body;
+  try {
+    return JSON.stringify(body);
+  } catch {
+    return String(body);
   }
 }
 

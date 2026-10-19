@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { AlertTriangle, CalendarDays, CheckCircle2, CreditCard, XCircle } from "lucide-react";
+import { AlertTriangle, CalendarDays, CheckCircle2, CreditCard, LoaderCircle, XCircle } from "lucide-react";
 import DashboardLayout from "../components/DashboardLayout";
 import ConfirmationModal from "../components/professionalDashboard/ConfirmationModal";
 import { getProfessionalDashboard } from "../services/queue";
@@ -166,7 +166,7 @@ export default function Billing() {
                   <strong>{money.format(Number(plan.price || 0))}</strong>
                   <p><CalendarDays size={17} /> Cobrança {plan.billingCycle === "YEARLY" ? "anual" : "mensal"}</p>
                   <button className="billing-primary" type="button" disabled={Boolean(busyPlan) || (status === "ACTIVE" && [plan.code, plan.name].includes(subscription?.planName))} onClick={() => subscribe(plan.code)}>
-                    {status === "ACTIVE" && [plan.code, plan.name].includes(subscription?.planName) ? "Seu plano atual" : busyPlan === plan.code ? "Abrindo checkout..." : status === "CANCELED" ? "Reativar plano" : "Assinar"}
+                    {status === "ACTIVE" && [plan.code, plan.name].includes(subscription?.planName) ? "Seu plano atual" : busyPlan === plan.code ? <><LoaderCircle className="billing-spinner" size={18} aria-hidden="true" /> Abrindo checkout...</> : status === "CANCELED" ? "Reativar plano" : "Assinar plano"}
                   </button>
                 </article>
               ))}

@@ -141,10 +141,7 @@ apiClient.interceptors.response.use(
         ["/api/users/client", "/api/users/professional"].includes(requestUrl));
 
     if (status === 402) {
-      const isBillingRequest =
-        requestUrl.includes("/api/subscriptions/") ||
-        requestUrl.includes("/api/plans");
-      if (!isBillingRequest && window.location.pathname !== "/billing") {
+      if (window.location.pathname !== "/billing") {
         window.location.replace("/billing");
       }
     }

@@ -47,6 +47,8 @@ function matchesCurrentPlan(plan, subscription) {
 export default function Billing() {
   const navigate = useNavigate();
   const [plans, setPlans] = useState([]);
+  const [plansLoaded, setPlansLoaded] = useState(false);
+  const [loadingPlans, setLoadingPlans] = useState(false);
   const [subscription, setSubscription] = useState(null);
   const [business, setBusiness] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -71,9 +73,8 @@ export default function Billing() {
           throw requestError;
         });
         const optionalBusiness = getMyBusiness().catch(() => null);
-        const [availablePlans, dashboard, currentBusiness, currentSubscription] = await Promise.all([
-          getPlans(), getProfessionalDashboard({ force: true }),
-          optionalBusiness, optional404(getMySubscription()),
+        const [dashboard, currentBusiness, currentSubscription] = await Promise.all([
+          getProfessionalDashboard(), optionalBusiness, optional404(getMySubscription()),
         ]);
         if (!active) return;
         const role = String(dashboard?.loggedMemberRole || "").toUpperCase();
@@ -81,7 +82,6 @@ export default function Billing() {
           navigate("/professionalDashboard", { replace: true });
           return;
         }
-        setPlans(Array.isArray(availablePlans) ? availablePlans : []);
         const businessPayload = currentBusiness?.data || currentBusiness?.business || currentBusiness || {};
         const loadedBusiness = {
           ...(dashboard?.business || {}), ...businessPayload,
@@ -139,6 +139,27 @@ export default function Billing() {
     const paymentUrl = getPaymentUrl(subscription);
     if (paymentUrl) window.location.href = paymentUrl;
     else setError("Não há um link de cobrança disponível. Escolha um plano abaixo.");
+  }
+
+  async function togglePlans() {
+    if (showPlans) {
+      setShowPlans(false);
+      return;
+    }
+    setShowPlans(true);
+    if (plansLoaded || loadingPlans) return;
+    setLoadingPlans(true);
+    setError("");
+    try {
+      const availablePlans = await getPlans();
+      setPlans(Array.isArray(availablePlans) ? availablePlans : []);
+      setPlansLoaded(true);
+    } catch (requestError) {
+      setShowPlans(false);
+      setError(requestError.message);
+    } finally {
+      setLoadingPlans(false);
+    }
   }
 
   async function saveBusinessName(event) {
@@ -255,12 +276,12 @@ export default function Billing() {
             <div className="current-subscription-row">
               <div className="current-plan-data"><span>Plano atual</span><strong>{planName}</strong>{planPrice > 0 && <b>{money.format(planPrice)} <small>/{billingCycle === "YEARLY" ? "ano" : "mês"}</small></b>}</div>
               <div className="next-charge"><CalendarDays size={21} /><div><span>Próxima cobrança</span><strong>{formatDate(periodEnd)}</strong>{periodEnd && <small>Renovação automática</small>}</div></div>
-              <button className="change-plan-button" type="button" onClick={() => setShowPlans((visible) => !visible)}><RefreshCw size={17} /> {showPlans ? "Ocultar planos" : "Trocar de plano"}</button>
+              <button className="change-plan-button" type="button" disabled={loadingPlans} onClick={togglePlans}><RefreshCw size={17} /> {loadingPlans ? "Carregando planos..." : showPlans ? "Ocultar planos" : "Trocar de plano"}</button>
             </div>
           )}
           {["PAST_DUE", "SUSPENDED"].includes(status) && <button className="billing-primary billing-pay-now" type="button" onClick={payNow}>Pagar agora</button>}
 
-          {showPlans && <div className="embedded-plans"><div className="plans-grid">
+          {showPlans && !loadingPlans && <div className="embedded-plans"><div className="plans-grid">
             {plans.map((plan) => (
               <article className={`plan-card${matchesCurrentPlan(plan, subscription) ? " current-plan" : ""}`} key={plan.id || plan.code}>
                 <div className="plan-card-labels"><span className="step">{plan.billingCycle === "YEARLY" ? "ANUAL" : "MENSAL"}</span>{matchesCurrentPlan(plan, subscription) && <span className="current-plan-badge">Plano atual</span>}</div>

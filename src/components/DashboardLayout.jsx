@@ -186,16 +186,6 @@ export default function DashboardLayout({
   }
 
   useEffect(() => {
-    if (
-      sessionRole === "PROFESSIONAL" &&
-      !showInvites &&
-      location.pathname === "/professionalDashboard"
-    ) {
-      loadGlobalInvites();
-    }
-  }, [sessionRole, showInvites, location.pathname]);
-
-  useEffect(() => {
     let active = true;
     if (sessionRole !== "PROFESSIONAL") return undefined;
     getProfessionalDashboard()

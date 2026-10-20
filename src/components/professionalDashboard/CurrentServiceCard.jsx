@@ -53,6 +53,7 @@ export default function CurrentServiceCard({
   onCallNext,
   onStart,
   onFinish,
+  canFinish = true,
   onCancel,
   onRequeue,
   onCountdownExpired,
@@ -131,11 +132,11 @@ export default function CurrentServiceCard({
             </button>
           </div>
         </>
-      ) : (
+      ) : canFinish ? (
         <button className="next-after" disabled={loading} onClick={onFinish}>
           Finalizar atendimento
         </button>
-      )}
+      ) : null}
       {waiting.length > 0 && (
         <button
           className="call-another-client"

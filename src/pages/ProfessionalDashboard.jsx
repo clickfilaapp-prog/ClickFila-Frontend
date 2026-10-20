@@ -401,7 +401,7 @@ export default function ProfessionalDashboard() {
       title: "Sair da equipe",
       message:
         `Deseja realmente sair da equipe ${dashboard.businessName || "atual"}? ` +
-        "Você perderá o acesso à fila e aos atendimentos desta barbearia.",
+        "Você perderá o acesso à fila e aos atendimentos desta empresa.",
       confirmLabel: "Sim, sair da equipe",
       danger: true,
       action: () =>
@@ -910,7 +910,7 @@ export default function ProfessionalDashboard() {
             </button>
           </section>
         )}
-        {dashboard && hasBusiness && hasSession && (
+        {dashboard && hasBusiness && hasSession && isBusinessOwner && (
           <QueueControlPanel
             dashboard={dashboard}
             loading={loading}
@@ -1015,7 +1015,7 @@ export default function ProfessionalDashboard() {
             <WaitingList waiting={waiting} />
           </section>
         )}
-        {dashboard && hasBusiness && dashboard.loggedMemberRole === "OWNER" && (
+        {dashboard && hasBusiness && isBusinessOwner && (
           <section className={`team-management-shell${teamManagementOpen ? " team-management-mobile-open" : ""}`}>
             <button
               className={`manage-team-trigger ${teamManagementOpen ? "close-action" : ""}`}
@@ -1037,21 +1037,18 @@ export default function ProfessionalDashboard() {
             )}
           </section>
         )}
-        {dashboard &&
-          hasBusiness &&
-          dashboard.loggedMemberRole &&
-          dashboard.loggedMemberRole !== "OWNER" && (
-            <section className="leave-team-shell">
-              <button
-                className="leave-team-trigger"
-                type="button"
-                disabled={loading}
-                onClick={handleLeaveTeam}
-              >
-                <LogOut size={18} /> Sair da equipe
-              </button>
-            </section>
-          )}
+        {dashboard && hasBusiness && !isBusinessOwner && dashboard.loggedMemberRole && (
+          <section className="leave-team-shell">
+            <button
+              className="leave-team-trigger"
+              type="button"
+              disabled={loading}
+              onClick={handleLeaveTeam}
+            >
+              <LogOut size={18} /> Sair da equipe
+            </button>
+          </section>
+        )}
       </main>
     </DashboardLayout>
   );

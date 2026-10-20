@@ -62,6 +62,7 @@ export default function DashboardLayout({
   const [invitesLoading, setInvitesLoading] = useState(false);
   const [invitesError, setInvitesError] = useState("");
   const [blockedInvite, setBlockedInvite] = useState(null);
+  const [businessRole, setBusinessRole] = useState("");
 
   useEffect(() => {
     setNavigationOpen(false);
@@ -187,6 +188,19 @@ export default function DashboardLayout({
   useEffect(() => {
     if (sessionRole === "PROFESSIONAL" && !showInvites) loadGlobalInvites();
   }, [sessionRole, showInvites]);
+
+  useEffect(() => {
+    let active = true;
+    if (sessionRole !== "PROFESSIONAL") return undefined;
+    getProfessionalDashboard()
+      .then((dashboard) => {
+        if (active) setBusinessRole(String(dashboard?.loggedMemberRole || "").toUpperCase());
+      })
+      .catch(() => {
+        if (active) setBusinessRole("");
+      });
+    return () => { active = false; };
+  }, [sessionRole]);
 
   useEffect(() => {
     if (showInvites) {
@@ -328,7 +342,7 @@ export default function DashboardLayout({
               )}
             </button>
           )}
-          {sessionRole === "PROFESSIONAL" && (
+          {sessionRole === "PROFESSIONAL" && businessRole === "OWNER" && (
             <button className="account-action" type="button" onClick={() => { setNavigationOpen(false); navigate("/billing"); }}>
               <Building2 size={16} /> <span>Minha empresa</span>
             </button>

@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import DashboardLayout from "../components/DashboardLayout";
 import ConfirmationModal from "../components/professionalDashboard/ConfirmationModal";
 import { clearProfessionalDashboardCache, deactivateBusiness, getMyBusiness, getProfessionalDashboard, updateMyBusiness } from "../services/queue";
-import { createSubscriptionCheckout, getMySubscription, getPaymentUrl, getPlans } from "../services/billing";
+import { cancelSubscription, createSubscriptionCheckout, getMySubscription, getPaymentUrl, getPlans } from "../services/billing";
 
 const money = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 
@@ -50,6 +50,8 @@ export default function Billing() {
   const [savingBusiness, setSavingBusiness] = useState(false);
   const [error, setError] = useState("");
   const [confirmDeactivate, setConfirmDeactivate] = useState(false);
+  const [confirmCancel, setConfirmCancel] = useState(false);
+  const [cancelingSubscription, setCancelingSubscription] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -66,6 +68,11 @@ export default function Billing() {
           optional404(getMyBusiness()), optional404(getMySubscription()),
         ]);
         if (!active) return;
+        const role = String(dashboard?.loggedMemberRole || "").toUpperCase();
+        if (role && role !== "OWNER") {
+          navigate("/professionalDashboard", { replace: true });
+          return;
+        }
         setPlans(Array.isArray(availablePlans) ? availablePlans : []);
         const loadedBusiness = {
           ...(dashboard?.business || {}), ...(currentBusiness || {}),
@@ -83,7 +90,7 @@ export default function Billing() {
     }
     load();
     return () => { active = false; };
-  }, []);
+  }, [navigate]);
 
   useEffect(() => {
     function releaseCheckoutState() {
@@ -166,6 +173,22 @@ export default function Billing() {
     }
   }
 
+  async function confirmSubscriptionCancellation() {
+    setCancelingSubscription(true);
+    setError("");
+    try {
+      await cancelSubscription(businessId);
+      setSubscription((current) => ({ ...current, status: "CANCELED" }));
+      setConfirmCancel(false);
+      setShowPlans(false);
+    } catch (requestError) {
+      setConfirmCancel(false);
+      setError(requestError.message);
+    } finally {
+      setCancelingSubscription(false);
+    }
+  }
+
   return (
     <DashboardLayout tutorialReady={false}>
       <main className="billing-main">
@@ -173,6 +196,14 @@ export default function Billing() {
           <ConfirmationModal
             confirmation={{ title: "Desativar meu negócio", message: "Seu negócio ficará inativo e não poderá receber novas pessoas na fila. Deseja continuar?", confirmLabel: "Sim, desativar negócio", danger: true }}
             loading={loading} onBack={() => setConfirmDeactivate(false)} onConfirm={confirmBusinessDeactivation}
+          />
+        )}
+        {confirmCancel && (
+          <ConfirmationModal
+            confirmation={{ title: "Cancelar assinatura", message: "Seu plano atual será cancelado. Deseja continuar?", backLabel: "Voltar", confirmLabel: "Sim, cancelar assinatura", danger: true }}
+            loading={cancelingSubscription}
+            onBack={() => setConfirmCancel(false)}
+            onConfirm={confirmSubscriptionCancellation}
           />
         )}
 
@@ -230,7 +261,11 @@ export default function Billing() {
               </article>
             ))}
             {!plans.length && <p>Nenhum plano está disponível no momento.</p>}
-          </div></div>}
+          </div>
+            {["ACTIVE", "TRIAL", "PAST_DUE"].includes(status) && businessId && (
+              <div className="cancel-subscription-row"><div><strong>Não quer continuar com o plano atual?</strong><span>O cancelamento encerra a renovação da assinatura.</span></div><button type="button" disabled={cancelingSubscription} onClick={() => setConfirmCancel(true)}>Cancelar plano atual</button></div>
+            )}
+          </div>}
         </section>
 
         {businessId && <section className="billing-danger-zone">

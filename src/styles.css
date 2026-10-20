@@ -6618,6 +6618,13 @@ main > *,
 .current-plan-data > span,
 .next-charge span { color: #64748b; font-size: 13px; font-weight: 700; }
 .business-details-grid strong { overflow-wrap: anywhere; color: #34445c; font-size: 15px; }
+.business-edit-form { display: grid; gap: 8px; padding: 22px 4px 2px; }
+.business-edit-form label { color: #34445c; font-size: 13px; font-weight: 800; }
+.business-edit-form > div { display: flex; gap: 10px; }
+.business-edit-form input { width: min(520px, 100%); border: 1px solid #bfd3e5; border-radius: 10px; padding: 12px 14px; color: #0b1f3b; font: inherit; outline: none; }
+.business-edit-form input:focus { border-color: #147db3; box-shadow: 0 0 0 3px rgba(20,125,179,.12); }
+.business-edit-form button { border: 0; border-radius: 10px; padding: 11px 20px; background: #147db3; color: #fff; font-weight: 800; cursor: pointer; }
+.business-edit-form button:disabled { opacity: .6; cursor: wait; }
 .subscription-status-badge { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 999px; background: #dcfce7; color: #15803d; font-size: 13px; font-weight: 800; }
 .subscription-status-badge.status-canceled,
 .subscription-status-badge.status-suspended,
@@ -6646,6 +6653,9 @@ main > *,
   .business-card-heading > button,
   .business-card-heading > .subscription-status-badge { grid-column: 1 / -1; width: 100%; }
   .business-details-grid { grid-template-columns: 1fr; gap: 18px; }
+  .business-edit-form > div { align-items: stretch; flex-direction: column; }
+  .business-edit-form input,
+  .business-edit-form button { width: 100%; }
   .current-subscription-row { grid-template-columns: 1fr; gap: 20px; }
   .current-plan-data { padding: 0 0 20px; border-right: 0; border-bottom: 1px solid #e8eef5; }
   .change-plan-button { width: 100%; }

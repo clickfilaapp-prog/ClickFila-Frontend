@@ -3,7 +3,7 @@ import { Building2, CalendarDays, CheckCircle2, CreditCard, LoaderCircle, Pencil
 import { useNavigate } from "react-router-dom";
 import DashboardLayout from "../components/DashboardLayout";
 import ConfirmationModal from "../components/professionalDashboard/ConfirmationModal";
-import { clearProfessionalDashboardCache, deactivateBusiness, getMyBusiness, getProfessionalDashboard } from "../services/queue";
+import { clearProfessionalDashboardCache, deactivateBusiness, getMyBusiness, getProfessionalDashboard, updateMyBusiness } from "../services/queue";
 import { createSubscriptionCheckout, getMySubscription, getPaymentUrl, getPlans } from "../services/billing";
 
 const money = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
@@ -23,27 +23,6 @@ function formatDocument(value) {
   if (digits.length === 11) return digits.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
   if (digits.length === 14) return digits.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, "$1.$2.$3/$4-$5");
   return value || "Não informado";
-}
-
-function formatPhone(value) {
-  const digits = String(value || "").replace(/\D/g, "");
-  if (digits.length === 10) return digits.replace(/(\d{2})(\d{4})(\d{4})/, "($1) $2-$3");
-  if (digits.length === 11) return digits.replace(/(\d{2})(\d{5})(\d{4})/, "($1) $2-$3");
-  return value || "Não informado";
-}
-
-function formatAddress(business) {
-  const address = business?.address || business?.endereco;
-  if (typeof address === "string") return address || "Não informado";
-  const source = address || business || {};
-  const street = firstValue(source.street, source.logradouro, source.addressLine);
-  const number = firstValue(source.number, source.numero);
-  const district = firstValue(source.neighborhood, source.district, source.bairro);
-  const city = firstValue(source.city, source.cidade);
-  const state = firstValue(source.state, source.uf, source.estado);
-  const line = [street, number].filter(Boolean).join(", ");
-  const location = [district, [city, state].filter(Boolean).join("/")].filter(Boolean).join(" - ");
-  return [line, location].filter(Boolean).join(" - ") || "Não informado";
 }
 
 const STATUS_LABELS = {
@@ -66,6 +45,9 @@ export default function Billing() {
   const [loading, setLoading] = useState(true);
   const [busyPlan, setBusyPlan] = useState("");
   const [showPlans, setShowPlans] = useState(false);
+  const [editingBusiness, setEditingBusiness] = useState(false);
+  const [businessName, setBusinessName] = useState("");
+  const [savingBusiness, setSavingBusiness] = useState(false);
   const [error, setError] = useState("");
   const [confirmDeactivate, setConfirmDeactivate] = useState(false);
 
@@ -85,11 +67,13 @@ export default function Billing() {
         ]);
         if (!active) return;
         setPlans(Array.isArray(availablePlans) ? availablePlans : []);
-        setBusiness({
+        const loadedBusiness = {
           ...(dashboard?.business || {}), ...(currentBusiness || {}),
           id: firstValue(currentBusiness?.id, currentBusiness?.businessId, dashboard?.businessId),
           name: firstValue(currentBusiness?.name, currentBusiness?.businessName, dashboard?.businessName),
-        });
+        };
+        setBusiness(loadedBusiness);
+        setBusinessName(loadedBusiness.name || "");
         setSubscription(currentSubscription);
       } catch (requestError) {
         if (active) setError(requestError.message);
@@ -130,6 +114,30 @@ export default function Billing() {
     else setError("Não há um link de cobrança disponível. Escolha um plano abaixo.");
   }
 
+  async function saveBusinessName(event) {
+    event.preventDefault();
+    const name = businessName.trim();
+    if (name.length < 2 || name.length > 150) {
+      setError("O nome da empresa deve ter entre 2 e 150 caracteres.");
+      return;
+    }
+    setSavingBusiness(true);
+    setError("");
+    try {
+      const updated = await updateMyBusiness(name);
+      const updatedName = firstValue(updated?.name, updated?.businessName, name);
+      setBusiness((current) => ({ ...current, ...(updated || {}), name: updatedName }));
+      setBusinessName(updatedName);
+      clearProfessionalDashboardCache();
+      setEditingBusiness(false);
+      window.dispatchEvent(new CustomEvent("barberflow:profile-updated", { detail: { businessName: updatedName } }));
+    } catch (requestError) {
+      setError(requestError.message);
+    } finally {
+      setSavingBusiness(false);
+    }
+  }
+
   async function confirmBusinessDeactivation() {
     setLoading(true);
     setError("");
@@ -166,17 +174,21 @@ export default function Billing() {
           <div className="business-card-heading">
             <div className="billing-card-icon business-icon"><Building2 /></div>
             <div><h2>Informações da empresa</h2><p>Dados cadastrais da sua empresa.</p></div>
-            <button type="button" onClick={() => navigate("/profile")}><Pencil size={17} /> Editar</button>
+            <button type="button" onClick={() => { setBusinessName(business?.name || ""); setEditingBusiness((editing) => !editing); }}><Pencil size={17} /> {editingBusiness ? "Cancelar" : "Editar"}</button>
           </div>
           {loading ? <p className="billing-loading">Carregando dados do negócio...</p> : (
-            <div className="business-details-grid">
-              <div><span>Nome da empresa</span><strong>{business?.name || "Não informado"}</strong></div>
-              <div><span>CPF/CNPJ</span><strong>{formatDocument(firstValue(business?.cpfCnpj, business?.document, business?.taxId))}</strong></div>
-              <div><span>Telefone</span><strong>{formatPhone(firstValue(business?.phone, business?.telephone))}</strong></div>
-              <div><span>E-mail do negócio</span><strong>{firstValue(business?.email, business?.businessEmail, "Não informado")}</strong></div>
-              <div><span>Endereço</span><strong>{formatAddress(business)}</strong></div>
-              <div><span>Data de cadastro</span><strong>{formatDate(firstValue(business?.createdAt, business?.createdDate, business?.registrationDate))}</strong></div>
-            </div>
+            editingBusiness ? (
+              <form className="business-edit-form" onSubmit={saveBusinessName}>
+                <label htmlFor="billing-business-name">Nome da empresa</label>
+                <div><input id="billing-business-name" value={businessName} maxLength={150} onChange={(event) => setBusinessName(event.target.value)} autoFocus /><button type="submit" disabled={savingBusiness}>{savingBusiness ? "Salvando..." : "Salvar"}</button></div>
+              </form>
+            ) : (
+              <div className="business-details-grid">
+                <div><span>Nome da empresa</span><strong>{business?.name || "Não informado"}</strong></div>
+                {firstValue(business?.cpfCnpj, business?.document, business?.taxId) && <div><span>CPF/CNPJ</span><strong>{formatDocument(firstValue(business?.cpfCnpj, business?.document, business?.taxId))}</strong></div>}
+                {firstValue(business?.createdAt, business?.createdDate, business?.registrationDate) && <div><span>Data de cadastro</span><strong>{formatDate(firstValue(business?.createdAt, business?.createdDate, business?.registrationDate))}</strong></div>}
+              </div>
+            )
           )}
         </section>
 

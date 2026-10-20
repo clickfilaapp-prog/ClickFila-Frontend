@@ -32,7 +32,6 @@ import {
 import { refreshAuthSession } from "../services/api";
 import {
   clearProfessionalDashboardCache,
-  deactivateBusiness,
   getProfessionalDashboard,
   updateMyBusiness,
 } from "../services/queue";
@@ -68,10 +67,6 @@ export function ProfileSettingsContent({ onClose = null }) {
   const [upgrading, setUpgrading] = useState(false);
   const [confirmingDowngrade, setConfirmingDowngrade] = useState(false);
   const [downgrading, setDowngrading] = useState(false);
-  const [businessRole, setBusinessRole] = useState("");
-  const [confirmingBusinessDeactivation, setConfirmingBusinessDeactivation] =
-    useState(false);
-  const [deactivatingBusiness, setDeactivatingBusiness] = useState(false);
 
   useEffect(() => {
     if (!success) return undefined;
@@ -154,29 +149,6 @@ export function ProfileSettingsContent({ onClose = null }) {
     }
   }
 
-  async function confirmBusinessDeactivation() {
-    setDeactivatingBusiness(true);
-    setError("");
-    try {
-      await deactivateBusiness();
-      clearProfessionalDashboardCache();
-      window.location.assign("/professionalDashboard");
-    } catch (requestError) {
-      setConfirmingBusinessDeactivation(false);
-      if (requestError.status === 409) {
-        setError(
-          "Não é possível inativar a barbearia enquanto houver uma fila aberta ou clientes aguardando.",
-        );
-      } else if (requestError.status === 404) {
-        setError("Você não possui uma barbearia ativa para inativar.");
-      } else {
-        setError(requestError.message);
-      }
-    } finally {
-      setDeactivatingBusiness(false);
-    }
-  }
-
   useEffect(() => {
     let active = true;
 
@@ -205,7 +177,6 @@ export function ProfileSettingsContent({ onClose = null }) {
         };
         setForm(loadedForm);
         setInitialForm(loadedForm);
-        setBusinessRole(String(dashboard?.loggedMemberRole || "").toUpperCase());
       } catch (requestError) {
         if (active) setError(requestError.message);
       } finally {
@@ -367,21 +338,6 @@ export function ProfileSettingsContent({ onClose = null }) {
           loading={downgrading}
           onBack={() => setConfirmingDowngrade(false)}
           onConfirm={confirmRoleDowngrade}
-        />
-      )}
-      {confirmingBusinessDeactivation && (
-        <ConfirmationModal
-          confirmation={{
-            title: "Inativar barbearia",
-            message:
-              "Esta ação inativará sua barbearia e removerá o acesso de todos os membros da equipe. Antes de continuar, feche a fila e finalize o atendimento de todos os clientes.",
-            backLabel: "Cancelar",
-            confirmLabel: "Sim, inativar barbearia",
-            danger: true,
-          }}
-          loading={deactivatingBusiness}
-          onBack={() => setConfirmingBusinessDeactivation(false)}
-          onConfirm={confirmBusinessDeactivation}
         />
       )}
       <main className="profile-main">
@@ -562,16 +518,6 @@ export function ProfileSettingsContent({ onClose = null }) {
                   onClick={() => setConfirmingDowngrade(true)}
                 >
                   <UserRound size={17} /> Quero ser cliente
-                </button>
-              )}
-              {isProfessional && businessRole === "OWNER" && (
-                <button
-                  className="profile-delete-button"
-                  type="button"
-                  disabled={saving || deactivatingBusiness}
-                  onClick={() => setConfirmingBusinessDeactivation(true)}
-                >
-                  <Building2 size={17} /> Inativar minha barbearia
                 </button>
               )}
               <button

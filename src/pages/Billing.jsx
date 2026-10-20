@@ -158,19 +158,19 @@ export default function Billing() {
         )}
 
         <div className="panel-heading billing-page-heading">
-          <div><span className="step">EMPRESA</span><h1>Dados da Empresa</h1><p>Gerencie as informações da sua empresa e acompanhe sua assinatura.</p></div>
+          <div><span className="step">MINHA CONTA</span><h1>Empresa e Assinatura</h1><p>Gerencie as informações da sua empresa e acompanhe sua assinatura.</p></div>
         </div>
         {error && <div className="login-auth-error" role="alert">{error}</div>}
 
         <section className="business-details-card">
           <div className="business-card-heading">
             <div className="billing-card-icon business-icon"><Building2 /></div>
-            <div><h2>Informações do negócio</h2><p>Dados cadastrais do seu estabelecimento.</p></div>
+            <div><h2>Informações da empresa</h2><p>Dados cadastrais da sua empresa.</p></div>
             <button type="button" onClick={() => navigate("/profile")}><Pencil size={17} /> Editar</button>
           </div>
           {loading ? <p className="billing-loading">Carregando dados do negócio...</p> : (
             <div className="business-details-grid">
-              <div><span>Nome do negócio</span><strong>{business?.name || "Não informado"}</strong></div>
+              <div><span>Nome da empresa</span><strong>{business?.name || "Não informado"}</strong></div>
               <div><span>CPF/CNPJ</span><strong>{formatDocument(firstValue(business?.cpfCnpj, business?.document, business?.taxId))}</strong></div>
               <div><span>Telefone</span><strong>{formatPhone(firstValue(business?.phone, business?.telephone))}</strong></div>
               <div><span>E-mail do negócio</span><strong>{firstValue(business?.email, business?.businessEmail, "Não informado")}</strong></div>

@@ -25,6 +25,13 @@ function formatDocument(value) {
   return value || "Não informado";
 }
 
+function formatPhone(value) {
+  const digits = String(value || "").replace(/\D/g, "");
+  if (digits.length === 10) return digits.replace(/(\d{2})(\d{4})(\d{4})/, "($1) $2-$3");
+  if (digits.length === 11) return digits.replace(/(\d{2})(\d{5})(\d{4})/, "($1) $2-$3");
+  return value || "Não informado";
+}
+
 const STATUS_LABELS = {
   ACTIVE: "Ativa", TRIAL: "Em teste", PAST_DUE: "Pagamento pendente",
   SUSPENDED: "Suspensa", CANCELED: "Cancelada",
@@ -228,6 +235,8 @@ export default function Billing() {
               <div className="business-details-grid">
                 <div><span>Nome da empresa</span><strong>{business?.name || "Não informado"}</strong></div>
                 {firstValue(business?.cpfCnpj, business?.document, business?.taxId) && <div><span>CPF/CNPJ</span><strong>{formatDocument(firstValue(business?.cpfCnpj, business?.document, business?.taxId))}</strong></div>}
+                {firstValue(business?.user?.login, business?.email) && <div><span>E-mail da empresa</span><strong>{firstValue(business?.user?.login, business?.email)}</strong></div>}
+                {firstValue(business?.user?.phone, business?.phone) && <div><span>Telefone</span><strong>{formatPhone(firstValue(business?.user?.phone, business?.phone))}</strong></div>}
                 {firstValue(business?.createdAt, business?.createdDate, business?.registrationDate) && <div><span>Data de cadastro</span><strong>{formatDate(firstValue(business?.createdAt, business?.createdDate, business?.registrationDate))}</strong></div>}
               </div>
             )

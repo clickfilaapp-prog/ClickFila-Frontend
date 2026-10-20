@@ -28,7 +28,7 @@ export const API_ROUTES = Object.freeze({
   professionalDashboard: "/api/dashboard/professional",
   businesses: "/api/businesses",
   reactivateBusiness: "/api/businesses/reactivate",
-  myBusiness: "/api/businesses/me",
+  myBusiness: "/api/business/me",
   deactivateBusiness: "/api/businesses/deactivate",
   plans: "/api/plans",
   mySubscription: "/api/subscriptions/me",

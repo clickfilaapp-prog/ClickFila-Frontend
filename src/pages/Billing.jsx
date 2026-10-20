@@ -85,6 +85,17 @@ export default function Billing() {
     return () => { active = false; };
   }, []);
 
+  useEffect(() => {
+    function releaseCheckoutState() {
+      setBusyPlan("");
+    }
+
+    // Ao voltar do checkout, o navegador pode restaurar esta página pelo
+    // back-forward cache com o estado anterior ainda em memória.
+    window.addEventListener("pageshow", releaseCheckoutState);
+    return () => window.removeEventListener("pageshow", releaseCheckoutState);
+  }, []);
+
   const status = String(subscription?.status || "").toUpperCase();
   const businessId = business?.id;
   const currentPlan = plans.find((plan) => matchesCurrentPlan(plan, subscription));

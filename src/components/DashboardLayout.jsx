@@ -63,6 +63,7 @@ export default function DashboardLayout({
   const [invitesError, setInvitesError] = useState("");
   const [blockedInvite, setBlockedInvite] = useState(null);
   const [businessRole, setBusinessRole] = useState("");
+  const [layoutBusinessId, setLayoutBusinessId] = useState(null);
 
   useEffect(() => {
     setNavigationOpen(false);
@@ -188,15 +189,19 @@ export default function DashboardLayout({
   useEffect(() => {
     let active = true;
     if (sessionRole !== "PROFESSIONAL") return undefined;
+    if (location.pathname === "/billing" || location.pathname === "/pricing") return undefined;
     getProfessionalDashboard()
       .then((dashboard) => {
-        if (active) setBusinessRole(String(dashboard?.loggedMemberRole || "").toUpperCase());
+        if (active) {
+          setBusinessRole(String(dashboard?.loggedMemberRole || "").toUpperCase());
+          setLayoutBusinessId(dashboard?.businessId || dashboard?.business?.id || null);
+        }
       })
       .catch(() => {
         if (active) setBusinessRole("");
       });
     return () => { active = false; };
-  }, [sessionRole]);
+  }, [sessionRole, location.pathname]);
 
   useEffect(() => {
     if (showInvites) {
@@ -339,7 +344,7 @@ export default function DashboardLayout({
             </button>
           )}
           {sessionRole === "PROFESSIONAL" && businessRole === "OWNER" && (
-            <button className="account-action" type="button" onClick={() => { setNavigationOpen(false); navigate("/billing"); }}>
+            <button className="account-action" type="button" onClick={() => { setNavigationOpen(false); navigate("/billing", { state: { businessRole, businessId: layoutBusinessId } }); }}>
               <Building2 size={16} /> <span>Minha empresa</span>
             </button>
           )}

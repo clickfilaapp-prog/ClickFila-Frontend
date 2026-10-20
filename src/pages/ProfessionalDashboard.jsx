@@ -872,13 +872,13 @@ export default function ProfessionalDashboard() {
         {isBusinessOwner && subscriptionStatus === "TRIAL" && (
           <div className="subscription-banner trial" role="status">
             <span>Você está no período de testes. Faltam {trialDaysLeft ?? "—"} dias para expirar.</span>
-            <button type="button" onClick={() => navigate("/billing")}>Ver planos</button>
+            <button type="button" onClick={() => navigate("/billing", { state: { businessRole: dashboard?.loggedMemberRole, businessId: dashboard?.businessId } })}>Ver planos</button>
           </div>
         )}
         {isBusinessOwner && subscriptionStatus === "PAST_DUE" && (
           <div className="subscription-banner past-due" role="alert">
             <span>Sua fatura está atrasada. Efetue o pagamento para evitar o bloqueio do sistema.</span>
-            <button type="button" onClick={() => navigate("/billing")}>Pagar agora</button>
+            <button type="button" onClick={() => navigate("/billing", { state: { businessRole: dashboard?.loggedMemberRole, businessId: dashboard?.businessId } })}>Pagar agora</button>
           </div>
         )}
         {subscriptionLocked && (
@@ -887,7 +887,7 @@ export default function ProfessionalDashboard() {
             <span className="step">ACESSO BLOQUEADO</span>
             <h2>{subscriptionStatus === "CANCELED" ? "Plano cancelado" : "Acesso suspenso"}</h2>
             <p>{subscriptionStatus === "CANCELED" ? "Escolha uma nova assinatura para voltar a usar o sistema." : "Regularize sua assinatura para voltar a usar o sistema."}</p>
-            <button type="button" onClick={() => navigate("/billing")}>{subscriptionStatus === "CANCELED" ? "Escolher nova assinatura" : "Regularizar assinatura"}</button>
+            <button type="button" onClick={() => navigate("/billing", { state: { businessRole: dashboard?.loggedMemberRole, businessId: dashboard?.businessId } })}>{subscriptionStatus === "CANCELED" ? "Escolher nova assinatura" : "Regularizar assinatura"}</button>
           </section>
         )}
         {dashboard &&

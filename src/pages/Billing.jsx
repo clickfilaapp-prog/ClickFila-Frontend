@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Building2, CalendarDays, CheckCircle2, CreditCard, LoaderCircle, Pencil, Power, RefreshCw } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import DashboardLayout from "../components/DashboardLayout";
 import ConfirmationModal from "../components/professionalDashboard/ConfirmationModal";
 import { clearProfessionalDashboardCache, deactivateBusiness, getMyBusiness, getProfessionalDashboard, updateMyBusiness } from "../services/queue";
@@ -46,6 +46,7 @@ function matchesCurrentPlan(plan, subscription) {
 
 export default function Billing() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [plans, setPlans] = useState([]);
   const [plansLoaded, setPlansLoaded] = useState(false);
   const [loadingPlans, setLoadingPlans] = useState(false);
@@ -73,8 +74,13 @@ export default function Billing() {
           throw requestError;
         });
         const optionalBusiness = getMyBusiness().catch(() => null);
+        const navigationBusinessId = location.state?.businessId || null;
+        const navigationRole = String(location.state?.businessRole || "").toUpperCase();
+        const dashboardRequest = navigationBusinessId && navigationRole
+          ? Promise.resolve({ businessId: navigationBusinessId, loggedMemberRole: navigationRole })
+          : getProfessionalDashboard();
         const [dashboard, currentBusiness, currentSubscription] = await Promise.all([
-          getProfessionalDashboard(), optionalBusiness, optional404(getMySubscription()),
+          dashboardRequest, optionalBusiness, optional404(getMySubscription()),
         ]);
         if (!active) return;
         const role = String(dashboard?.loggedMemberRole || "").toUpperCase();
@@ -99,7 +105,7 @@ export default function Billing() {
     }
     load();
     return () => { active = false; };
-  }, [navigate]);
+  }, [navigate, location.state?.businessId, location.state?.businessRole]);
 
   useEffect(() => {
     function releaseCheckoutState() {

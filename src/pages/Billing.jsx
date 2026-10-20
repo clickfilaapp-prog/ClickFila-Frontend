@@ -1,79 +1,116 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { AlertTriangle, CalendarDays, CheckCircle2, CreditCard, LoaderCircle, XCircle } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { Building2, CalendarDays, CheckCircle2, CreditCard, LoaderCircle, Pencil, Power, RefreshCw } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import DashboardLayout from "../components/DashboardLayout";
 import ConfirmationModal from "../components/professionalDashboard/ConfirmationModal";
-import { getProfessionalDashboard } from "../services/queue";
-import {
-  cancelSubscription,
-  createSubscriptionCheckout,
-  getMySubscription,
-  getPaymentUrl,
-  getPlans,
-} from "../services/billing";
+import { clearProfessionalDashboardCache, deactivateBusiness, getMyBusiness, getProfessionalDashboard } from "../services/queue";
+import { createSubscriptionCheckout, getMySubscription, getPaymentUrl, getPlans } from "../services/billing";
 
-const money = new Intl.NumberFormat("pt-BR", {
-  style: "currency",
-  currency: "BRL",
-});
+const money = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 
-function daysUntil(date) {
-  if (!date) return null;
-  const end = new Date(`${date}T23:59:59`);
-  if (Number.isNaN(end.getTime())) return null;
-  return Math.max(0, Math.ceil((end.getTime() - Date.now()) / 86400000));
+function firstValue(...values) {
+  return values.find((value) => value !== undefined && value !== null && value !== "") ?? null;
+}
+
+function formatDate(value) {
+  if (!value) return "Não informado";
+  const date = new Date(String(value).includes("T") ? value : `${value}T12:00:00`);
+  return Number.isNaN(date.getTime()) ? String(value) : date.toLocaleDateString("pt-BR");
+}
+
+function formatDocument(value) {
+  const digits = String(value || "").replace(/\D/g, "");
+  if (digits.length === 11) return digits.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
+  if (digits.length === 14) return digits.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, "$1.$2.$3/$4-$5");
+  return value || "Não informado";
+}
+
+function formatPhone(value) {
+  const digits = String(value || "").replace(/\D/g, "");
+  if (digits.length === 10) return digits.replace(/(\d{2})(\d{4})(\d{4})/, "($1) $2-$3");
+  if (digits.length === 11) return digits.replace(/(\d{2})(\d{5})(\d{4})/, "($1) $2-$3");
+  return value || "Não informado";
+}
+
+function formatAddress(business) {
+  const address = business?.address || business?.endereco;
+  if (typeof address === "string") return address || "Não informado";
+  const source = address || business || {};
+  const street = firstValue(source.street, source.logradouro, source.addressLine);
+  const number = firstValue(source.number, source.numero);
+  const district = firstValue(source.neighborhood, source.district, source.bairro);
+  const city = firstValue(source.city, source.cidade);
+  const state = firstValue(source.state, source.uf, source.estado);
+  const line = [street, number].filter(Boolean).join(", ");
+  const location = [district, [city, state].filter(Boolean).join("/")].filter(Boolean).join(" - ");
+  return [line, location].filter(Boolean).join(" - ") || "Não informado";
+}
+
+const STATUS_LABELS = {
+  ACTIVE: "Ativa", TRIAL: "Em teste", PAST_DUE: "Pagamento pendente",
+  SUSPENDED: "Suspensa", CANCELED: "Cancelada",
+};
+
+function matchesCurrentPlan(plan, subscription) {
+  const current = [subscription?.planCode, subscription?.planName, subscription?.plan?.code, subscription?.plan?.name]
+    .filter(Boolean).map((value) => String(value).toLowerCase());
+  return [plan?.code, plan?.name].filter(Boolean)
+    .some((value) => current.includes(String(value).toLowerCase()));
 }
 
 export default function Billing() {
+  const navigate = useNavigate();
   const [plans, setPlans] = useState([]);
   const [subscription, setSubscription] = useState(null);
-  const [businessId, setBusinessId] = useState(null);
+  const [business, setBusiness] = useState(null);
   const [loading, setLoading] = useState(true);
   const [busyPlan, setBusyPlan] = useState("");
+  const [showPlans, setShowPlans] = useState(false);
   const [error, setError] = useState("");
-  const [toast, setToast] = useState("");
-  const [confirmCancel, setConfirmCancel] = useState(false);
+  const [confirmDeactivate, setConfirmDeactivate] = useState(false);
 
-  async function load() {
-    setLoading(true);
-    setError("");
-    try {
-      const [availablePlans, dashboard, currentSubscription] =
-        await Promise.all([
-          getPlans(),
-          getProfessionalDashboard({ force: true }),
-          getMySubscription().catch((requestError) => {
-            if (requestError.status === 404) return null;
-            throw requestError;
-          }),
-        ]);
-      setPlans(Array.isArray(availablePlans) ? availablePlans : []);
-      setBusinessId(dashboard?.businessId || null);
-      setSubscription(currentSubscription);
-    } catch (requestError) {
-      setError(requestError.message);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  useEffect(() => { load(); }, []);
   useEffect(() => {
-    if (!toast) return undefined;
-    const timer = window.setTimeout(() => setToast(""), 5000);
-    return () => window.clearTimeout(timer);
-  }, [toast]);
+    let active = true;
+    async function load() {
+      setLoading(true);
+      setError("");
+      try {
+        const optional404 = (promise) => promise.catch((requestError) => {
+          if (requestError.status === 404) return null;
+          throw requestError;
+        });
+        const [availablePlans, dashboard, currentBusiness, currentSubscription] = await Promise.all([
+          getPlans(), getProfessionalDashboard({ force: true }),
+          optional404(getMyBusiness()), optional404(getMySubscription()),
+        ]);
+        if (!active) return;
+        setPlans(Array.isArray(availablePlans) ? availablePlans : []);
+        setBusiness({
+          ...(dashboard?.business || {}), ...(currentBusiness || {}),
+          id: firstValue(currentBusiness?.id, currentBusiness?.businessId, dashboard?.businessId),
+          name: firstValue(currentBusiness?.name, currentBusiness?.businessName, dashboard?.businessName),
+        });
+        setSubscription(currentSubscription);
+      } catch (requestError) {
+        if (active) setError(requestError.message);
+      } finally {
+        if (active) setLoading(false);
+      }
+    }
+    load();
+    return () => { active = false; };
+  }, []);
 
   const status = String(subscription?.status || "").toUpperCase();
-  const remainingDays = useMemo(
-    () => daysUntil(subscription?.currentPeriodEnd),
-    [subscription?.currentPeriodEnd],
-  );
+  const businessId = business?.id;
+  const currentPlan = plans.find((plan) => matchesCurrentPlan(plan, subscription));
+  const planName = firstValue(subscription?.planName, subscription?.plan?.name, currentPlan?.name, "Sem plano");
+  const planPrice = Number(firstValue(subscription?.price, subscription?.amount, subscription?.planPrice, subscription?.plan?.price, currentPlan?.price, 0));
+  const billingCycle = firstValue(subscription?.billingCycle, subscription?.plan?.billingCycle, currentPlan?.billingCycle);
+  const periodEnd = firstValue(subscription?.nextBillingDate, subscription?.currentPeriodEnd, subscription?.expiresAt);
 
   async function subscribe(planCode) {
-    if (!businessId) {
-      setError("Crie ou reative sua barbearia antes de assinar um plano.");
-      return;
-    }
+    if (!businessId) return setError("Crie ou reative seu negócio antes de assinar um plano.");
     setBusyPlan(planCode);
     setError("");
     try {
@@ -93,16 +130,18 @@ export default function Billing() {
     else setError("Não há um link de cobrança disponível. Escolha um plano abaixo.");
   }
 
-  async function confirmCancellation() {
+  async function confirmBusinessDeactivation() {
     setLoading(true);
     setError("");
     try {
-      await cancelSubscription(businessId);
-      setSubscription((current) => ({ ...current, status: "CANCELED" }));
-      setConfirmCancel(false);
-      setToast("Assinatura cancelada com sucesso.");
+      await deactivateBusiness();
+      clearProfessionalDashboardCache();
+      navigate("/professionalDashboard", { replace: true, state: { toast: "Negócio desativado com sucesso." } });
     } catch (requestError) {
-      setError(requestError.message);
+      setConfirmDeactivate(false);
+      setError(requestError.status === 409
+        ? "Não é possível desativar o negócio enquanto houver uma fila aberta ou clientes aguardando."
+        : requestError.message);
     } finally {
       setLoading(false);
     }
@@ -111,76 +150,71 @@ export default function Billing() {
   return (
     <DashboardLayout tutorialReady={false}>
       <main className="billing-main">
-        {confirmCancel && (
+        {confirmDeactivate && (
           <ConfirmationModal
-            confirmation={{
-              title: "Cancelar assinatura",
-              message: "Tem certeza? Seu acesso poderá ser bloqueado ao fim do período vigente.",
-              confirmLabel: "Sim, cancelar assinatura",
-              danger: true,
-            }}
-            loading={loading}
-            onBack={() => setConfirmCancel(false)}
-            onConfirm={confirmCancellation}
+            confirmation={{ title: "Desativar meu negócio", message: "Seu negócio ficará inativo e não poderá receber novas pessoas na fila. Deseja continuar?", confirmLabel: "Sim, desativar negócio", danger: true }}
+            loading={loading} onBack={() => setConfirmDeactivate(false)} onConfirm={confirmBusinessDeactivation}
           />
         )}
-        <div className="panel-heading">
-          <div><span className="step">FINANCEIRO</span><h1>Minha assinatura</h1></div>
+
+        <div className="panel-heading billing-page-heading">
+          <div><span className="step">NEGÓCIO</span><h1>Dados do negócio</h1><p>Gerencie as informações do seu negócio e acompanhe sua assinatura.</p></div>
         </div>
         {error && <div className="login-auth-error" role="alert">{error}</div>}
-        {toast && <div className="toast" role="status">{toast}</div>}
 
-        {subscription && (
-          <section className={`subscription-summary status-${status.toLowerCase()}`}>
-            <div className="subscription-status-icon">
-              {status === "ACTIVE" ? <CheckCircle2 /> : status === "CANCELED" ? <XCircle /> : <AlertTriangle />}
-            </div>
-            <div>
-              <span className="step">STATUS {status}</span>
-              <h2>
-                {status === "ACTIVE" && "Sua assinatura está em dia"}
-                {status === "TRIAL" && `Seu período de teste acaba em ${remainingDays ?? "—"} dias`}
-                {status === "PAST_DUE" && "Sua fatura está atrasada"}
-                {status === "SUSPENDED" && "Acesso suspenso"}
-                {status === "CANCELED" && "Sua assinatura foi cancelada"}
-              </h2>
-              <p>
-                {subscription.planName && `Plano: ${subscription.planName}. `}
-                {subscription.currentPeriodEnd && `Ciclo atual até ${new Date(`${subscription.currentPeriodEnd}T12:00:00`).toLocaleDateString("pt-BR")}.`}
-              </p>
-            </div>
-            {["PAST_DUE", "SUSPENDED"].includes(status) && (
-              <button className="billing-primary" type="button" onClick={payNow}>Pagar agora</button>
-            )}
-          </section>
-        )}
-
-        <section className="plans-section">
-          <div className="plans-heading"><CreditCard /><div><h2>Escolha seu plano</h2><p>Valores atualizados diretamente pela plataforma.</p></div></div>
-          {loading ? <p>Carregando planos...</p> : (
-            <div className="plans-grid">
-              {plans.map((plan) => (
-                <article className={`plan-card${status === "ACTIVE" && [plan.code, plan.name].includes(subscription?.planName) ? " current-plan" : ""}`} key={plan.id || plan.code}>
-                  <div className="plan-card-labels"><span className="step">{plan.billingCycle === "YEARLY" ? "ANUAL" : "MENSAL"}</span>{status === "ACTIVE" && [plan.code, plan.name].includes(subscription?.planName) && <span className="current-plan-badge">Plano atual</span>}</div>
-                  <h3>{plan.name}</h3>
-                  <strong>{money.format(Number(plan.price || 0))}</strong>
-                  <p><CalendarDays size={17} /> Cobrança {plan.billingCycle === "YEARLY" ? "anual" : "mensal"}</p>
-                  <button className="billing-primary" type="button" disabled={Boolean(busyPlan) || (status === "ACTIVE" && [plan.code, plan.name].includes(subscription?.planName))} onClick={() => subscribe(plan.code)}>
-                    {status === "ACTIVE" && [plan.code, plan.name].includes(subscription?.planName) ? "Seu plano atual" : busyPlan === plan.code ? <><LoaderCircle className="billing-spinner" size={18} aria-hidden="true" /> Abrindo checkout...</> : status === "CANCELED" ? "Reativar plano" : "Assinar plano"}
-                  </button>
-                </article>
-              ))}
-              {!plans.length && <p>Nenhum plano está disponível no momento.</p>}
+        <section className="business-details-card">
+          <div className="business-card-heading">
+            <div className="billing-card-icon business-icon"><Building2 /></div>
+            <div><h2>Informações do negócio</h2><p>Dados cadastrais do seu estabelecimento.</p></div>
+            <button type="button" onClick={() => navigate("/profile")}><Pencil size={17} /> Editar</button>
+          </div>
+          {loading ? <p className="billing-loading">Carregando dados do negócio...</p> : (
+            <div className="business-details-grid">
+              <div><span>Nome do negócio</span><strong>{business?.name || "Não informado"}</strong></div>
+              <div><span>CPF/CNPJ</span><strong>{formatDocument(firstValue(business?.cpfCnpj, business?.document, business?.taxId))}</strong></div>
+              <div><span>Telefone</span><strong>{formatPhone(firstValue(business?.phone, business?.telephone))}</strong></div>
+              <div><span>E-mail do negócio</span><strong>{firstValue(business?.email, business?.businessEmail, "Não informado")}</strong></div>
+              <div><span>Endereço</span><strong>{formatAddress(business)}</strong></div>
+              <div><span>Data de cadastro</span><strong>{formatDate(firstValue(business?.createdAt, business?.createdDate, business?.registrationDate))}</strong></div>
             </div>
           )}
         </section>
 
-        {["ACTIVE", "TRIAL", "PAST_DUE"].includes(status) && businessId && (
-          <section className="billing-danger-zone">
-            <div><h2>Cancelar assinatura</h2><p>Use esta opção somente se não quiser renovar seu plano.</p></div>
-            <button type="button" disabled={loading} onClick={() => setConfirmCancel(true)}>Cancelar assinatura</button>
-          </section>
-        )}
+        <section className="current-subscription-card">
+          <div className="business-card-heading">
+            <div className="billing-card-icon subscription-icon"><CreditCard /></div>
+            <div><h2>Assinatura atual</h2><p>Confira seu plano e o status da sua assinatura.</p></div>
+            {status && <span className={`subscription-status-badge status-${status.toLowerCase()}`}><CheckCircle2 size={15} /> {STATUS_LABELS[status] || status}</span>}
+          </div>
+          {loading ? <p className="billing-loading">Carregando assinatura...</p> : (
+            <div className="current-subscription-row">
+              <div className="current-plan-data"><span>Plano atual</span><strong>{planName}</strong>{planPrice > 0 && <b>{money.format(planPrice)} <small>/{billingCycle === "YEARLY" ? "ano" : "mês"}</small></b>}</div>
+              <div className="next-charge"><CalendarDays size={21} /><div><span>Próxima cobrança</span><strong>{formatDate(periodEnd)}</strong>{periodEnd && <small>Renovação automática</small>}</div></div>
+              <button className="change-plan-button" type="button" onClick={() => setShowPlans((visible) => !visible)}><RefreshCw size={17} /> {showPlans ? "Ocultar planos" : "Trocar de plano"}</button>
+            </div>
+          )}
+          {["PAST_DUE", "SUSPENDED"].includes(status) && <button className="billing-primary billing-pay-now" type="button" onClick={payNow}>Pagar agora</button>}
+
+          {showPlans && <div className="embedded-plans"><div className="plans-grid">
+            {plans.map((plan) => (
+              <article className={`plan-card${matchesCurrentPlan(plan, subscription) ? " current-plan" : ""}`} key={plan.id || plan.code}>
+                <div className="plan-card-labels"><span className="step">{plan.billingCycle === "YEARLY" ? "ANUAL" : "MENSAL"}</span>{matchesCurrentPlan(plan, subscription) && <span className="current-plan-badge">Plano atual</span>}</div>
+                <h3>{plan.name}</h3><strong>{money.format(Number(plan.price || 0))}</strong>
+                <p><CalendarDays size={17} /> Cobrança {plan.billingCycle === "YEARLY" ? "anual" : "mensal"}</p>
+                <button className="billing-primary" type="button" disabled={Boolean(busyPlan) || matchesCurrentPlan(plan, subscription)} onClick={() => subscribe(plan.code)}>
+                  {matchesCurrentPlan(plan, subscription) ? "Seu plano atual" : busyPlan === plan.code ? <><LoaderCircle className="billing-spinner" size={18} /> Abrindo checkout...</> : "Escolher plano"}
+                </button>
+              </article>
+            ))}
+            {!plans.length && <p>Nenhum plano está disponível no momento.</p>}
+          </div></div>}
+        </section>
+
+        {businessId && <section className="billing-danger-zone">
+          <div className="danger-icon"><Power size={21} /></div>
+          <div><h2>Desativar meu negócio</h2><p>Seu negócio ficará inativo e não poderá receber filas.</p></div>
+          <button type="button" disabled={loading} onClick={() => setConfirmDeactivate(true)}>Desativar</button>
+        </section>}
       </main>
     </DashboardLayout>
   );

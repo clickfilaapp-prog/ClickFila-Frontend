@@ -177,6 +177,7 @@ export const reactivateBusiness = () =>
   apiRequest(API_ROUTES.reactivateBusiness, { method: "PUT" });
 export const deactivateBusiness = () =>
   apiRequest(API_ROUTES.deactivateBusiness, { method: "PUT" });
+export const getMyBusiness = () => apiRequest(API_ROUTES.myBusiness);
 export const updateMyBusiness = (name) =>
   apiRequest(API_ROUTES.myBusiness, {
     method: "PATCH",

@@ -186,8 +186,14 @@ export default function DashboardLayout({
   }
 
   useEffect(() => {
-    if (sessionRole === "PROFESSIONAL" && !showInvites) loadGlobalInvites();
-  }, [sessionRole, showInvites]);
+    if (
+      sessionRole === "PROFESSIONAL" &&
+      !showInvites &&
+      location.pathname === "/professionalDashboard"
+    ) {
+      loadGlobalInvites();
+    }
+  }, [sessionRole, showInvites, location.pathname]);
 
   useEffect(() => {
     let active = true;

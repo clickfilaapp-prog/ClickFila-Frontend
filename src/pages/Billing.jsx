@@ -158,7 +158,7 @@ export default function Billing() {
         )}
 
         <div className="panel-heading billing-page-heading">
-          <div><span className="step">NEGÓCIO</span><h1>Dados do negócio</h1><p>Gerencie as informações do seu negócio e acompanhe sua assinatura.</p></div>
+          <div><span className="step">EMPRESA</span><h1>Dados da Empresa</h1><p>Gerencie as informações da sua empresa e acompanhe sua assinatura.</p></div>
         </div>
         {error && <div className="login-auth-error" role="alert">{error}</div>}
 

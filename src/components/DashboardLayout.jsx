@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import {
+  Building2,
   CircleHelp,
-  CreditCard,
   LayoutDashboard,
   ListPlus,
   LogOut,
@@ -330,7 +330,7 @@ export default function DashboardLayout({
           )}
           {sessionRole === "PROFESSIONAL" && (
             <button className="account-action" type="button" onClick={() => { setNavigationOpen(false); navigate("/billing"); }}>
-              <CreditCard size={16} /> <span>Minha empresa</span>
+              <Building2 size={16} /> <span>Minha empresa</span>
             </button>
           )}
           <button

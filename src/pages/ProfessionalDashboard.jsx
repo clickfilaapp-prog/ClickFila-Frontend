@@ -450,6 +450,7 @@ export default function ProfessionalDashboard() {
     (member) => !busyMemberIds.has(String(member.id)),
   );
   const subscriptionStatus = String(dashboard?.subscriptionStatus || "").toUpperCase();
+  const isBusinessOwner = String(dashboard?.loggedMemberRole || "").toUpperCase() === "OWNER";
   const subscriptionLocked = ["SUSPENDED", "CANCELED"].includes(subscriptionStatus);
   const trialDaysLeft = dashboard?.currentPeriodEnd
     ? Math.max(0, Math.ceil((new Date(`${dashboard.currentPeriodEnd}T23:59:59`).getTime() - Date.now()) / 86400000))
@@ -868,13 +869,13 @@ export default function ProfessionalDashboard() {
         {successMessage && (
           <div className="toast" role="status" aria-live="polite">{successMessage}</div>
         )}
-        {subscriptionStatus === "TRIAL" && (
+        {isBusinessOwner && subscriptionStatus === "TRIAL" && (
           <div className="subscription-banner trial" role="status">
             <span>Você está no período de testes. Faltam {trialDaysLeft ?? "—"} dias para expirar.</span>
             <button type="button" onClick={() => navigate("/billing")}>Ver planos</button>
           </div>
         )}
-        {subscriptionStatus === "PAST_DUE" && (
+        {isBusinessOwner && subscriptionStatus === "PAST_DUE" && (
           <div className="subscription-banner past-due" role="alert">
             <span>Sua fatura está atrasada. Efetue o pagamento para evitar o bloqueio do sistema.</span>
             <button type="button" onClick={() => navigate("/billing")}>Pagar agora</button>

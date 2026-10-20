@@ -41,6 +41,8 @@ export default function DashboardLayout({
   const navigate = useNavigate();
   const location = useLocation();
   const sessionRole = loadAuthSession()?.role || "USER";
+  const dashboardPath =
+    sessionRole === "PROFESSIONAL" ? "/professionalDashboard" : "/clientQueue";
   const emailVerificationRequired = emailVerified === false;
   const tutorialRole =
     sessionRole === "PROFESSIONAL" && location.pathname === "/clientQueue"
@@ -274,7 +276,7 @@ export default function DashboardLayout({
   return (
     <div className="app">
       <header>
-        <Link className="brand" to={location.pathname}>
+        <Link className="brand" to={dashboardPath} aria-label="Ir para o painel principal">
           <span className="brand-mark">
             <img src="/favicon.png" alt="" />
           </span>

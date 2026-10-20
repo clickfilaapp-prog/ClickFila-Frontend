@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import {
   BriefcaseBusiness,
-  Building2,
   KeyRound,
   Mail,
   Pencil,
@@ -30,13 +29,9 @@ import {
   updateMyUserProfile,
 } from "../services/profile";
 import { refreshAuthSession } from "../services/api";
-import {
-  clearProfessionalDashboardCache,
-  getProfessionalDashboard,
-  updateMyBusiness,
-} from "../services/queue";
+import { clearProfessionalDashboardCache } from "../services/queue";
 
-const EMPTY_FORM = { name: "", phone: "", login: "", businessName: "" };
+const EMPTY_FORM = { name: "", phone: "", login: "" };
 
 function formatPhone(value) {
   const digits = String(value || "")
@@ -156,10 +151,7 @@ export function ProfileSettingsContent({ onClose = null }) {
       setLoading(true);
       setError("");
       try {
-        const [profile, dashboard] = await Promise.all([
-          getMyUserProfile(),
-          isProfessional ? getProfessionalDashboard() : null,
-        ]);
+        const profile = await getMyUserProfile();
         if (!active) return;
         const user = profile;
         const login = user?.login || "";
@@ -169,11 +161,6 @@ export function ProfileSettingsContent({ onClose = null }) {
           name: loadedName,
           phone: formatPhone(user?.phone),
           login,
-          businessName:
-            dashboard?.businessName ||
-            user?.businessName ||
-            user?.business?.name ||
-            "",
         };
         setForm(loadedForm);
         setInitialForm(loadedForm);
@@ -199,12 +186,9 @@ export function ProfileSettingsContent({ onClose = null }) {
   function handleSubmit(event) {
     event.preventDefault();
     const name = form.name.trim();
-    const businessName = form.businessName.trim();
     const phone = form.phone.replace(/\D/g, "");
     const initialPhone = initialForm.phone.replace(/\D/g, "");
     const userPayload = {};
-    const businessChanged =
-      isProfessional && businessName !== initialForm.businessName.trim();
 
     if (name !== initialForm.name.trim()) userPayload.name = name;
     if (phone !== initialPhone) userPayload.phone = phone;
@@ -222,14 +206,7 @@ export function ProfileSettingsContent({ onClose = null }) {
       setError("Informe um telefone com DDD e 10 ou 11 dígitos.");
       return;
     }
-    if (
-      businessChanged &&
-      (businessName.length < 2 || businessName.length > 150)
-    ) {
-      setError("O nome do negócio deve ter entre 2 e 150 caracteres.");
-      return;
-    }
-    if (!Object.keys(userPayload).length && !businessChanged) {
+    if (!Object.keys(userPayload).length) {
       setSuccess("Nenhuma alteração para salvar.");
       return;
     }
@@ -237,28 +214,22 @@ export function ProfileSettingsContent({ onClose = null }) {
     setPendingChanges({
       name,
       phone,
-      businessName,
       userPayload,
-      businessChanged,
     });
   }
 
   async function confirmProfileUpdate() {
     if (!pendingChanges) return;
-    const { name, phone, businessName, userPayload, businessChanged } = pendingChanges;
+    const { name, phone, userPayload } = pendingChanges;
     setSaving(true);
     setError("");
     setSuccess("");
     try {
-      const [updatedUser, updatedBusiness] = await Promise.all([
-        Object.keys(userPayload).length ? updateMyUserProfile(userPayload) : null,
-        businessChanged ? updateMyBusiness(businessName) : null,
-      ]);
+      const updatedUser = await updateMyUserProfile(userPayload);
       const nextForm = {
         ...form,
         name: updatedUser?.name || name,
         phone: formatPhone(updatedUser?.phone || phone),
-        businessName: updatedBusiness?.name || businessName,
       };
       setForm(nextForm);
       setInitialForm(nextForm);
@@ -373,7 +344,7 @@ export function ProfileSettingsContent({ onClose = null }) {
             </button>
           </div>
           <p>
-            Confira e atualize seus dados pessoais e o nome do seu negócio.
+            Confira e atualize seus dados pessoais.
           </p>
           {loading ? (
             <div className="profile-loading" role="status">
@@ -420,32 +391,6 @@ export function ProfileSettingsContent({ onClose = null }) {
                   </div>
                 )}
               </label>
-              {isProfessional && (
-                <label>
-                  Nome do negócio
-                  {editing ? (
-                    <div className="input-wrap">
-                      <Building2 size={17} />
-                      <input
-                        name="profile-business-name"
-                        required
-                        minLength={2}
-                        maxLength={150}
-                        value={form.businessName}
-                        onChange={(event) =>
-                          updateField("businessName", event.target.value)
-                        }
-                        disabled={saving}
-                      />
-                    </div>
-                  ) : (
-                    <div className="profile-value">
-                      <Building2 size={17} />
-                      <span>{form.businessName || "Nome não informado"}</span>
-                    </div>
-                  )}
-                </label>
-              )}
               <label>
                 Telefone
                 {editing ? (

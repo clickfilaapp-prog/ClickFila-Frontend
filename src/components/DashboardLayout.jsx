@@ -330,7 +330,7 @@ export default function DashboardLayout({
           )}
           {sessionRole === "PROFESSIONAL" && (
             <button className="account-action" type="button" onClick={() => { setNavigationOpen(false); navigate("/billing"); }}>
-              <CreditCard size={16} /> <span>Minha assinatura</span>
+              <CreditCard size={16} /> <span>Minha empresa</span>
             </button>
           )}
           <button

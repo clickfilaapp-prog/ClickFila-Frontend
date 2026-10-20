@@ -4422,6 +4422,11 @@ footer {
   background: #DCEBDD;
 }
 
+.system-tutorial-coachmark:has(.system-tutorial-progress > button:nth-child(6)):has(.system-tutorial-progress > button:nth-child(5).active):not(:has(.system-tutorial-progress > button:nth-child(6).active)) .system-tutorial-slide-icon {
+  color: #B8860B;
+  background: #FFF7D6;
+}
+
 .system-tutorial-slide > span {
   color: #0096D6;
   font-size: 10px;

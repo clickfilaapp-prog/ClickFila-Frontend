@@ -70,9 +70,10 @@ export default function Billing() {
           if (requestError.status === 404) return null;
           throw requestError;
         });
+        const optionalBusiness = getMyBusiness().catch(() => null);
         const [availablePlans, dashboard, currentBusiness, currentSubscription] = await Promise.all([
           getPlans(), getProfessionalDashboard({ force: true }),
-          optional404(getMyBusiness()), optional404(getMySubscription()),
+          optionalBusiness, optional404(getMySubscription()),
         ]);
         if (!active) return;
         const role = String(dashboard?.loggedMemberRole || "").toUpperCase();

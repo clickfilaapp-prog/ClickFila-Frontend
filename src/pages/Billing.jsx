@@ -82,10 +82,11 @@ export default function Billing() {
           return;
         }
         setPlans(Array.isArray(availablePlans) ? availablePlans : []);
+        const businessPayload = currentBusiness?.data || currentBusiness?.business || currentBusiness || {};
         const loadedBusiness = {
-          ...(dashboard?.business || {}), ...(currentBusiness || {}),
-          id: firstValue(currentBusiness?.id, currentBusiness?.businessId, dashboard?.businessId),
-          name: firstValue(currentBusiness?.name, currentBusiness?.businessName, dashboard?.businessName),
+          ...(dashboard?.business || {}), ...businessPayload,
+          id: firstValue(businessPayload?.id, businessPayload?.businessId, dashboard?.businessId),
+          name: firstValue(businessPayload?.name, businessPayload?.businessName, dashboard?.businessName),
         };
         setBusiness(loadedBusiness);
         setBusinessName(loadedBusiness.name || "");

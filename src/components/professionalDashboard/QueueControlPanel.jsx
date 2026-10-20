@@ -11,6 +11,7 @@ import {
 
 export default function QueueControlPanel({
   dashboard,
+  canManage = true,
   loading,
   settingsOpen,
   editingPrefix,
@@ -48,7 +49,7 @@ export default function QueueControlPanel({
           </p>
         </div>
       </div>
-      <div className="issuer-actions">
+      {canManage && <div className="issuer-actions">
         <button
           data-tour="professional-toggle-queue"
           className={`queue-status-button ${dashboard.isActive ? "active" : "closed"}`}
@@ -216,7 +217,7 @@ export default function QueueControlPanel({
             </button>
           </div>
         )}
-      </div>
+      </div>}
     </section>
   );
 }

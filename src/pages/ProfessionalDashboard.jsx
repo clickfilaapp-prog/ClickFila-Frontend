@@ -910,9 +910,10 @@ export default function ProfessionalDashboard() {
             </button>
           </section>
         )}
-        {dashboard && hasBusiness && hasSession && isBusinessOwner && (
+        {dashboard && hasBusiness && hasSession && (
           <QueueControlPanel
             dashboard={dashboard}
+            canManage={isBusinessOwner}
             loading={loading}
             settingsOpen={settingsOpen}
             editingPrefix={editingPrefix}

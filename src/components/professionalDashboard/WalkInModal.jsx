@@ -109,7 +109,7 @@ export default function WalkInModal({ loading, onClose, onSubmit }) {
               />
             </span>
             <small className="character-limit" aria-live="polite">
-              Máximo de 100 caracteres — {serviceName.length}/100
+              {serviceName.length}/100
             </small>
           </label>
           {validationError && (

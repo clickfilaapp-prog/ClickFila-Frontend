@@ -119,7 +119,7 @@ export default function QueueFinder({
                 placeholder="Descreva o serviço desejado"
               />
               <small className="character-limit" aria-live="polite">
-                Máximo de 100 caracteres — {serviceName.length}/100
+                {serviceName.length}/100
               </small>
               <button className="login-auth-submit" disabled={loading}>
                 {loading ? "Entrando..." : "Entrar na fila"}

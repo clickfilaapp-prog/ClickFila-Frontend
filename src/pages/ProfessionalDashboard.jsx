@@ -532,7 +532,7 @@ export default function ProfessionalDashboard() {
     if (!dashboard?.isActive || !dashboard?.sessionId || !actionMemberId) {
       setError(
         !dashboard?.isActive
-          ? "Abra a fila antes de adicionar um cliente de balcão."
+          ? "Abra a fila antes de adicionar um cliente à fila."
           : !dashboard?.sessionId
           ? "Não foi possível identificar a sessão ativa da fila."
           : "Não foi possível identificar o membro da equipe autenticado.",
@@ -576,14 +576,14 @@ export default function ProfessionalDashboard() {
 
   async function handleReviewWalkIn(walkInData) {
     if (!dashboard?.isActive) {
-      setError("Abra a fila antes de adicionar um cliente de balcão.");
+      setError("Abra a fila antes de adicionar um cliente à fila.");
       setWalkInOpen(false);
       return false;
     }
 
     setWalkInOpen(false);
     setConfirmation({
-      title: "Confirmar cliente de balcão",
+      title: "Confirmar cliente na fila",
       message:
         `Deseja adicionar ${walkInData.clientName} à fila para ` +
         `${walkInData.serviceName}?`,

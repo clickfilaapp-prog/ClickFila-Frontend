@@ -59,7 +59,7 @@ export default function WalkInModal({ loading, onClose, onSubmit }) {
         <div className="walk-in-modal-icon" aria-hidden="true">
           <ClipboardPlus size={24} />
         </div>
-        <h2 id="walk-in-modal-title">Adicionar cliente de balcão</h2>
+        <h2 id="walk-in-modal-title">Adicionar cliente à fila</h2>
         <p>Cadastre o cliente para incluí-lo na fila de atendimento.</p>
 
         <form className="walk-in-form" onSubmit={handleSubmit}>

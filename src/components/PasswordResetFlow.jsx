@@ -174,6 +174,7 @@ export default function PasswordResetFlow({ initialEmail = "", onBack }) {
                 setVisible={setShowNewPassword}
                 placeholder="Mínimo de 6 caracteres"
                 visibilityLabel="nova senha"
+                helpText="Use de 6 a 12 caracteres."
               />
               <PasswordField
                 label="Confirmar nova senha"

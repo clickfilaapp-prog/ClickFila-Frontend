@@ -14,6 +14,7 @@ export default function PasswordField({
   setVisible,
   placeholder,
   visibilityLabel,
+  helpText,
   ...inputProps
 }) {
   return (
@@ -42,6 +43,7 @@ export default function PasswordField({
           {visible ? <EyeOff size={18} /> : <Eye size={18} />}
         </button>
       </div>
+      {helpText && <small className="password-help-text">{helpText}</small>}
     </label>
   );
 }

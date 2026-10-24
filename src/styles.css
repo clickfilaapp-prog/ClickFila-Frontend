@@ -1914,6 +1914,14 @@ label {
   position: relative;
   margin-top: 7px;
 }
+.password-help-text {
+  display: block;
+  margin-top: 6px;
+  color: #6B7280;
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1.4;
+}
 .input-wrap svg {
   position: absolute;
   left: 12px;

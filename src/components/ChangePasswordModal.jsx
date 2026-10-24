@@ -143,6 +143,7 @@ export default function ChangePasswordModal({ onClose }) {
               }))
             }
             visibilityLabel="nova senha"
+            helpText="Use de 6 a 12 caracteres."
             autoComplete="new-password"
             minLength={6}
             maxLength={12}

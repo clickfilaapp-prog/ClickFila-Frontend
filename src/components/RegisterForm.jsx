@@ -138,6 +138,7 @@ export default function RegisterForm({
         setVisible={setShowPassword}
         placeholder="Mínimo de 6 caracteres"
         visibilityLabel="senha"
+        helpText="Use de 6 a 12 caracteres."
       />
       <PasswordField
         label="Confirmar senha"

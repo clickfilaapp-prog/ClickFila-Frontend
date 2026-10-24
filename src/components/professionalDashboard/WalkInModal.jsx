@@ -32,6 +32,10 @@ export default function WalkInModal({ loading, onClose, onSubmit }) {
       setValidationError("O nome do cliente deve ter entre 3 e 50 caracteres.");
       return;
     }
+    if (nextServiceName.length > 100) {
+      setValidationError("A descrição do serviço deve ter no máximo 100 caracteres.");
+      return;
+    }
 
     const created = await onSubmit({
       clientName: nextClientName,
@@ -93,6 +97,7 @@ export default function WalkInModal({ loading, onClose, onSubmit }) {
               <Scissors size={17} />
               <input
                 type="text"
+                maxLength={100}
                 value={serviceName}
                 onChange={(event) => {
                   setServiceName(event.target.value);
@@ -103,6 +108,9 @@ export default function WalkInModal({ loading, onClose, onSubmit }) {
                 disabled={loading}
               />
             </span>
+            <small className="character-limit" aria-live="polite">
+              Máximo de 100 caracteres — {serviceName.length}/100
+            </small>
           </label>
           {validationError && (
             <div className="walk-in-validation-error" role="alert">

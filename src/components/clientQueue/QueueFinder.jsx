@@ -113,10 +113,14 @@ export default function QueueFinder({
                 className="service-description-field"
                 aria-label="Serviço desejado"
                 required
+                maxLength={100}
                 value={serviceName}
                 onChange={(event) => setServiceName(event.target.value)}
                 placeholder="Descreva o serviço desejado"
               />
+              <small className="character-limit" aria-live="polite">
+                Máximo de 100 caracteres — {serviceName.length}/100
+              </small>
               <button className="login-auth-submit" disabled={loading}>
                 {loading ? "Entrando..." : "Entrar na fila"}
               </button>

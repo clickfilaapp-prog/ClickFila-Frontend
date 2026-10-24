@@ -289,6 +289,12 @@ export default function ClientQueue() {
     event.preventDefault();
     if (!queue?.isActive || loading) return;
 
+    const normalizedServiceName = serviceName.trim();
+    if (!normalizedServiceName || normalizedServiceName.length > 100) {
+      setMessage("A descrição do serviço deve ter entre 1 e 100 caracteres.");
+      return;
+    }
+
     if (shouldExplainNotificationPermission()) {
       setShowNotificationConsent(true);
       return;

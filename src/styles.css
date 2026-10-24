@@ -61,6 +61,14 @@ header {
   justify-content: space-between;
   border-bottom: 1px solid #D9E8F7;
 }
+.app > header {
+  position: sticky;
+  z-index: 950;
+  top: 0;
+  background: rgba(240, 247, 255, 0.96);
+  box-shadow: 0 8px 22px rgba(11, 31, 59, 0.05);
+  backdrop-filter: blur(12px);
+}
 .brand {
   display: flex;
   align-items: center;
@@ -6365,6 +6373,10 @@ main > *,
     padding-inline: clamp(0.75rem, 3vw, 1.5rem);
     flex-wrap: nowrap;
     gap: 0.75rem;
+  }
+
+  .app > header {
+    position: sticky;
   }
 
   .brand {

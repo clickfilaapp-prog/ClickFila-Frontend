@@ -65,9 +65,7 @@ header {
   position: sticky;
   z-index: 950;
   top: 0;
-  background: rgba(240, 247, 255, 0.96);
-  box-shadow: 0 8px 22px rgba(11, 31, 59, 0.05);
-  backdrop-filter: blur(12px);
+  background: #F0F7FF;
 }
 .brand {
   display: flex;

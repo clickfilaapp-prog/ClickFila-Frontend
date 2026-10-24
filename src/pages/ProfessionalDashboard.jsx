@@ -525,11 +525,15 @@ export default function ProfessionalDashboard() {
       dashboard?.actionMemberId ||
       dashboard?.memberId ||
       dashboard?.currentMember?.id ||
-      dashboard?.loggedMember?.id;
+      dashboard?.currentMember?.memberId ||
+      dashboard?.loggedMember?.id ||
+      dashboard?.loggedMember?.memberId;
 
-    if (!dashboard?.sessionId || !actionMemberId) {
+    if (!dashboard?.isActive || !dashboard?.sessionId || !actionMemberId) {
       setError(
-        !dashboard?.sessionId
+        !dashboard?.isActive
+          ? "Abra a fila antes de adicionar um cliente de balcão."
+          : !dashboard?.sessionId
           ? "Não foi possível identificar a sessão ativa da fila."
           : "Não foi possível identificar o membro da equipe autenticado.",
       );
@@ -568,6 +572,26 @@ export default function ProfessionalDashboard() {
     } finally {
       setLoading(false);
     }
+  }
+
+  async function handleReviewWalkIn(walkInData) {
+    if (!dashboard?.isActive) {
+      setError("Abra a fila antes de adicionar um cliente de balcão.");
+      setWalkInOpen(false);
+      return false;
+    }
+
+    setWalkInOpen(false);
+    setConfirmation({
+      title: "Confirmar cliente de balcão",
+      message:
+        `Deseja adicionar ${walkInData.clientName} à fila para ` +
+        `${walkInData.serviceName}?`,
+      confirmLabel: "Sim, adicionar",
+      success: true,
+      action: () => handleAddWalkIn(walkInData),
+    });
+    return true;
   }
 
   async function handleCancel(targetEntry) {
@@ -888,7 +912,7 @@ export default function ProfessionalDashboard() {
           <WalkInModal
             loading={loading}
             onClose={() => setWalkInOpen(false)}
-            onSubmit={handleAddWalkIn}
+            onSubmit={handleReviewWalkIn}
           />
         )}
         {inviteAlert && (
@@ -1083,7 +1107,8 @@ export default function ProfessionalDashboard() {
               <button
                 className="walk-in-trigger"
                 type="button"
-                disabled={loading}
+                disabled={loading || !dashboard.isActive}
+                title={dashboard.isActive ? "Adicionar cliente de balcão" : "Abra a fila para adicionar clientes"}
                 onClick={() => setWalkInOpen(true)}
               >
                 <UserPlus size={19} /> Adicionar cliente de balcão

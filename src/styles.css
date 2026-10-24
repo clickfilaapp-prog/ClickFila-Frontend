@@ -4714,6 +4714,13 @@ footer {
   display: block;
   text-align: left;
 }
+.walk-in-form .input-wrap {
+  display: block;
+}
+.walk-in-form .input-wrap svg {
+  top: 50%;
+  transform: translateY(-50%);
+}
 .walk-in-validation-error {
   padding: 10px 12px;
   color: #8F1D1D;

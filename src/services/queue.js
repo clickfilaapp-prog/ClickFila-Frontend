@@ -176,7 +176,14 @@ async function loadProfessionalDashboard() {
       dashboard.business?.id ||
       dashboard.business?.businessId ||
       null,
-    sessionId: dashboard.sessionId || dashboard.id || null,
+    sessionId:
+      dashboard.sessionId ||
+      dashboard.queueSessionId ||
+      dashboard.activeQueueSessionId ||
+      dashboard.queueSession?.id ||
+      dashboard.activeSession?.id ||
+      dashboard.id ||
+      null,
     activeQueue: (dashboard.activeQueue || []).map(normalizeQueueEntry),
   };
 }

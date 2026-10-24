@@ -594,6 +594,20 @@ export default function ProfessionalDashboard() {
     return true;
   }
 
+  function handleOpenWalkIn() {
+    if (!dashboard?.isActive) {
+      setConfirmation({
+        title: "Fila fechada",
+        message: "Você precisa abrir a fila antes de adicionar um cliente.",
+        backLabel: "OK",
+        hideConfirm: true,
+      });
+      return;
+    }
+
+    setWalkInOpen(true);
+  }
+
   async function handleCancel(targetEntry) {
     if (!targetEntry) return;
     setConfirmation({
@@ -1107,11 +1121,10 @@ export default function ProfessionalDashboard() {
               <button
                 className="walk-in-trigger"
                 type="button"
-                disabled={loading || !dashboard.isActive}
-                title={dashboard.isActive ? "Adicionar cliente de balcão" : "Abra a fila para adicionar clientes"}
-                onClick={() => setWalkInOpen(true)}
+                disabled={loading}
+                onClick={handleOpenWalkIn}
               >
-                <UserPlus size={19} /> Adicionar cliente de balcão
+                <UserPlus size={19} /> Adicionar cliente à fila
               </button>
               {isBusinessOwner && (
             <button

@@ -28,6 +28,10 @@ export default function WalkInModal({ loading, onClose, onSubmit }) {
       setValidationError("Informe o nome do cliente e o serviço solicitado.");
       return;
     }
+    if (nextClientName.length < 3 || nextClientName.length > 50) {
+      setValidationError("O nome do cliente deve ter entre 3 e 50 caracteres.");
+      return;
+    }
 
     const created = await onSubmit({
       clientName: nextClientName,
@@ -70,6 +74,8 @@ export default function WalkInModal({ loading, onClose, onSubmit }) {
               <input
                 ref={clientNameRef}
                 type="text"
+                minLength={3}
+                maxLength={50}
                 value={clientName}
                 onChange={(event) => {
                   setClientName(event.target.value);

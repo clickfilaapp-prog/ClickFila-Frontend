@@ -28,6 +28,7 @@ export default function PasswordField({
           onChange={onChange}
           placeholder={placeholder}
           {...inputProps}
+          maxLength={inputProps.maxLength ?? 12}
         />
         <button
           type="button"

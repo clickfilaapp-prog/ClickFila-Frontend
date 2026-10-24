@@ -171,8 +171,8 @@ export default function Billing() {
   async function saveBusinessName(event) {
     event.preventDefault();
     const name = businessName.trim();
-    if (name.length < 2 || name.length > 150) {
-      setError("O nome da empresa deve ter entre 2 e 150 caracteres.");
+    if (name.length < 3 || name.length > 50) {
+      setError("O nome da empresa deve ter entre 3 e 50 caracteres.");
       return;
     }
     setSavingBusiness(true);
@@ -258,7 +258,7 @@ export default function Billing() {
             editingBusiness ? (
               <form className="business-edit-form" onSubmit={saveBusinessName}>
                 <label htmlFor="billing-business-name">Nome da empresa</label>
-                <div><input id="billing-business-name" value={businessName} maxLength={150} onChange={(event) => setBusinessName(event.target.value)} autoFocus /><button type="submit" disabled={savingBusiness}>{savingBusiness ? "Salvando..." : "Salvar"}</button></div>
+                <div><input id="billing-business-name" value={businessName} minLength={3} maxLength={50} onChange={(event) => setBusinessName(event.target.value)} autoFocus /><button type="submit" disabled={savingBusiness}>{savingBusiness ? "Salvando..." : "Salvar"}</button></div>
               </form>
             ) : (
               <div className="business-details-grid">

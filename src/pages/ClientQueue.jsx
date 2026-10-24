@@ -222,7 +222,7 @@ export default function ClientQueue() {
   async function handleSearch(event) {
     event.preventDefault();
     const code = ticketCode.trim();
-    if (code.length < 4) {
+    if (code.length < 4 || code.length > 10) {
       setMessage("Digite um token válido para buscar a fila.");
       return;
     }

@@ -194,9 +194,9 @@ export function ProfileSettingsContent({ onClose = null }) {
     if (phone !== initialPhone) userPayload.phone = phone;
     if (
       userPayload.name !== undefined &&
-      (name.length < 2 || name.length > 100)
+      (name.length < 3 || name.length > 50)
     ) {
-      setError("O nome deve ter entre 2 e 100 caracteres.");
+      setError("O nome deve ter entre 3 e 50 caracteres.");
       return;
     }
     if (
@@ -375,8 +375,8 @@ export function ProfileSettingsContent({ onClose = null }) {
                       name="profile-name"
                       autoComplete="off"
                       required
-                      minLength={2}
-                      maxLength={100}
+                      minLength={3}
+                      maxLength={50}
                       value={form.name}
                       onChange={(event) =>
                         updateField("name", event.target.value)

@@ -343,7 +343,7 @@ export default function ProfessionalDashboard() {
   }
 
   async function handleQuickAdd(name) {
-    if (name.trim().length < 2) return false;
+    if (name.trim().length < 3 || name.trim().length > 50) return false;
     setLoading(true);
     setError("");
     setSuccessMessage("");

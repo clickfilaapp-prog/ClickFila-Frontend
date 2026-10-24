@@ -58,9 +58,10 @@ export default function QueueFinder({
           <input
             aria-label="Código da fila"
             required
+            maxLength={10}
             value={ticketCode}
             onChange={(event) =>
-              setTicketCode(event.target.value.toUpperCase())
+              setTicketCode(event.target.value.toUpperCase().slice(0, 10))
             }
             placeholder="Digite o token da fila"
             autoComplete="off"

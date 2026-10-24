@@ -41,6 +41,8 @@ export default function ChangePasswordModal({ onClose }) {
       return "Preencha todos os campos.";
     if (form.newPassword.length < 6)
       return "A nova senha deve ter no mínimo 6 caracteres.";
+    if (form.newPassword.length > 12)
+      return "A nova senha deve ter no máximo 12 caracteres.";
     if (form.newPassword !== form.confirmPassword)
       return "A confirmação deve ser igual à nova senha.";
     if (form.currentPassword === form.newPassword)
@@ -126,6 +128,7 @@ export default function ChangePasswordModal({ onClose }) {
             }
             visibilityLabel="senha atual"
             autoComplete="current-password"
+            maxLength={12}
             disabled={loading}
           />
           <PasswordField
@@ -142,6 +145,7 @@ export default function ChangePasswordModal({ onClose }) {
             visibilityLabel="nova senha"
             autoComplete="new-password"
             minLength={6}
+            maxLength={12}
             disabled={loading}
           />
           <PasswordField
@@ -159,6 +163,7 @@ export default function ChangePasswordModal({ onClose }) {
             visibilityLabel="confirmação da senha"
             autoComplete="new-password"
             minLength={6}
+            maxLength={12}
             disabled={loading}
           />
           {error && (

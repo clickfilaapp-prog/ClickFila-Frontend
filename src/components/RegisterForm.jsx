@@ -44,6 +44,11 @@ export default function RegisterForm({
     event.preventDefault();
     setValidationError("");
     const phoneDigits = form.phone.replace(/\D/g, "");
+    const normalizedName = form.name.trim();
+    if (normalizedName.length < 3 || normalizedName.length > 50) {
+      setValidationError("O nome deve ter entre 3 e 50 caracteres.");
+      return;
+    }
     if (!/^\d{10,11}$/.test(phoneDigits)) {
       setValidationError("Informe um telefone com DDD e 10 ou 11 dígitos.");
       return;
@@ -62,7 +67,7 @@ export default function RegisterForm({
       );
       return;
     }
-    await onSubmit({ ...form, termsAccepted: true });
+    await onSubmit({ ...form, name: normalizedName, termsAccepted: true });
   }
 
   return (
@@ -78,6 +83,8 @@ export default function RegisterForm({
           <UserRound size={17} />
           <input
             required
+            minLength={3}
+            maxLength={50}
             value={form.name}
             onChange={(event) => updateField("name", event.target.value)}
             placeholder="Como podemos te chamar?"
@@ -124,6 +131,7 @@ export default function RegisterForm({
         label="Senha"
         required
         minLength={6}
+        maxLength={12}
         value={form.password}
         onChange={(event) => updateField("password", event.target.value)}
         visible={showPassword}
@@ -135,6 +143,7 @@ export default function RegisterForm({
         label="Confirmar senha"
         required
         minLength={6}
+        maxLength={12}
         value={form.confirmPassword}
         onChange={(event) => updateField("confirmPassword", event.target.value)}
         visible={showConfirmPassword}

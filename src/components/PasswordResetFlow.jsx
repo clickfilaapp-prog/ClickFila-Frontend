@@ -56,6 +56,10 @@ export default function PasswordResetFlow({ initialEmail = "", onBack }) {
       setError("A nova senha deve ter no mínimo 6 caracteres.");
       return;
     }
+    if (newPassword.length > 12) {
+      setError("A nova senha deve ter no máximo 12 caracteres.");
+      return;
+    }
     if (newPassword !== confirmPassword) {
       setError("As senhas não conferem.");
       return;
@@ -162,6 +166,7 @@ export default function PasswordResetFlow({ initialEmail = "", onBack }) {
                 label="Nova senha"
                 required
                 minLength={6}
+                maxLength={12}
                 autoComplete="new-password"
                 value={newPassword}
                 onChange={(event) => setNewPassword(event.target.value)}
@@ -174,6 +179,7 @@ export default function PasswordResetFlow({ initialEmail = "", onBack }) {
                 label="Confirmar nova senha"
                 required
                 minLength={6}
+                maxLength={12}
                 autoComplete="new-password"
                 value={confirmPassword}
                 onChange={(event) => setConfirmPassword(event.target.value)}

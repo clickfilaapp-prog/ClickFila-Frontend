@@ -51,6 +51,7 @@ export const API_ROUTES = Object.freeze({
   // --- QUEUE ENTRIES ---
   myQueueStatus: "/api/queue-entries/me/status",
   joinQueue: "/api/queue-entries",
+  walkInQueueEntry: "/api/queue-entries/walk-in",
   callNext: (sessionId) =>
     `/api/queue-entries/sessions/${encodeURIComponent(sessionId)}/next`,
   startService: (entryId) =>

@@ -47,6 +47,21 @@ export const joinQueue = (queueSessionId, serviceName) =>
     method: "POST",
     body: JSON.stringify({ queueSessionId, serviceName }),
   });
+export const addWalkInQueueEntry = ({
+  queueSessionId,
+  serviceName,
+  clientName,
+  actionMemberId,
+}) =>
+  apiRequest(API_ROUTES.walkInQueueEntry, {
+    method: "POST",
+    body: JSON.stringify({
+      queueSessionId,
+      serviceName,
+      clientName,
+      actionMemberId,
+    }),
+  });
 export const setQueueStatus = (activate) =>
   apiRequest(API_ROUTES.updateQueueStatus, {
     method: "PATCH",

@@ -1959,6 +1959,28 @@ select {
   font: 600 25px "Playfair Display";
   margin: 7px 0 18px;
 }
+.walk-in-trigger {
+  min-height: 43px;
+  margin: 12px 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #FFFFFF;
+  background: #6F936F;
+  border: 1px solid #6F936F;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 700;
+}
+.walk-in-trigger:hover:not(:disabled) {
+  background: #567A56;
+  border-color: #567A56;
+}
+.walk-in-trigger:disabled {
+  cursor: wait;
+  opacity: 0.55;
+}
 .queue-preview > .client-queue-stats {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -4662,6 +4684,47 @@ footer {
   box-shadow: 0 26px 75px rgba(11, 31, 59, 0.24);
   animation: auth-form-in 0.2s ease both;
 }
+.walk-in-modal > div {
+  width: min(100%, 460px);
+  text-align: left;
+  border-top: 4px solid #6F936F;
+}
+.walk-in-modal h2,
+.walk-in-modal > div > p {
+  text-align: center;
+}
+.walk-in-modal-icon {
+  width: 46px;
+  height: 46px;
+  margin: 0 auto 14px;
+  display: grid;
+  place-items: center;
+  color: #FFFFFF;
+  background: #6F936F;
+  border-radius: 50%;
+}
+.walk-in-form {
+  grid-template-columns: 1fr;
+  margin-top: 22px;
+}
+.walk-in-form > * {
+  grid-column: 1 !important;
+}
+.walk-in-form label {
+  display: block;
+  text-align: left;
+}
+.walk-in-validation-error {
+  padding: 10px 12px;
+  color: #8F1D1D;
+  background: #fff1f1;
+  border: 1px solid #efb6b6;
+  border-radius: 9px;
+  font-size: 12px;
+}
+.walk-in-form .confirmation-actions {
+  margin-top: 5px;
+}
 .confirmation-modal.danger > div {
   border-top: 4px solid #8F1D1D;
 }
@@ -5236,6 +5299,12 @@ footer {
 }
 .team-management-shell {
   text-align: right;
+}
+.team-management-actions {
+  display: flex;
+  align-items: stretch;
+  justify-content: flex-end;
+  gap: 10px;
 }
 .leave-team-shell {
   margin-top: 18px;
@@ -6512,13 +6581,23 @@ main > *,
     -webkit-overflow-scrolling: touch;
   }
 
-  .team-management-mobile-open > .manage-team-trigger.close-action {
+  .team-management-mobile-open > .team-management-actions {
     position: sticky;
     z-index: 3;
     top: 0;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .team-management-mobile-open > .team-management-actions > button {
     width: 100%;
     min-height: 3rem;
-    margin: 0 0 0.75rem;
+    margin: 0;
+  }
+
+  .team-management-mobile-open > .team-management-actions > .manage-team-trigger.close-action {
     background: #8F1D1D;
     border-color: #8F1D1D;
     box-shadow: 0 0.5rem 1.5rem rgba(143, 29, 29, 0.2);

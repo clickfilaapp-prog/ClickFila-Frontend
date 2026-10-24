@@ -10,8 +10,10 @@ import {
   QueueControlPanel,
   TeamManagement,
   WaitingList,
+  WalkInModal,
 } from "../components/professionalDashboard";
 import {
+  addWalkInQueueEntry,
   callNext,
   cancelEntry,
   deactivateBusiness,
@@ -96,6 +98,7 @@ export default function ProfessionalDashboard() {
   const [selectedActiveEntryId, setSelectedActiveEntryId] = useState("");
   const [expiredCountdowns, setExpiredCountdowns] = useState(() => new Set());
   const [blockedInvite, setBlockedInvite] = useState(null);
+  const [walkInOpen, setWalkInOpen] = useState(false);
 
   async function refresh({ silent = false } = {}) {
     if (isRefreshing.current) return;
@@ -516,6 +519,57 @@ export default function ProfessionalDashboard() {
     );
   }
 
+  async function handleAddWalkIn({ clientName, serviceName }) {
+    const actionMemberId =
+      dashboard?.loggedMemberId ||
+      dashboard?.actionMemberId ||
+      dashboard?.memberId ||
+      dashboard?.currentMember?.id ||
+      dashboard?.loggedMember?.id;
+
+    if (!dashboard?.sessionId || !actionMemberId) {
+      setError(
+        !dashboard?.sessionId
+          ? "Não foi possível identificar a sessão ativa da fila."
+          : "Não foi possível identificar o membro da equipe autenticado.",
+      );
+      return false;
+    }
+
+    setLoading(true);
+    setError("");
+    setSuccessMessage("");
+    try {
+      const createdEntry = await addWalkInQueueEntry({
+        queueSessionId: dashboard.sessionId,
+        serviceName,
+        clientName,
+        actionMemberId,
+      });
+      if (createdEntry?.id) {
+        setDashboard((currentDashboard) => ({
+          ...currentDashboard,
+          activeQueue: [
+            ...currentDashboard.activeQueue.filter(
+              (entry) => String(entry.id) !== String(createdEntry.id),
+            ),
+            createdEntry,
+          ],
+        }));
+      } else {
+        await refresh({ silent: true });
+      }
+      setWalkInOpen(false);
+      setSuccessMessage(`${clientName} foi adicionado à fila.`);
+      return true;
+    } catch (requestError) {
+      setError(requestError.message);
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  }
+
   async function handleCancel(targetEntry) {
     if (!targetEntry) return;
     setConfirmation({
@@ -830,6 +884,13 @@ export default function ProfessionalDashboard() {
             onSelect={handleMemberSelection}
           />
         )}
+        {walkInOpen && (
+          <WalkInModal
+            loading={loading}
+            onClose={() => setWalkInOpen(false)}
+            onSubmit={handleAddWalkIn}
+          />
+        )}
         {inviteAlert && (
           <InviteAlertModal
             invite={inviteAlert}
@@ -1016,8 +1077,18 @@ export default function ProfessionalDashboard() {
             <WaitingList waiting={waiting} />
           </section>
         )}
-        {dashboard && hasBusiness && isBusinessOwner && (
+        {dashboard && hasBusiness && hasSession && (
           <section className={`team-management-shell${teamManagementOpen ? " team-management-mobile-open" : ""}`}>
+            <div className="team-management-actions">
+              <button
+                className="walk-in-trigger"
+                type="button"
+                disabled={loading}
+                onClick={() => setWalkInOpen(true)}
+              >
+                <UserPlus size={19} /> Adicionar cliente de balcão
+              </button>
+              {isBusinessOwner && (
             <button
               className={`manage-team-trigger ${teamManagementOpen ? "close-action" : ""}`}
               type="button"
@@ -1025,7 +1096,9 @@ export default function ProfessionalDashboard() {
             >
               <UserPlus size={19} /> {teamManagementOpen ? "Fechar gestão da equipe" : "Gerenciar Equipe"}
             </button>
-            {teamManagementOpen && (
+              )}
+            </div>
+            {isBusinessOwner && teamManagementOpen && (
               <TeamManagement
                 team={dashboard.team || []}
                 sentInvites={sentInvites}

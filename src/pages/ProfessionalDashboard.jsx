@@ -584,9 +584,7 @@ export default function ProfessionalDashboard() {
     setWalkInOpen(false);
     setConfirmation({
       title: "",
-      message:
-        `Deseja adicionar ${walkInData.clientName} à fila para ` +
-        `${walkInData.serviceName}?`,
+      message: `Tem certeza de que deseja adicionar ${walkInData.clientName} à fila?`,
       confirmLabel: "Sim, adicionar",
       success: true,
       action: () => handleAddWalkIn(walkInData),

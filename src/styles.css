@@ -65,7 +65,7 @@ header {
   position: sticky;
   z-index: 950;
   top: 0;
-  background: transparent;
+  background: #F0F7FF;
 }
 .brand {
   display: flex;

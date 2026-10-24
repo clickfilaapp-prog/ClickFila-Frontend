@@ -11,7 +11,8 @@ export default function ConfirmationModal({
       className={`confirmation-modal ${confirmation.danger ? "danger" : ""}`}
       role="alertdialog"
       aria-modal="true"
-      aria-labelledby="confirmation-title"
+      aria-labelledby={confirmation.title ? "confirmation-title" : undefined}
+      aria-label={confirmation.title ? undefined : "Confirmação"}
     >
       <div>
         <div
@@ -19,7 +20,9 @@ export default function ConfirmationModal({
         >
           {confirmation.danger ? "!" : "?"}
         </div>
-        <h2 id="confirmation-title">{confirmation.title}</h2>
+        {confirmation.title && (
+          <h2 id="confirmation-title">{confirmation.title}</h2>
+        )}
         <p>{confirmation.message}</p>
         <div
           className={`confirmation-actions ${confirmation.hideConfirm ? "single-action" : ""}`}

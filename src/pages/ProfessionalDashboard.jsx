@@ -583,7 +583,7 @@ export default function ProfessionalDashboard() {
 
     setWalkInOpen(false);
     setConfirmation({
-      title: "Confirmar cliente na fila",
+      title: "",
       message:
         `Deseja adicionar ${walkInData.clientName} à fila para ` +
         `${walkInData.serviceName}?`,

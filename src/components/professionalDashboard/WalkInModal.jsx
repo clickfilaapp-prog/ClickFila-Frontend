@@ -6,6 +6,39 @@ export default function WalkInModal({ loading, onClose, onSubmit }) {
   const [serviceName, setServiceName] = useState("");
   const [validationError, setValidationError] = useState("");
   const clientNameRef = useRef(null);
+  const modalRef = useRef(null);
+
+  useEffect(() => {
+    const viewport = window.visualViewport;
+    if (!viewport) return undefined;
+
+    let frameId;
+    function syncWithKeyboard() {
+      window.cancelAnimationFrame(frameId);
+      frameId = window.requestAnimationFrame(() => {
+        const modal = modalRef.current;
+        if (!modal) return;
+
+        modal.style.setProperty("--walk-in-viewport-height", `${viewport.height}px`);
+        modal.style.setProperty("--walk-in-viewport-top", `${viewport.offsetTop}px`);
+
+        const activeElement = document.activeElement;
+        if (activeElement?.closest(".walk-in-form")) {
+          activeElement.scrollIntoView({ block: "center", behavior: "smooth" });
+        }
+      });
+    }
+
+    syncWithKeyboard();
+    viewport.addEventListener("resize", syncWithKeyboard);
+    viewport.addEventListener("scroll", syncWithKeyboard);
+
+    return () => {
+      window.cancelAnimationFrame(frameId);
+      viewport.removeEventListener("resize", syncWithKeyboard);
+      viewport.removeEventListener("scroll", syncWithKeyboard);
+    };
+  }, []);
 
   useEffect(() => {
     clientNameRef.current?.focus();
@@ -49,6 +82,7 @@ export default function WalkInModal({ loading, onClose, onSubmit }) {
 
   return (
     <div
+      ref={modalRef}
       className="confirmation-modal walk-in-modal"
       role="dialog"
       aria-modal="true"

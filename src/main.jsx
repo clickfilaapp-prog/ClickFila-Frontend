@@ -8,7 +8,9 @@ import "./styles.css";
 // Mantém o PWA instalável sem interceptar o convite nativo do navegador.
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("/notification-sw.js").catch((error) => {
+    navigator.serviceWorker.register("/notification-sw.js", {
+      updateViaCache: "none",
+    }).catch((error) => {
       console.error("Não foi possível registrar o aplicativo:", error);
     });
   });

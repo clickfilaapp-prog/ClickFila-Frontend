@@ -18,18 +18,24 @@ self.addEventListener("push", (event) => {
   }
 
   const notification = payload.notification || payload;
-  const title = notification.title || "";
+  const title = notification.title || "Click Fila";
   const options = {
-    body: notification.body,
-    icon: notification.icon,
-    tag: notification.tag,
+    body: notification.body || "Há uma nova atualização na sua fila.",
+    // O backend não precisa repetir estes campos em cada push. Sem os
+    // fallbacks, o Android exibe o sino genérico do navegador.
+    icon: notification.icon || "/app-icon-v3-192.png",
+    badge: notification.badge || "/favicon-v3.png",
+    tag: notification.tag || "click-fila-update",
+    renotify: notification.renotify ?? true,
+    requireInteraction: notification.requireInteraction ?? true,
+    silent: false,
+    vibrate: notification.vibrate || [200, 100, 200],
+    timestamp: notification.timestamp || Date.now(),
     data: {
       ...(payload.data || {}),
       url: notification.url || payload.data?.url,
     },
   };
-
-  if (notification.badge) options.badge = notification.badge;
 
   event.waitUntil(self.registration.showNotification(title, options));
 });

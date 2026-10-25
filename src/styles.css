@@ -4718,8 +4718,26 @@ footer {
 }
 .walk-in-modal > div {
   width: min(100%, 460px);
+  max-height: calc(var(--walk-in-viewport-height, 100dvh) - 20px);
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   text-align: left;
   border-top: 4px solid #6F936F;
+}
+
+@media (max-width: 760px) {
+  .walk-in-modal {
+    top: var(--walk-in-viewport-top, 0px);
+    bottom: auto;
+    box-sizing: border-box;
+    height: var(--walk-in-viewport-height, 100dvh);
+  }
+
+  .walk-in-modal > div {
+    max-height: calc(var(--walk-in-viewport-height, 100dvh) - 20px);
+    scroll-padding-block: 16px;
+  }
 }
 .walk-in-modal h2,
 .walk-in-modal > div > p {

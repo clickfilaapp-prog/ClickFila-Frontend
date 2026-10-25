@@ -26,6 +26,7 @@ function urlBase64ToUint8Array(value) {
 async function registerNotificationServiceWorker() {
   const registration = await navigator.serviceWorker.register(
     "/notification-sw.js",
+    { updateViaCache: "none" },
   );
   await navigator.serviceWorker.ready;
   return registration;

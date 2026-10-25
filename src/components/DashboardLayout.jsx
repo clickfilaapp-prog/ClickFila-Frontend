@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Building2,
   CircleHelp,
@@ -64,6 +64,8 @@ export default function DashboardLayout({
   const [blockedInvite, setBlockedInvite] = useState(null);
   const [businessRole, setBusinessRole] = useState("");
   const [layoutBusinessId, setLayoutBusinessId] = useState(null);
+  const navigationRef = useRef(null);
+  const navigationTriggerRef = useRef(null);
 
   useEffect(() => {
     setNavigationOpen(false);
@@ -76,12 +78,24 @@ export default function DashboardLayout({
       if (event.key === "Escape") setNavigationOpen(false);
     }
 
+    function closeOnOutsidePress(event) {
+      if (
+        !navigationRef.current?.contains(event.target) &&
+        !navigationTriggerRef.current?.contains(event.target)
+      ) {
+        setNavigationOpen(false);
+      }
+    }
+
     window.addEventListener("keydown", closeOnEscape);
-    return () => window.removeEventListener("keydown", closeOnEscape);
+    document.addEventListener("pointerdown", closeOnOutsidePress);
+    return () => {
+      window.removeEventListener("keydown", closeOnEscape);
+      document.removeEventListener("pointerdown", closeOnOutsidePress);
+    };
   }, [navigationOpen]);
   useEffect(() => {
     const lockTargets = [
-      ".navigation-open",
       ".team-management-mobile-open",
       ".profile-modal",
       ".password-modal",
@@ -300,6 +314,7 @@ export default function DashboardLayout({
           </span>
         </Link>
         <button
+          ref={navigationTriggerRef}
           className="mobile-navigation-trigger"
           type="button"
           aria-label={navigationOpen ? "Fechar menu" : "Abrir menu"}
@@ -311,6 +326,7 @@ export default function DashboardLayout({
           <span>{navigationOpen ? "Fechar" : "Menu"}</span>
         </button>
         <div
+          ref={navigationRef}
           id="session-navigation"
           className={`dashboard-navigation-list${navigationOpen ? " navigation-open" : ""}`}
           role="navigation"

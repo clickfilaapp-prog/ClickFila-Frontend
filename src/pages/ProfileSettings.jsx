@@ -55,6 +55,7 @@ export function ProfileSettingsContent({ onClose = null }) {
   const [success, setSuccess] = useState("");
   const [pendingChanges, setPendingChanges] = useState(null);
   const [editing, setEditing] = useState(false);
+  const [confirmingEdit, setConfirmingEdit] = useState(false);
   const [changingPassword, setChangingPassword] = useState(false);
   const [confirmingDeletion, setConfirmingDeletion] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -183,7 +184,7 @@ export function ProfileSettingsContent({ onClose = null }) {
     setSuccess("");
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
     const name = form.name.trim();
     const phone = form.phone.replace(/\D/g, "");
@@ -211,16 +212,16 @@ export function ProfileSettingsContent({ onClose = null }) {
       return;
     }
 
-    setPendingChanges({
-      name,
-      phone,
-      userPayload,
-    });
+    const changes = { name, phone, userPayload };
+    if (!window.matchMedia("(max-width: 760px)").matches) {
+      setPendingChanges(changes);
+      return;
+    }
+
+    await saveProfileChanges(changes);
   }
 
-  async function confirmProfileUpdate() {
-    if (!pendingChanges) return;
-    const { name, phone, userPayload } = pendingChanges;
+  async function saveProfileChanges({ name, phone, userPayload }) {
     setSaving(true);
     setError("");
     setSuccess("");
@@ -261,7 +262,23 @@ export function ProfileSettingsContent({ onClose = null }) {
           }}
           loading={saving}
           onBack={() => setPendingChanges(null)}
-          onConfirm={confirmProfileUpdate}
+          onConfirm={() => saveProfileChanges(pendingChanges)}
+        />
+      )}
+      {confirmingEdit && (
+        <ConfirmationModal
+          confirmation={{
+            title: "Alterar dados pessoais",
+            message: "Deseja liberar os campos nome e telefone para alteração?",
+            confirmLabel: "Sim, alterar",
+          }}
+          onBack={() => setConfirmingEdit(false)}
+          onConfirm={() => {
+            setConfirmingEdit(false);
+            setEditing(true);
+            setError("");
+            setSuccess("");
+          }}
         />
       )}
       {confirmingDeletion && (
@@ -328,20 +345,6 @@ export function ProfileSettingsContent({ onClose = null }) {
               <span className="step">CONFIGURAÇÕES DE PERFIL</span>
               <h1>Dados pessoais</h1>
             </div>
-            <button
-              className="profile-edit-button"
-              type="button"
-              onClick={() => {
-                if (editing) setForm(initialForm);
-                setEditing((current) => !current);
-                setError("");
-                setSuccess("");
-              }}
-              disabled={loading || saving}
-            >
-              {editing ? <X size={17} /> : <Pencil size={17} />}
-              {editing ? "Cancelar" : "Editar"}
-            </button>
           </div>
           <p>
             Confira e atualize seus dados pessoais.
@@ -385,10 +388,35 @@ export function ProfileSettingsContent({ onClose = null }) {
                     />
                   </div>
                 ) : (
-                  <div className="profile-value">
-                    <UserRound size={17} />
-                    <span>{form.name || "Nome não informado"}</span>
-                  </div>
+                  <>
+                    <div className="profile-value profile-value-desktop">
+                      <UserRound size={17} />
+                      <span>{form.name || "Nome não informado"}</span>
+                      <button
+                        className="profile-field-edit"
+                        type="button"
+                        onClick={() => {
+                          setEditing(true);
+                          setError("");
+                          setSuccess("");
+                        }}
+                        aria-label="Editar nome"
+                        title="Editar nome"
+                      >
+                        <Pencil size={15} />
+                      </button>
+                    </div>
+                    <button
+                      className="profile-value profile-value-action"
+                      type="button"
+                      onClick={() => setConfirmingEdit(true)}
+                      aria-label="Alterar nome"
+                    >
+                      <UserRound size={17} />
+                      <span>{form.name || "Nome não informado"}</span>
+                      <Pencil className="profile-mobile-edit-icon" size={15} />
+                    </button>
+                  </>
                 )}
               </label>
               <label>
@@ -411,10 +439,35 @@ export function ProfileSettingsContent({ onClose = null }) {
                     />
                   </div>
                 ) : (
-                  <div className="profile-value">
-                    <Phone size={17} />
-                    <span>{form.phone || "Telefone não informado"}</span>
-                  </div>
+                  <>
+                    <div className="profile-value profile-value-desktop">
+                      <Phone size={17} />
+                      <span>{form.phone || "Telefone não informado"}</span>
+                      <button
+                        className="profile-field-edit"
+                        type="button"
+                        onClick={() => {
+                          setEditing(true);
+                          setError("");
+                          setSuccess("");
+                        }}
+                        aria-label="Editar telefone"
+                        title="Editar telefone"
+                      >
+                        <Pencil size={15} />
+                      </button>
+                    </div>
+                    <button
+                      className="profile-value profile-value-action"
+                      type="button"
+                      onClick={() => setConfirmingEdit(true)}
+                      aria-label="Alterar telefone"
+                    >
+                      <Phone size={17} />
+                      <span>{form.phone || "Telefone não informado"}</span>
+                      <Pencil className="profile-mobile-edit-icon" size={15} />
+                    </button>
+                  </>
                 )}
               </label>
               <label>
@@ -434,7 +487,14 @@ export function ProfileSettingsContent({ onClose = null }) {
                   disabled={saving}
                 >
                   <Save size={17} />{" "}
-                  {saving ? "Salvando..." : "Salvar alterações"}
+                  {saving ? (
+                    "Salvando..."
+                  ) : (
+                    <>
+                      <span className="profile-submit-desktop">Salvar alterações</span>
+                      <span className="profile-submit-mobile">Atualizar dados</span>
+                    </>
+                  )}
                 </button>
               )}
               <button

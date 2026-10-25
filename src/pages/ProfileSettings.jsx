@@ -54,8 +54,9 @@ export function ProfileSettingsContent({ onClose = null }) {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [pendingChanges, setPendingChanges] = useState(null);
-  const [editing, setEditing] = useState(false);
-  const [confirmingEdit, setConfirmingEdit] = useState(false);
+  const [editingField, setEditingField] = useState(null);
+  const [requestedEditField, setRequestedEditField] = useState(null);
+  const editing = Boolean(editingField);
   const [changingPassword, setChangingPassword] = useState(false);
   const [confirmingDeletion, setConfirmingDeletion] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -237,7 +238,7 @@ export function ProfileSettingsContent({ onClose = null }) {
       window.dispatchEvent(
         new CustomEvent("barberflow:profile-updated", { detail: nextForm }),
       );
-      setEditing(false);
+      setEditingField(null);
       setPendingChanges(null);
       setSuccess("Perfil atualizado com sucesso.");
     } catch (requestError) {
@@ -265,17 +266,17 @@ export function ProfileSettingsContent({ onClose = null }) {
           onConfirm={() => saveProfileChanges(pendingChanges)}
         />
       )}
-      {confirmingEdit && (
+      {requestedEditField && (
         <ConfirmationModal
           confirmation={{
-            title: "Alterar dados pessoais",
-            message: "Deseja liberar os campos nome e telefone para alteração?",
+            title: requestedEditField === "name" ? "Alterar nome" : "Alterar telefone",
+            message: `Deseja liberar o campo ${requestedEditField === "name" ? "nome" : "telefone"} para alteração?`,
             confirmLabel: "Sim, alterar",
           }}
-          onBack={() => setConfirmingEdit(false)}
+          onBack={() => setRequestedEditField(null)}
           onConfirm={() => {
-            setConfirmingEdit(false);
-            setEditing(true);
+            setEditingField(requestedEditField);
+            setRequestedEditField(null);
             setError("");
             setSuccess("");
           }}
@@ -371,7 +372,7 @@ export function ProfileSettingsContent({ onClose = null }) {
               )}
               <label>
                 Nome
-                {editing ? (
+                {editingField === "name" ? (
                   <div className="input-wrap">
                     <UserRound size={17} />
                     <input
@@ -396,7 +397,7 @@ export function ProfileSettingsContent({ onClose = null }) {
                         className="profile-field-edit"
                         type="button"
                         onClick={() => {
-                          setEditing(true);
+                          setEditingField("name");
                           setError("");
                           setSuccess("");
                         }}
@@ -406,22 +407,24 @@ export function ProfileSettingsContent({ onClose = null }) {
                         <Pencil size={15} />
                       </button>
                     </div>
-                    <button
-                      className="profile-value profile-value-action"
-                      type="button"
-                      onClick={() => setConfirmingEdit(true)}
-                      aria-label="Alterar nome"
-                    >
+                    <div className="profile-value profile-value-action">
                       <UserRound size={17} />
                       <span>{form.name || "Nome não informado"}</span>
-                      <Pencil className="profile-mobile-edit-icon" size={15} />
-                    </button>
+                      <button
+                        className="profile-field-edit"
+                        type="button"
+                        onClick={() => setRequestedEditField("name")}
+                        aria-label="Editar nome"
+                      >
+                        <Pencil size={15} />
+                      </button>
+                    </div>
                   </>
                 )}
               </label>
               <label>
                 Telefone
-                {editing ? (
+                {editingField === "phone" ? (
                   <div className="input-wrap">
                     <Phone size={17} />
                     <input
@@ -447,7 +450,7 @@ export function ProfileSettingsContent({ onClose = null }) {
                         className="profile-field-edit"
                         type="button"
                         onClick={() => {
-                          setEditing(true);
+                          setEditingField("phone");
                           setError("");
                           setSuccess("");
                         }}
@@ -457,16 +460,18 @@ export function ProfileSettingsContent({ onClose = null }) {
                         <Pencil size={15} />
                       </button>
                     </div>
-                    <button
-                      className="profile-value profile-value-action"
-                      type="button"
-                      onClick={() => setConfirmingEdit(true)}
-                      aria-label="Alterar telefone"
-                    >
+                    <div className="profile-value profile-value-action">
                       <Phone size={17} />
                       <span>{form.phone || "Telefone não informado"}</span>
-                      <Pencil className="profile-mobile-edit-icon" size={15} />
-                    </button>
+                      <button
+                        className="profile-field-edit"
+                        type="button"
+                        onClick={() => setRequestedEditField("phone")}
+                        aria-label="Editar telefone"
+                      >
+                        <Pencil size={15} />
+                      </button>
+                    </div>
                   </>
                 )}
               </label>

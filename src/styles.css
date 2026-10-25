@@ -403,37 +403,28 @@ nav button.active {
   display: inline-grid;
   place-items: center;
   flex: 0 0 30px;
-  color: #007BFF;
-  background: #FFFFFF;
-  border: 1px solid #B9DFFF;
-  border-radius: 8px;
+  color: #B8860B;
+  background: transparent;
+  border: 0;
   cursor: pointer;
+}
+.profile-field-edit svg {
+  color: #B8860B;
 }
 .profile-field-edit:hover,
 .profile-field-edit:focus-visible {
-  color: #FFFFFF;
-  background: #007BFF;
-  border-color: #007BFF;
-  outline: none;
+  color: #8A6508;
+  background: transparent;
+  outline: 2px solid rgba(184, 134, 11, 0.24);
+  outline-offset: 1px;
+}
+.profile-field-edit:hover svg,
+.profile-field-edit:focus-visible svg {
+  color: #8A6508;
 }
 .profile-value-action {
   display: none;
   width: 100%;
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-  transition: border-color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
-}
-.profile-value-action:hover,
-.profile-value-action:focus-visible {
-  background: #FFFFFF;
-  border-color: #00B4FF;
-  box-shadow: 0 0 0 3px rgba(0, 180, 255, 0.12);
-  outline: none;
-}
-.profile-mobile-edit-icon {
-  flex: 0 0 auto;
-  color: #007BFF !important;
 }
 .profile-submit-mobile {
   display: none;
@@ -6858,7 +6849,8 @@ main > *,
 .current-plan-data > span,
 .next-charge span { color: #64748b; font-size: 13px; font-weight: 700; }
 .business-details-grid strong { overflow-wrap: anywhere; color: #34445c; font-size: 15px; }
-.business-edit-form { display: grid; gap: 8px; padding: 22px 4px 2px; }
+.business-edit-form { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; padding: 22px 4px 2px; }
+.business-edit-form > * { grid-column: 1; }
 .business-edit-form label { color: #34445c; font-size: 13px; font-weight: 800; }
 .business-edit-form > div { display: flex; gap: 10px; }
 .business-edit-form input { width: min(520px, 100%); border: 1px solid #bfd3e5; border-radius: 10px; padding: 12px 14px; color: #0b1f3b; font: inherit; outline: none; }

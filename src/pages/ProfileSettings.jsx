@@ -517,7 +517,7 @@ export function ProfileSettingsContent({ onClose = null }) {
                   disabled={saving || upgrading}
                   onClick={() => setConfirmingUpgrade(true)}
                 >
-                  <BriefcaseBusiness size={17} /> Quero ser profissional
+                  <BriefcaseBusiness size={17} /> Ser profissional
                 </button>
               )}
               {isProfessional && (
@@ -527,7 +527,7 @@ export function ProfileSettingsContent({ onClose = null }) {
                   disabled={saving || downgrading}
                   onClick={() => setConfirmingDowngrade(true)}
                 >
-                  <UserRound size={17} /> Quero ser cliente
+                  <UserRound size={17} /> Ser cliente
                 </button>
               )}
               <button

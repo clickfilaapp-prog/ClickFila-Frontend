@@ -6304,13 +6304,28 @@ footer {
   }
   .profile-form {
     margin-top: 15px;
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 10px;
   }
   .profile-form > * {
-    grid-column: 1 !important;
+    grid-column: 1 / -1 !important;
   }
-  .profile-form > .profile-password-button,
+  .profile-form > label .profile-value,
+  .profile-form > label input {
+    min-height: 42px;
+    padding-block: 8px;
+    font-size: 11px;
+  }
+  .profile-form > .profile-password-button {
+    grid-column: auto !important;
+    min-width: 0;
+    min-height: 42px;
+    padding: 7px 6px;
+    gap: 6px;
+    font-size: 10px;
+    line-height: 1.15;
+    white-space: nowrap;
+  }
   .profile-form > .profile-delete-button {
     min-height: 38px;
     padding: 7px 11px;

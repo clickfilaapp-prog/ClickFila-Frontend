@@ -23,8 +23,8 @@ self.addEventListener("push", (event) => {
     body: notification.body || "Há uma nova atualização na sua fila.",
     // O backend não precisa repetir estes campos em cada push. Sem os
     // fallbacks, o Android exibe o sino genérico do navegador.
-    icon: notification.icon || "/notification-ticket-yellow.png",
-    badge: notification.badge || "/notification-ticket-yellow.png",
+    icon: notification.icon || "/notification-ticket-yellow.png?v=2",
+    badge: notification.badge || "/notification-ticket-yellow.png?v=2",
     tag: notification.tag || "click-fila-update",
     renotify: notification.renotify ?? true,
     requireInteraction: notification.requireInteraction ?? true,

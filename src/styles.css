@@ -6248,6 +6248,10 @@ footer {
   }
   .profile-modal .profile-heading {
     padding: 34px 0 0;
+    margin-bottom: 12px;
+  }
+  .profile-modal .profile-card > p {
+    margin: 0 0 4px;
   }
   .profile-edit-button {
     width: auto;

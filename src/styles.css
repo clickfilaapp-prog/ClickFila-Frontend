@@ -6883,6 +6883,11 @@ main > *,
 .current-plan-data > b { color: #147db3; font-size: 22px; }
 .current-plan-data small { font-size: 12px; font-weight: 600; }
 .next-charge { display: flex; align-items: flex-start; gap: 12px; color: #7890a7; }
+.saved-card { display: flex; align-items: flex-start; gap: 12px; color: #7e22ce; }
+.saved-card > div { display: flex; flex-direction: column; gap: 5px; }
+.saved-card span { color: #64748b; font-size: 13px; font-weight: 700; }
+.saved-card strong { color: #34445c; font-size: 15px; text-transform: uppercase; }
+.saved-card.empty { color: #94a3b8; }
 .next-charge strong { color: #34445c; font-size: 15px; }
 .next-charge small { color: #94a3b8; }
 .change-plan-button { min-width: 180px; background: #eff8ff; }
@@ -6890,6 +6895,15 @@ main > *,
 .subscription-actions .change-plan-button { width: 100%; }
 .billing-loading { margin: 22px 4px 0; color: #64748b; }
 .billing-pay-now { margin-top: 18px; }
+.subscription-state-alert { display: flex; align-items: center; gap: 11px; margin-top: 20px; border: 1px solid; border-radius: 12px; padding: 14px 16px; font-weight: 700; }
+.subscription-state-alert svg { flex: 0 0 auto; }
+.subscription-state-alert.suspended { border-color: #fecaca; background: #fef2f2; color: #b91c1c; }
+.subscription-state-alert.canceled { border-color: #fde68a; background: #fffbeb; color: #92400e; }
+.subscription-state-alert.trial { border-color: #bfdbfe; background: #eff6ff; color: #1d4ed8; }
+.active-subscription-actions { display: flex; align-items: center; justify-content: flex-end; gap: 18px; margin-top: 22px; padding-top: 18px; border-top: 1px solid #e8eef5; }
+.cancel-subscription-link { border: 0; padding: 8px; background: transparent; color: #b91c1c; font-weight: 800; text-decoration: underline; cursor: pointer; }
+.billing-resolve-button { margin-top: 20px; background: #dc2626; }
+.trial-subscribe-button { margin-top: 20px; }
 .checkout-page { width: min(900px, 100%); margin: 0 auto; }
 .checkout-back { display: inline-flex; align-items: center; gap: 8px; margin: 0 0 18px; border: 0; padding: 8px 0; background: transparent; color: #147db3; font-weight: 800; cursor: pointer; }
 .checkout-page-card { border: 1px solid #dce8f3; border-radius: 20px; padding: 30px; background: #fff; box-shadow: 0 14px 40px rgba(11,31,59,.09); }
@@ -6953,6 +6967,7 @@ main > *,
   .business-edit-form button { width: 100%; }
   .current-subscription-row { grid-template-columns: 1fr; gap: 20px; }
   .current-plan-data { padding: 0 0 20px; border-right: 0; border-bottom: 1px solid #e8eef5; }
+  .active-subscription-actions { align-items: stretch; flex-direction: column; }
   .change-plan-button { width: 100%; }
   .subscription-actions { width: 100%; }
   .checkout-modal-backdrop { align-items: end; padding: 0; }

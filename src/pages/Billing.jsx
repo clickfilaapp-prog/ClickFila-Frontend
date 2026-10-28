@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Building2, CalendarDays, CheckCircle2, CreditCard, Pencil, Power, RefreshCw } from "lucide-react";
+import { AlertTriangle, Building2, CalendarDays, CheckCircle2, CreditCard, Info, Pencil, Power } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import DashboardLayout from "../components/DashboardLayout";
 import CreditCardUpdateModal from "../components/billing/CreditCardUpdateModal";
@@ -34,9 +34,16 @@ function formatPhone(value) {
 }
 
 const STATUS_LABELS = {
-  ACTIVE: "Ativa", TRIAL: "Em teste", PAST_DUE: "Pagamento pendente",
+  ACTIVE: "Assinatura ativa", TRIAL: "Em teste", PAST_DUE: "Pagamento pendente",
   SUSPENDED: "Suspensa", CANCELED: "Cancelada",
 };
+
+function daysUntil(value) {
+  if (!value) return null;
+  const end = new Date(String(value).includes("T") ? value : `${value}T23:59:59`);
+  if (Number.isNaN(end.getTime())) return null;
+  return Math.max(0, Math.ceil((end.getTime() - Date.now()) / 86400000));
+}
 
 function matchesCurrentPlan(plan, subscription) {
   const current = [subscription?.planCode, subscription?.planName, subscription?.plan?.code, subscription?.plan?.name]
@@ -117,15 +124,13 @@ export default function Billing() {
   const billingCycle = firstValue(subscription?.billingCycle, subscription?.plan?.billingCycle, currentPlan?.billingCycle);
   const periodEnd = firstValue(subscription?.nextBillingDate, subscription?.currentPeriodEnd, subscription?.expiresAt);
   const currentPlanCode = firstValue(subscription?.planCode, subscription?.plan?.code, currentPlan?.code);
+  const cancelAtPeriodEnd = Boolean(subscription?.cancelAtPeriodEnd);
+  const creditCard = subscription?.creditCard || null;
+  const trialDays = daysUntil(periodEnd);
 
   function subscribe(plan) {
     if (!businessId) return setError("Crie ou reative seu negócio antes de assinar um plano.");
     navigate(`/billing/checkout/${encodeURIComponent(plan.code)}`, { state: { plan } });
-  }
-
-  function payNow() {
-    if (currentPlanCode) subscribe({ ...(currentPlan || subscription?.plan || {}), code: currentPlanCode, name: planName, price: planPrice, billingCycle });
-    else setError("Não foi possível identificar o plano atual. Escolha um plano abaixo.");
   }
 
   async function togglePlans() {
@@ -195,9 +200,10 @@ export default function Billing() {
     setError("");
     try {
       await cancelSubscription(businessId);
-      setSubscription((current) => ({ ...current, status: "CANCELED" }));
+      setSubscription((current) => ({ ...current, cancelAtPeriodEnd: true }));
       setConfirmCancel(false);
       setShowPlans(false);
+      setSuccessMessage("Assinatura cancelada. Seu acesso continuará disponível até o fim do período atual.");
     } catch (requestError) {
       setConfirmCancel(false);
       setError(requestError.message);
@@ -233,7 +239,11 @@ export default function Billing() {
               phone: firstValue(business?.user?.phone, business?.phone, ""),
             }}
             onClose={() => setUpdatingCard(false)}
-            onSuccess={() => { setUpdatingCard(false); setSuccessMessage("Cartão atualizado com sucesso!"); }}
+            onSuccess={() => {
+              setUpdatingCard(false);
+              setSuccessMessage("Cartão atualizado com sucesso!");
+              getMySubscription().then(setSubscription).catch(() => {});
+            }}
             onInvalidSubscription={() => { setUpdatingCard(false); setError("Não foi possível localizar uma assinatura ativa para atualização."); }}
           />
         )}
@@ -273,17 +283,25 @@ export default function Billing() {
             <div><h2>Assinatura atual</h2><p>Confira seu plano e o status da sua assinatura.</p></div>
             {status && <span className={`subscription-status-badge status-${status.toLowerCase()}`}><CheckCircle2 size={15} /> {STATUS_LABELS[status] || status}</span>}
           </div>
-          {loading ? <p className="billing-loading">Carregando assinatura...</p> : (
+          {loading ? <p className="billing-loading">Carregando assinatura...</p> : <>
+            {status === "SUSPENDED" && <div className="subscription-state-alert suspended" role="alert"><AlertTriangle /><span>Problemas com o pagamento da sua assinatura. Seu acesso está temporariamente suspenso.</span></div>}
+            {cancelAtPeriodEnd && <div className="subscription-state-alert canceled" role="status"><AlertTriangle /><span>Sua assinatura está cancelada, mas você ainda tem acesso até {formatDate(periodEnd)}.</span></div>}
+            {status === "TRIAL" && <div className="subscription-state-alert trial" role="status"><Info /><span>Você está no período de testes.{trialDays !== null && ` Expira em ${trialDays} ${trialDays === 1 ? "dia" : "dias"}.`}</span></div>}
+
             <div className="current-subscription-row">
               <div className="current-plan-data"><span>Plano atual</span><strong>{planName}</strong>{planPrice > 0 && <b>{money.format(planPrice)} <small>/{billingCycle === "YEARLY" ? "ano" : "mês"}</small></b>}</div>
-              <div className="next-charge"><CalendarDays size={21} /><div><span>Próxima cobrança</span><strong>{formatDate(periodEnd)}</strong>{periodEnd && <small>Renovação automática</small>}</div></div>
-              <div className="subscription-actions">
-                {currentPlanCode && ["ACTIVE", "PAST_DUE", "SUSPENDED"].includes(status) && <button className="change-plan-button" type="button" onClick={() => { setError(""); setSuccessMessage(""); setUpdatingCard(true); }}><CreditCard size={17} /> Atualizar cartão</button>}
-                <button className="change-plan-button" type="button" disabled={loadingPlans} onClick={togglePlans}><RefreshCw size={17} /> {loadingPlans ? "Carregando planos..." : showPlans ? "Ocultar planos" : "Trocar de plano"}</button>
-              </div>
+              {creditCard && <div className="saved-card"><CreditCard size={22} /><div><span>Cartão atual</span><strong>{creditCard.brand || "Cartão"} final {creditCard.lastFourDigits}</strong></div></div>}
+              {!creditCard && status !== "TRIAL" && <div className="saved-card empty"><CreditCard size={22} /><div><span>Cartão atual</span><strong>Não informado</strong></div></div>}
+              {status === "ACTIVE" && !cancelAtPeriodEnd && <div className="next-charge"><CalendarDays size={21} /><div><span>Próxima cobrança</span><strong>{formatDate(periodEnd)}</strong>{periodEnd && <small>Renovação automática</small>}</div></div>}
             </div>
-          )}
-          {["PAST_DUE", "SUSPENDED"].includes(status) && <button className="billing-primary billing-pay-now" type="button" onClick={payNow}>Pagar agora</button>}
+
+            {status === "SUSPENDED" && currentPlanCode && <button className="billing-primary billing-resolve-button" type="button" onClick={() => { setError(""); setSuccessMessage(""); setUpdatingCard(true); }}>Resolver pendência</button>}
+            {status === "ACTIVE" && !cancelAtPeriodEnd && <div className="active-subscription-actions">
+              {currentPlanCode && <button className="change-plan-button" type="button" onClick={() => { setError(""); setSuccessMessage(""); setUpdatingCard(true); }}><CreditCard size={17} /> Trocar cartão de crédito</button>}
+              {businessId && <button className="cancel-subscription-link" type="button" onClick={() => setConfirmCancel(true)}>Cancelar assinatura</button>}
+            </div>}
+            {status === "TRIAL" && <button className="billing-primary trial-subscribe-button" type="button" disabled={loadingPlans} onClick={togglePlans}>{loadingPlans ? "Carregando planos..." : showPlans ? "Ocultar planos" : "Escolher plano e assinar"}</button>}
+          </>}
 
           {showPlans && !loadingPlans && <div className="embedded-plans"><div className="plans-grid">
             {plans.map((plan) => (
@@ -297,11 +315,7 @@ export default function Billing() {
               </article>
             ))}
             {!plans.length && <p>Nenhum plano está disponível no momento.</p>}
-          </div>
-            {["ACTIVE", "TRIAL", "PAST_DUE"].includes(status) && businessId && (
-              <div className="cancel-subscription-row"><div><strong>Não quer continuar com o plano atual?</strong><span>O cancelamento encerra a renovação da assinatura.</span></div><button type="button" disabled={cancelingSubscription} onClick={() => setConfirmCancel(true)}>Cancelar plano atual</button></div>
-            )}
-          </div>}
+          </div></div>}
         </section>
 
         {businessId && <section className="billing-danger-zone">

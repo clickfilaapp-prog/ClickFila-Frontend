@@ -11,3 +11,4 @@ export { default as PrivacyPolicy } from "./PrivacyPolicy";
 export { default as TermsOfUse } from "./TermsOfUse";
 export { default as RoleChoice } from "./RoleChoice";
 export { default as Billing } from "./Billing";
+export { default as SubscriptionCheckout } from "./SubscriptionCheckout";

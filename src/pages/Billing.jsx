@@ -1,74 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { Building2, CalendarDays, CheckCircle2, CreditCard, LoaderCircle, Pencil, Power, RefreshCw, ShieldCheck, X } from "lucide-react";
+import { Building2, CalendarDays, CheckCircle2, CreditCard, Pencil, Power, RefreshCw } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import DashboardLayout from "../components/DashboardLayout";
 import ConfirmationModal from "../components/professionalDashboard/ConfirmationModal";
 import { clearProfessionalDashboardCache, deactivateBusiness, getMyBusiness, getProfessionalDashboard, updateMyBusiness } from "../services/queue";
-import { cancelSubscription, createSubscriptionCheckout, getMySubscription, getPlans } from "../services/billing";
-
-const EMPTY_CHECKOUT = {
-  holderName: "", number: "", expiryMonth: "", expiryYear: "", ccv: "",
-  name: "", email: "", cpfCnpj: "", postalCode: "", addressNumber: "",
-  addressComplement: "", phone: "", mobilePhone: "",
-};
-
-const CHECKOUT_FIELDS = new Set(Object.keys(EMPTY_CHECKOUT));
-
-function onlyDigits(value, maxLength) {
-  return String(value || "").replace(/\D/g, "").slice(0, maxLength);
-}
-
-function validateCheckout(values) {
-  const errors = {};
-  const required = {
-    holderName: "Informe o nome impresso no cartão.", number: "Informe o número do cartão.",
-    expiryMonth: "Informe o mês de validade.", expiryYear: "Informe o ano de validade.",
-    ccv: "Informe o CVV.", name: "Informe o nome do titular.", email: "Informe o e-mail do titular.",
-    cpfCnpj: "Informe o CPF ou CNPJ.", postalCode: "Informe o CEP.",
-    addressNumber: "Informe o número do endereço.", phone: "Informe o telefone.",
-  };
-  Object.entries(required).forEach(([field, message]) => { if (!String(values[field] || "").trim()) errors[field] = message; });
-  const cardNumber = onlyDigits(values.number, 19);
-  if (cardNumber && (cardNumber.length < 13 || cardNumber.length > 19)) errors.number = "Número do cartão inválido.";
-  const month = Number(values.expiryMonth);
-  if (values.expiryMonth && (month < 1 || month > 12)) errors.expiryMonth = "Mês de validade inválido.";
-  if (values.expiryYear && !/^\d{4}$/.test(values.expiryYear)) errors.expiryYear = "Use o ano com 4 dígitos.";
-  if (values.ccv && !/^\d{3,4}$/.test(values.ccv)) errors.ccv = "O CVV deve ter 3 ou 4 dígitos.";
-  if (values.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email)) errors.email = "E-mail inválido.";
-  if (values.cpfCnpj && ![11, 14].includes(onlyDigits(values.cpfCnpj, 14).length)) errors.cpfCnpj = "CPF ou CNPJ inválido.";
-  if (values.postalCode && onlyDigits(values.postalCode, 8).length !== 8) errors.postalCode = "CEP inválido.";
-  if (values.phone && ![10, 11].includes(onlyDigits(values.phone, 11).length)) errors.phone = "Telefone inválido.";
-  if (values.mobilePhone && ![10, 11].includes(onlyDigits(values.mobilePhone, 11).length)) errors.mobilePhone = "Celular inválido.";
-  return errors;
-}
-
-function validationErrorsFromResponse(data) {
-  if (!data || typeof data !== "object" || Array.isArray(data)) return {};
-  const result = {};
-  const add = (rawField, message) => {
-    const field = String(rawField || "").split(".").pop();
-    if (CHECKOUT_FIELDS.has(field) && message) result[field] = String(message);
-  };
-  Object.entries(data).forEach(([field, message]) => {
-    if (typeof message === "string") add(field, message);
-  });
-  [data.errors, data.fieldErrors, data.validationErrors, data.violations].forEach((collection) => {
-    if (Array.isArray(collection)) collection.forEach((item) => add(item?.field || item?.propertyPath, item?.message || item?.defaultMessage));
-    else if (collection && typeof collection === "object") Object.entries(collection).forEach(([field, message]) => add(field, message));
-  });
-  return result;
-}
-
-function CheckoutField({ label, name, values, errors, onChange, optional = false, ...inputProps }) {
-  const error = errors[name];
-  return (
-    <label className={`checkout-field${error ? " has-error" : ""}`}>
-      <span>{label}{optional && <small> (opcional)</small>}</span>
-      <input name={name} value={values[name]} onChange={onChange} aria-invalid={Boolean(error)} aria-describedby={error ? `checkout-${name}-error` : undefined} {...inputProps} />
-      {error && <small id={`checkout-${name}-error`} className="checkout-field-error">{error}</small>}
-    </label>
-  );
-}
+import { cancelSubscription, getMySubscription, getPlans } from "../services/billing";
 
 const money = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 
@@ -117,7 +53,6 @@ export default function Billing() {
   const [subscription, setSubscription] = useState(null);
   const [business, setBusiness] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [busyPlan, setBusyPlan] = useState("");
   const [showPlans, setShowPlans] = useState(false);
   const [editingBusiness, setEditingBusiness] = useState(false);
   const [businessName, setBusinessName] = useState("");
@@ -126,11 +61,6 @@ export default function Billing() {
   const [confirmDeactivate, setConfirmDeactivate] = useState(false);
   const [confirmCancel, setConfirmCancel] = useState(false);
   const [cancelingSubscription, setCancelingSubscription] = useState(false);
-  const [checkoutPlan, setCheckoutPlan] = useState(null);
-  const [checkoutValues, setCheckoutValues] = useState(EMPTY_CHECKOUT);
-  const [checkoutErrors, setCheckoutErrors] = useState({});
-  const [checkoutError, setCheckoutError] = useState("");
-  const [checkoutSuccess, setCheckoutSuccess] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -176,17 +106,6 @@ export default function Billing() {
     return () => { active = false; };
   }, [navigate, location.state?.businessId, location.state?.businessRole]);
 
-  useEffect(() => {
-    function releaseCheckoutState() {
-      setBusyPlan("");
-    }
-
-    // Ao voltar do checkout, o navegador pode restaurar esta página pelo
-    // back-forward cache com o estado anterior ainda em memória.
-    window.addEventListener("pageshow", releaseCheckoutState);
-    return () => window.removeEventListener("pageshow", releaseCheckoutState);
-  }, []);
-
   const status = String(subscription?.status || "").toUpperCase();
   const businessId = business?.id;
   const currentPlan = plans.find((plan) => matchesCurrentPlan(plan, subscription));
@@ -197,81 +116,13 @@ export default function Billing() {
 
   function subscribe(plan) {
     if (!businessId) return setError("Crie ou reative seu negócio antes de assinar um plano.");
-    setError("");
-    setCheckoutError("");
-    setCheckoutErrors({});
-    setCheckoutSuccess(false);
-    setCheckoutPlan(plan);
-    setCheckoutValues((current) => ({
-      ...current,
-      name: current.name || firstValue(business?.ownerName, business?.user?.name, ""),
-      email: current.email || firstValue(business?.user?.login, business?.email, ""),
-      cpfCnpj: current.cpfCnpj || firstValue(business?.cpfCnpj, business?.document, business?.taxId, ""),
-      phone: current.phone || firstValue(business?.user?.phone, business?.phone, ""),
-    }));
+    navigate(`/billing/checkout/${encodeURIComponent(plan.code)}`, { state: { plan } });
   }
 
   function payNow() {
     const planCode = firstValue(subscription?.planCode, subscription?.plan?.code, currentPlan?.code);
     if (planCode) subscribe({ ...(currentPlan || subscription?.plan || {}), code: planCode, name: planName, price: planPrice, billingCycle });
     else setError("Não foi possível identificar o plano atual. Escolha um plano abaixo.");
-  }
-
-  function updateCheckoutField(event) {
-    const { name, value } = event.target;
-    const digitLimits = { number: 19, expiryMonth: 2, expiryYear: 4, ccv: 4, cpfCnpj: 14, postalCode: 8, phone: 11, mobilePhone: 11 };
-    const nextValue = digitLimits[name] ? onlyDigits(value, digitLimits[name]) : value;
-    setCheckoutValues((current) => ({ ...current, [name]: nextValue }));
-    setCheckoutErrors((current) => {
-      if (!current[name]) return current;
-      const next = { ...current };
-      delete next[name];
-      return next;
-    });
-  }
-
-  async function submitCheckout(event) {
-    event.preventDefault();
-    const errors = validateCheckout(checkoutValues);
-    setCheckoutErrors(errors);
-    setCheckoutError("");
-    if (Object.keys(errors).length) return;
-    setBusyPlan(checkoutPlan.code);
-    try {
-      await createSubscriptionCheckout({
-        planId: checkoutPlan.code,
-        creditCard: {
-          holderName: checkoutValues.holderName.trim(), number: checkoutValues.number,
-          expiryMonth: checkoutValues.expiryMonth.padStart(2, "0"), expiryYear: checkoutValues.expiryYear,
-          ccv: checkoutValues.ccv,
-        },
-        creditCardHolderInfo: {
-          name: checkoutValues.name.trim(), email: checkoutValues.email.trim(), cpfCnpj: checkoutValues.cpfCnpj,
-          postalCode: checkoutValues.postalCode, addressNumber: checkoutValues.addressNumber.trim(),
-          ...(checkoutValues.addressComplement.trim() && { addressComplement: checkoutValues.addressComplement.trim() }),
-          phone: checkoutValues.phone,
-          ...(checkoutValues.mobilePhone && { mobilePhone: checkoutValues.mobilePhone }),
-        },
-      });
-      setCheckoutSuccess(true);
-      setCheckoutValues((current) => ({ ...current, ccv: "" }));
-      setSubscription((current) => ({ ...current, status: "ACTIVE", planCode: checkoutPlan.code, planName: checkoutPlan.name, price: checkoutPlan.price, billingCycle: checkoutPlan.billingCycle }));
-      clearProfessionalDashboardCache();
-      getMySubscription().then(setSubscription).catch(() => {});
-    } catch (requestError) {
-      setCheckoutValues((current) => ({ ...current, ccv: "" }));
-      if (requestError.code === "PAYMENT_REJECTED") {
-        setCheckoutError(requestError.message);
-        return;
-      }
-      const fieldErrors = validationErrorsFromResponse(requestError.data);
-      if (requestError.status === 400 && Object.keys(fieldErrors).length) {
-        setCheckoutErrors(fieldErrors);
-        setCheckoutError("Confira os campos destacados e tente novamente.");
-      } else setCheckoutError(requestError.message);
-    } finally {
-      setBusyPlan("");
-    }
   }
 
   async function togglePlans() {
@@ -369,52 +220,6 @@ export default function Billing() {
             onConfirm={confirmSubscriptionCancellation}
           />
         )}
-        {checkoutPlan && (
-          <div className="checkout-modal-backdrop" role="presentation">
-            <section className="checkout-modal" role="dialog" aria-modal="true" aria-labelledby="checkout-title">
-              <button className="checkout-close" type="button" aria-label="Fechar pagamento" disabled={Boolean(busyPlan)} onClick={() => setCheckoutPlan(null)}><X /></button>
-              {checkoutSuccess ? (
-                <div className="checkout-success" role="status">
-                  <CheckCircle2 size={64} />
-                  <h2 id="checkout-title">Assinatura ativada com sucesso</h2>
-                  <p>Seu pagamento foi aprovado e os recursos premium já estão liberados.</p>
-                  <button className="billing-primary" type="button" onClick={() => { setCheckoutPlan(null); setShowPlans(false); }}>Continuar</button>
-                </div>
-              ) : (
-                <form onSubmit={submitCheckout} noValidate>
-                  <div className="checkout-heading"><ShieldCheck /><div><h2 id="checkout-title">Pagamento seguro</h2><p>{checkoutPlan.name} {Number(checkoutPlan.price) > 0 && `• ${money.format(Number(checkoutPlan.price))}`}</p></div></div>
-                  {checkoutError && <div className="checkout-alert" role="alert">{checkoutError}</div>}
-                  <fieldset>
-                    <legend>Dados do cartão</legend>
-                    <div className="checkout-form-grid">
-                      <CheckoutField label="Nome impresso no cartão" name="holderName" values={checkoutValues} errors={checkoutErrors} onChange={updateCheckoutField} autoComplete="cc-name" />
-                      <CheckoutField label="Número do cartão" name="number" values={checkoutValues} errors={checkoutErrors} onChange={updateCheckoutField} inputMode="numeric" autoComplete="cc-number" placeholder="0000 0000 0000 0000" />
-                      <CheckoutField label="Mês" name="expiryMonth" values={checkoutValues} errors={checkoutErrors} onChange={updateCheckoutField} inputMode="numeric" autoComplete="cc-exp-month" placeholder="MM" />
-                      <CheckoutField label="Ano" name="expiryYear" values={checkoutValues} errors={checkoutErrors} onChange={updateCheckoutField} inputMode="numeric" autoComplete="cc-exp-year" placeholder="AAAA" />
-                      <CheckoutField label="CVV" name="ccv" values={checkoutValues} errors={checkoutErrors} onChange={updateCheckoutField} inputMode="numeric" autoComplete="cc-csc" placeholder="123" />
-                    </div>
-                  </fieldset>
-                  <fieldset>
-                    <legend>Dados do titular</legend>
-                    <p className="checkout-section-note">Estas informações são obrigatórias para a análise antifraude.</p>
-                    <div className="checkout-form-grid holder-grid">
-                      <CheckoutField label="Nome completo" name="name" values={checkoutValues} errors={checkoutErrors} onChange={updateCheckoutField} autoComplete="name" />
-                      <CheckoutField label="E-mail" name="email" values={checkoutValues} errors={checkoutErrors} onChange={updateCheckoutField} type="email" autoComplete="email" />
-                      <CheckoutField label="CPF/CNPJ" name="cpfCnpj" values={checkoutValues} errors={checkoutErrors} onChange={updateCheckoutField} inputMode="numeric" />
-                      <CheckoutField label="CEP" name="postalCode" values={checkoutValues} errors={checkoutErrors} onChange={updateCheckoutField} inputMode="numeric" autoComplete="postal-code" />
-                      <CheckoutField label="Número do endereço" name="addressNumber" values={checkoutValues} errors={checkoutErrors} onChange={updateCheckoutField} autoComplete="address-line2" />
-                      <CheckoutField label="Complemento" name="addressComplement" values={checkoutValues} errors={checkoutErrors} onChange={updateCheckoutField} optional autoComplete="address-line3" />
-                      <CheckoutField label="Telefone" name="phone" values={checkoutValues} errors={checkoutErrors} onChange={updateCheckoutField} inputMode="tel" autoComplete="tel" />
-                      <CheckoutField label="Celular" name="mobilePhone" values={checkoutValues} errors={checkoutErrors} onChange={updateCheckoutField} optional inputMode="tel" />
-                    </div>
-                  </fieldset>
-                  <button className="billing-primary checkout-submit" type="submit" disabled={Boolean(busyPlan)}>{busyPlan ? <><LoaderCircle className="billing-spinner" size={18} /> Processando pagamento...</> : "Pagar e ativar assinatura"}</button>
-                </form>
-              )}
-            </section>
-          </div>
-        )}
-
         <div className="panel-heading billing-page-heading">
           <div><span className="step">MINHA CONTA</span><h1>Empresa e Assinatura</h1><p>Gerencie as informações da sua empresa e acompanhe sua assinatura.</p></div>
         </div>
@@ -465,7 +270,7 @@ export default function Billing() {
                 <div className="plan-card-labels"><span className="step">{plan.billingCycle === "YEARLY" ? "ANUAL" : "MENSAL"}</span>{matchesCurrentPlan(plan, subscription) && <span className="current-plan-badge">Plano atual</span>}</div>
                 <h3>{plan.name}</h3><strong>{money.format(Number(plan.price || 0))}</strong>
                 <p><CalendarDays size={17} /> Cobrança {plan.billingCycle === "YEARLY" ? "anual" : "mensal"}</p>
-                <button className="billing-primary" type="button" disabled={Boolean(busyPlan) || matchesCurrentPlan(plan, subscription)} onClick={() => subscribe(plan)}>
+                <button className="billing-primary" type="button" disabled={matchesCurrentPlan(plan, subscription)} onClick={() => subscribe(plan)}>
                   {matchesCurrentPlan(plan, subscription) ? "Seu plano atual" : "Escolher plano"}
                 </button>
               </article>

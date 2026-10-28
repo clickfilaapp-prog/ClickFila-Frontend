@@ -15,6 +15,7 @@ import {
   TermsOfUse,
   RoleChoice,
   Billing,
+  SubscriptionCheckout,
 } from "../pages";
 
 const ROLE_HOME = Object.freeze({
@@ -145,6 +146,14 @@ export default function AppRoutes() {
         element={
           <RoleRoute role="PROFESSIONAL">
             <Billing />
+          </RoleRoute>
+        }
+      />
+      <Route
+        path="/billing/checkout/:planId"
+        element={
+          <RoleRoute role="PROFESSIONAL">
+            <SubscriptionCheckout />
           </RoleRoute>
         }
       />

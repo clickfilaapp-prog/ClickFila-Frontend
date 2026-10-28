@@ -129,7 +129,7 @@ export default function Billing() {
   const trialDays = daysUntil(periodEnd);
 
   function subscribe(plan) {
-    if (!businessId) return setError("Crie ou reative seu negócio antes de assinar um plano.");
+    if (!businessId) return setError("Crie ou reative sua empresa antes de assinar um plano.");
     navigate(`/billing/checkout/${encodeURIComponent(plan.code)}`, { state: { plan } });
   }
 
@@ -184,11 +184,11 @@ export default function Billing() {
     try {
       await deactivateBusiness();
       clearProfessionalDashboardCache();
-      navigate("/professionalDashboard", { replace: true, state: { toast: "Negócio desativado com sucesso." } });
+      navigate("/professionalDashboard", { replace: true, state: { toast: "Empresa desativada com sucesso." } });
     } catch (requestError) {
       setConfirmDeactivate(false);
       setError(requestError.status === 409
-        ? "Não é possível desativar o negócio enquanto houver uma fila aberta ou clientes aguardando."
+        ? "Não é possível desativar a empresa enquanto houver uma fila aberta ou clientes aguardando."
         : requestError.message);
     } finally {
       setLoading(false);
@@ -217,7 +217,7 @@ export default function Billing() {
       <main className="billing-main">
         {confirmDeactivate && (
           <ConfirmationModal
-            confirmation={{ title: "Desativar meu negócio", message: "Seu negócio ficará inativo e não poderá receber novas pessoas na fila. Deseja continuar?", confirmLabel: "Sim, desativar negócio", danger: true }}
+            confirmation={{ title: "Desativar minha empresa", message: "Sua empresa ficará inativa e não poderá receber novas pessoas na fila. Deseja continuar?", confirmLabel: "Sim, desativar empresa", danger: true }}
             loading={loading} onBack={() => setConfirmDeactivate(false)} onConfirm={confirmBusinessDeactivation}
           />
         )}
@@ -259,7 +259,7 @@ export default function Billing() {
             <div><h2>Informações da empresa</h2><p>Dados cadastrais da sua empresa.</p></div>
             <button type="button" onClick={() => { setBusinessName(business?.name || ""); setEditingBusiness((editing) => !editing); }}><Pencil size={17} /> {editingBusiness ? "Cancelar" : "Editar"}</button>
           </div>
-          {loading ? <p className="billing-loading">Carregando dados do negócio...</p> : (
+          {loading ? <p className="billing-loading">Carregando dados da empresa...</p> : (
             editingBusiness ? (
               <form className="business-edit-form" onSubmit={saveBusinessName}>
                 <label htmlFor="billing-business-name">Nome da empresa</label>
@@ -320,7 +320,7 @@ export default function Billing() {
 
         {businessId && <section className="billing-danger-zone">
           <div className="danger-icon"><Power size={21} /></div>
-          <div><h2>Desativar meu negócio</h2><p>Seu negócio ficará inativo e não poderá receber filas.</p></div>
+          <div><h2>Desativar minha empresa</h2><p>Sua empresa ficará inativa e não poderá receber filas.</p></div>
           <button type="button" disabled={loading} onClick={() => setConfirmDeactivate(true)}>Desativar</button>
         </section>}
       </main>

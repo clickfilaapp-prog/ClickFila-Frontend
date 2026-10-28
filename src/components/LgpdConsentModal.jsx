@@ -58,7 +58,7 @@ export default function LgpdConsentModal({
           <h3>Quais dados coletamos?</h3>
           <p>
             Nome, telefone, e-mail e senha de acesso
-            {isProfessional ? ", além do nome do negócio" : ""}. A senha é
+            {isProfessional ? ", além do nome da empresa" : ""}. A senha é
             utilizada somente para autenticar e proteger sua conta.
           </p>
 

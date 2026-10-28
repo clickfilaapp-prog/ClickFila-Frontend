@@ -47,7 +47,7 @@ export default function PrivacyPolicy() {
             <h2>2. Quais dados podemos tratar</h2>
             <ul>
               <li><strong>Dados de cadastro:</strong> nome completo, e-mail utilizado como login, senha armazenada de forma criptografada e telefone.</li>
-              <li><strong>Dados profissionais:</strong> nome do negócio ou estabelecimento.</li>
+              <li><strong>Dados profissionais:</strong> nome da empresa ou estabelecimento.</li>
               <li><strong>Dados de autenticação:</strong> token de acesso, perfil da conta e identificador da conta Google, quando o usuário escolher o login social.</li>
               <li><strong>Dados de uso:</strong> histórico de entrada em filas, serviço escolhido, posição, horários, chamadas perdidas, status de espera e registros relacionados ao atendimento.</li>
               <li><strong>Dados de rastreio e auditoria:</strong> endereço IP e informações do navegador ou dispositivo (user agent), registrados no momento do aceite dos termos para comprovar o consentimento e proteger o sistema.</li>

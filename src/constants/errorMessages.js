@@ -4,7 +4,7 @@ const GENERIC_SYSTEM_ERROR = "Ocorreu um erro interno de comunicação. Nossa eq
 
 export const ErrorDictionary = {
   // =========================================================================
-  // Erros de Negócio (Fluxo esperado / Tratável pelo usuário)
+  // Erros de Empresa (Fluxo esperado / Tratável pelo usuário)
   // =========================================================================
   INVALID_CREDENTIALS: "E-mail ou senha incorretos.",
   INVALID_OTP: "O código informado é inválido. Confira e tente novamente.",
@@ -27,8 +27,8 @@ export const ErrorDictionary = {
   ALREADY_ACTIVE: "Este registro já se encontra ativo no momento.",
   ALREADY_DELETED: "Este registro já foi excluído anteriormente.",
   ALREADY_IN_TEAM: "Este profissional já faz parte da sua equipe.",
-  BUSINESS_ALREADY_EXISTS: "Você já possui um negócio cadastrado.",
-  BUSINESS_INACTIVE: "O perfil deste negócio encontra-se inativo no momento.",
+  BUSINESS_ALREADY_EXISTS: "Você já possui uma empresa cadastrada.",
+  BUSINESS_INACTIVE: "O perfil desta empresa encontra-se inativo no momento.",
   CANNOT_REMOVE_OWNER: "Não é possível remover o proprietário da equipe.",
   CLIENTS_STILL_IN_QUEUE: "Ainda existem clientes na fila ou em atendimento. Finalize a fila primeiro.",
   ENTRY_NOT_IN_ACTIVE_QUEUE: "Você não está mais na fila de atendimento ativa.",
@@ -39,7 +39,7 @@ export const ErrorDictionary = {
   INVITE_EXPIRED: "Este convite já expirou. Solicite um novo envio.",
   MEMBER_INACTIVE: "Este membro da equipe encontra-se inativo.",
   MEMBER_IN_ACTIVE_SERVICE: "Este profissional está no meio de um atendimento ativo.",
-  OWNER_CANNOT_LEAVE: "O dono não pode sair da equipe. Transfira a titularidade ou desative o negócio.",
+  OWNER_CANNOT_LEAVE: "O dono não pode sair da equipe. Transfira a titularidade ou desative a empresa.",
   PASSWORDS_DO_NOT_MATCH: "As senhas informadas não coincidem.",
   CANNOT_MANAGE_OTHER_MEMBER: "Você não tem permissão para realizar ações em nome de outro profissional.",
   CANNOT_MANAGE_OTHER_CLIENT: "Você só pode gerenciar os clientes que você mesmo chamou para atendimento.",
@@ -48,7 +48,7 @@ export const ErrorDictionary = {
   OWNER_ONLY_ACTION: "Apenas o dono da barbearia tem permissão para realizar esta ação.",
   ALREADY_CANCELED: "Esta assinatura já foi cancelada anteriormente.",
   ALREADY_VERIFIED: "Esta conta já foi verificada.",
-  BUSINESS_ALREADY_ACTIVE: "Este negócio já se encontra ativo no momento.",
+  BUSINESS_ALREADY_ACTIVE: "Esta empresa já se encontra ativa no momento.",
   INVALID_CODE: "O código informado é inválido. Verifique e tente novamente.",
   LGPD_PENDING: "É necessário aceitar os termos de uso e política de privacidade para continuar.",
   MISSING_DOCUMENT: "Informe um CPF ou CNPJ válido para continuar.",
@@ -69,7 +69,7 @@ export const ErrorDictionary = {
   // ---> NOVOS ERROS DE SISTEMA / SINCRONIA MAPEADOS <---
   INVALID_REFRESH_TOKEN: "Sua sessão expirou. Faça login novamente.",
   ENTRY_NOT_FOUND: "Registro não encontrado na fila. A fila pode ter sido atualizada.",
-  BUSINESS_NOT_FOUND: "Perfil do negócio não encontrado. Recarregue a página.",
+  BUSINESS_NOT_FOUND: "Perfil da empresa não encontrado. Recarregue a página.",
   INVITE_NOT_FOUND: "O convite solicitado não foi encontrado no sistema.",
   MEMBER_NOT_FOUND: "Profissional não encontrado na base de dados.",
   OWNER_NOT_FOUND: "Dados do proprietário não encontrados. Contate o suporte.",

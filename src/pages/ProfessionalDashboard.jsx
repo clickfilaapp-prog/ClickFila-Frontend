@@ -995,7 +995,7 @@ export default function ProfessionalDashboard() {
             <span className="step">BEM-VINDO AO CLICKFILA</span>
             <h2>Seu próximo passo começa agora.</h2>
             <p>
-              Crie seu próprio negócio para organizar a fila, montar sua equipe
+              Crie sua própria empresa para organizar a fila, montar sua equipe
               e oferecer uma experiência melhor aos clientes.
             </p>
             <button
@@ -1003,7 +1003,7 @@ export default function ProfessionalDashboard() {
               type="button"
               onClick={() => navigate("/professional/business/new")}
             >
-              <UserPlus size={20} /> Criar Meu Negócio
+              <UserPlus size={20} /> Criar Minha Empresa
             </button>
           </section>
         )}

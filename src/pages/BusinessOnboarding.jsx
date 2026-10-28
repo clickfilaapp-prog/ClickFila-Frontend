@@ -97,7 +97,7 @@ export default function BusinessOnboarding() {
       navigate("/professionalDashboard", {
         replace: true,
         state: {
-          message: "Seu negócio foi criado com sucesso!",
+          message: "Sua empresa foi criada com sucesso!",
           setupCreated: true,
         },
       });
@@ -164,10 +164,10 @@ export default function BusinessOnboarding() {
         )}
         {!checkingSetup && business?.businessIsActive !== false && <section className="onboarding-hero">
           <div className="onboarding-copy">
-            <span className="step">COMECE SEU NEGÓCIO</span>
-            <h1>Um negócio mais organizado começa aqui.</h1>
+            <span className="step">COMECE SUA EMPRESA</span>
+            <h1>Uma empresa mais organizada começa aqui.</h1>
             <p>
-              Crie seu negócio em poucos segundos e transforme a experiência
+              Crie sua empresa em poucos segundos e transforme a experiência
               da sua equipe e dos seus clientes.
             </p>
             <div className="onboarding-benefits">
@@ -189,14 +189,14 @@ export default function BusinessOnboarding() {
               </div>
               <div>
                 <span className="step">ÚLTIMO PASSO</span>
-                <h2>Como se chama seu negócio?</h2>
+                <h2>Como se chama sua empresa?</h2>
               </div>
             </div>
             <p className="onboarding-form-description">
-              Você poderá ajustar os dados do negócio mais tarde.
+              Você poderá ajustar os dados da empresa mais tarde.
             </p>
             <div className="onboarding-field">
-              <label htmlFor="onboarding-business-name">Nome do negócio</label>
+              <label htmlFor="onboarding-business-name">Nome da empresa</label>
               <input
                 id="onboarding-business-name"
                 autoFocus
@@ -235,7 +235,7 @@ export default function BusinessOnboarding() {
               type="submit"
               disabled={loading}
             >
-              {loading ? "Criando seu negócio..." : "Criar meu negócio"}
+              {loading ? "Criando sua empresa..." : "Criar minha empresa"}
             </button>
           </form>
         </section>}

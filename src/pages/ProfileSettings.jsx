@@ -305,7 +305,7 @@ export function ProfileSettingsContent({ onClose = null }) {
           confirmation={{
             title: "Tornar-se profissional",
             message:
-              "Ao continuar, sua conta será alterada para profissional e, no próximo acesso, você deverá cadastrar o nome do negócio. Deseja realmente continuar?",
+              "Ao continuar, sua conta será alterada para profissional e, no próximo acesso, você deverá cadastrar o nome da empresa. Deseja realmente continuar?",
             backLabel: "Não, continuar como cliente",
             confirmLabel: "Sim, tornar-me profissional",
             danger: true,

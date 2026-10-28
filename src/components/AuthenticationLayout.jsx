@@ -36,7 +36,7 @@ const CONTENT = {
     panel: ["Cadastro de cliente", "Preencha seus dados para criar sua conta."],
   },
   "professional-register": {
-    eyebrow: "SEU NEGÓCIO MAIS ORGANIZADO",
+    eyebrow: "SUA EMPRESA MAIS ORGANIZADA",
     title: "Sua própria fila, seus clientes no tempo certo.",
     description: "Cadastre-se para organizar seus atendimentos.",
     panel: ["Cadastro profissional", "Crie o acesso do seu estabelecimento."],

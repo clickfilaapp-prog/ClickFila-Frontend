@@ -154,7 +154,7 @@ export default function TermsOfUse() {
             <h2>11. Alterações e contato</h2>
             <p>
               Estes Termos poderão ser atualizados para refletir mudanças no
-              sistema, no modelo de negócio ou na legislação. A versão vigente
+              sistema, no modelo da empresa ou na legislação. A versão vigente
               estará disponível nesta página. Dúvidas podem ser encaminhadas
               pelos canais oficiais de atendimento disponibilizados pelo Click
               Fila.

@@ -41,22 +41,50 @@ export const ErrorDictionary = {
   MEMBER_IN_ACTIVE_SERVICE: "Este profissional está no meio de um atendimento ativo.",
   OWNER_CANNOT_LEAVE: "O dono não pode sair da equipe. Transfira a titularidade ou desative o negócio.",
   PASSWORDS_DO_NOT_MATCH: "As senhas informadas não coincidem.",
+  CANNOT_MANAGE_OTHER_MEMBER: "Você não tem permissão para realizar ações em nome de outro profissional.",
+  CANNOT_MANAGE_OTHER_CLIENT: "Você só pode gerenciar os clientes que você mesmo chamou para atendimento.",
+  NOT_BUSINESS_MEMBER: "Você não faz parte da equipe desta barbearia.",
+  CANCEL_NOT_ALLOWED: "Apenas o dono da barbearia ou o profissional que chamou o cliente podem cancelar este atendimento.",
+  OWNER_ONLY_ACTION: "Apenas o dono da barbearia tem permissão para realizar esta ação.",
+  ALREADY_CANCELED: "Esta assinatura já foi cancelada anteriormente.",
+  ALREADY_VERIFIED: "Esta conta já foi verificada.",
+  BUSINESS_ALREADY_ACTIVE: "Este negócio já se encontra ativo no momento.",
+  INVALID_CODE: "O código informado é inválido. Verifique e tente novamente.",
+  LGPD_PENDING: "É necessário aceitar os termos de uso e política de privacidade para continuar.",
+  MISSING_DOCUMENT: "Informe um CPF ou CNPJ válido para continuar.",
+  PAYMENT_REJECTED: "O pagamento foi recusado pelo cartão ou banco. Verifique os dados e tente novamente.",
+  QUEUE_EMPTY: "Não há clientes aguardando na fila no momento.",
 
   // =========================================================================
   // Erros de Integração e Sistema (Falhas técnicas genéricas ocultadas do cliente)
   // =========================================================================
   USER_NOT_FOUND: "Erro de sincronização. Por favor, faça login novamente.",
   PROFESSIONAL_NOT_FOUND: "Erro ao carregar seu perfil. Contate o suporte se o problema persistir.",
-  INVALID_STATUS: "Ação inválida para o momento atual. Recarregue a página.",
+  INVALID_STATUS: "Ação inválida para o momento atual. Recarregue a página e tente novamente.",
   FORBIDDEN: "Sua sessão expirou ou você não tem permissão. Faça login novamente.",
   UNAUTHORIZED: "Sua sessão expirou ou você não tem permissão. Faça login novamente.",
   REFRESH_TOKEN_EXPIRED: "Sua sessão expirou ou você não tem permissão. Faça login novamente.",
   CONCURRENT_MODIFICATION: "Os dados foram atualizados por outro dispositivo. Recarregando...",
   
-  // Mascarando falhas de código puro com a mensagem genérica que você definiu:
+  // ---> NOVOS ERROS DE SISTEMA / SINCRONIA MAPEADOS <---
+  INVALID_REFRESH_TOKEN: "Sua sessão expirou. Faça login novamente.",
+  ENTRY_NOT_FOUND: "Registro não encontrado na fila. A fila pode ter sido atualizada.",
+  BUSINESS_NOT_FOUND: "Perfil do negócio não encontrado. Recarregue a página.",
+  INVITE_NOT_FOUND: "O convite solicitado não foi encontrado no sistema.",
+  MEMBER_NOT_FOUND: "Profissional não encontrado na base de dados.",
+  OWNER_NOT_FOUND: "Dados do proprietário não encontrados. Contate o suporte.",
+  TEAM_MEMBER_NOT_FOUND: "Vínculo com a equipe não encontrado.",
+  PLAN_NOT_FOUND: "O plano selecionado não está mais disponível.",
+  SUBSCRIPTION_NOT_FOUND: "Não foi possível localizar os dados da sua assinatura.",
+  INVALID_SUBSCRIPTION: "Assinatura inválida para realizar esta ação.",
+  
+  // Mascarando falhas de código puro com a mensagem genérica:
   ACCESS_DENIED: GENERIC_SYSTEM_ERROR,
   TOKEN_GENERATION_ERROR: GENERIC_SYSTEM_ERROR,
   MALFORMED_JSON: GENERIC_SYSTEM_ERROR,
   TYPE_MISMATCH: GENERIC_SYSTEM_ERROR,
   MISSING_PARAMETER: GENERIC_SYSTEM_ERROR,
+  GATEWAY_ERROR: GENERIC_SYSTEM_ERROR, // Erro na API do Asaas
+  INVALID_STATE: GENERIC_SYSTEM_ERROR, // Estado inconsistente no banco
+  UNSUPPORTED_CYCLE: GENERIC_SYSTEM_ERROR, // Frequência de cobrança não suportada
 };

@@ -6891,6 +6891,9 @@ main > *,
 .checkout-page { width: min(900px, 100%); margin: 0 auto; }
 .checkout-back { display: inline-flex; align-items: center; gap: 8px; margin: 0 0 18px; border: 0; padding: 8px 0; background: transparent; color: #147db3; font-weight: 800; cursor: pointer; }
 .checkout-page-card { border: 1px solid #dce8f3; border-radius: 20px; padding: 30px; background: #fff; box-shadow: 0 14px 40px rgba(11,31,59,.09); }
+.checkout-page-card > form { display: flex; width: 100%; flex-direction: column; align-items: stretch; }
+.checkout-page-card > form > fieldset,
+.checkout-page-card > form > .checkout-submit { width: 100%; }
 .checkout-loading { display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 280px; color: #64748b; font-weight: 700; }
 .checkout-modal-backdrop { position: fixed; z-index: 1200; inset: 0; display: grid; place-items: center; padding: 24px; background: rgba(11,31,59,.62); backdrop-filter: blur(3px); }
 .checkout-modal { position: relative; width: min(820px, 100%); max-height: calc(100vh - 48px); overflow-y: auto; border-radius: 20px; padding: 28px; background: #fff; box-shadow: 0 28px 80px rgba(11,31,59,.32); }

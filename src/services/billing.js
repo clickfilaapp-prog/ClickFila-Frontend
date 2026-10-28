@@ -6,16 +6,11 @@ export const getPlans = () =>
 
 export const getMySubscription = () => apiRequest(API_ROUTES.mySubscription);
 
-export const createSubscriptionCheckout = (businessId, planCode) =>
+export const createSubscriptionCheckout = (checkoutData) =>
   apiRequest(API_ROUTES.subscriptionCheckout, {
     method: "POST",
-    body: { businessId, planCode },
+    body: checkoutData,
   });
 
 export const cancelSubscription = (businessId) =>
   apiRequest(API_ROUTES.cancelSubscription(businessId), { method: "POST" });
-
-export const getPaymentUrl = (subscriptionOrCheckout) =>
-  subscriptionOrCheckout?.checkoutUrl ||
-  subscriptionOrCheckout?.paymentLink ||
-  null;

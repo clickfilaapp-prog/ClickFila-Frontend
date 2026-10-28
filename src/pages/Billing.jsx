@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Building2, CalendarDays, CheckCircle2, CreditCard, Pencil, Power, RefreshCw } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import DashboardLayout from "../components/DashboardLayout";
+import CreditCardUpdateModal from "../components/billing/CreditCardUpdateModal";
 import ConfirmationModal from "../components/professionalDashboard/ConfirmationModal";
 import { clearProfessionalDashboardCache, deactivateBusiness, getMyBusiness, getProfessionalDashboard, updateMyBusiness } from "../services/queue";
 import { cancelSubscription, getMySubscription, getPlans } from "../services/billing";
@@ -61,6 +62,8 @@ export default function Billing() {
   const [confirmDeactivate, setConfirmDeactivate] = useState(false);
   const [confirmCancel, setConfirmCancel] = useState(false);
   const [cancelingSubscription, setCancelingSubscription] = useState(false);
+  const [updatingCard, setUpdatingCard] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -113,6 +116,7 @@ export default function Billing() {
   const planPrice = Number(firstValue(subscription?.price, subscription?.amount, subscription?.planPrice, subscription?.plan?.price, currentPlan?.price, 0));
   const billingCycle = firstValue(subscription?.billingCycle, subscription?.plan?.billingCycle, currentPlan?.billingCycle);
   const periodEnd = firstValue(subscription?.nextBillingDate, subscription?.currentPeriodEnd, subscription?.expiresAt);
+  const currentPlanCode = firstValue(subscription?.planCode, subscription?.plan?.code, currentPlan?.code);
 
   function subscribe(plan) {
     if (!businessId) return setError("Crie ou reative seu negócio antes de assinar um plano.");
@@ -120,8 +124,7 @@ export default function Billing() {
   }
 
   function payNow() {
-    const planCode = firstValue(subscription?.planCode, subscription?.plan?.code, currentPlan?.code);
-    if (planCode) subscribe({ ...(currentPlan || subscription?.plan || {}), code: planCode, name: planName, price: planPrice, billingCycle });
+    if (currentPlanCode) subscribe({ ...(currentPlan || subscription?.plan || {}), code: currentPlanCode, name: planName, price: planPrice, billingCycle });
     else setError("Não foi possível identificar o plano atual. Escolha um plano abaixo.");
   }
 
@@ -220,10 +223,25 @@ export default function Billing() {
             onConfirm={confirmSubscriptionCancellation}
           />
         )}
+        {updatingCard && (
+          <CreditCardUpdateModal
+            planId={currentPlanCode}
+            initialValues={{
+              name: firstValue(business?.ownerName, business?.user?.name, ""),
+              email: firstValue(business?.user?.login, business?.email, ""),
+              cpfCnpj: firstValue(business?.cpfCnpj, business?.document, business?.taxId, ""),
+              phone: firstValue(business?.user?.phone, business?.phone, ""),
+            }}
+            onClose={() => setUpdatingCard(false)}
+            onSuccess={() => { setUpdatingCard(false); setSuccessMessage("Cartão atualizado com sucesso!"); }}
+            onInvalidSubscription={() => { setUpdatingCard(false); setError("Não foi possível localizar uma assinatura ativa para atualização."); }}
+          />
+        )}
         <div className="panel-heading billing-page-heading">
           <div><span className="step">MINHA CONTA</span><h1>Empresa e Assinatura</h1><p>Gerencie as informações da sua empresa e acompanhe sua assinatura.</p></div>
         </div>
         {error && <div className="login-auth-error" role="alert">{error}</div>}
+        {successMessage && <div className="toast billing-inline-success" role="status" aria-live="polite">{successMessage}</div>}
 
         <section className="business-details-card">
           <div className="business-card-heading">
@@ -259,7 +277,10 @@ export default function Billing() {
             <div className="current-subscription-row">
               <div className="current-plan-data"><span>Plano atual</span><strong>{planName}</strong>{planPrice > 0 && <b>{money.format(planPrice)} <small>/{billingCycle === "YEARLY" ? "ano" : "mês"}</small></b>}</div>
               <div className="next-charge"><CalendarDays size={21} /><div><span>Próxima cobrança</span><strong>{formatDate(periodEnd)}</strong>{periodEnd && <small>Renovação automática</small>}</div></div>
-              <button className="change-plan-button" type="button" disabled={loadingPlans} onClick={togglePlans}><RefreshCw size={17} /> {loadingPlans ? "Carregando planos..." : showPlans ? "Ocultar planos" : "Trocar de plano"}</button>
+              <div className="subscription-actions">
+                {currentPlanCode && ["ACTIVE", "PAST_DUE", "SUSPENDED"].includes(status) && <button className="change-plan-button" type="button" onClick={() => { setError(""); setSuccessMessage(""); setUpdatingCard(true); }}><CreditCard size={17} /> Atualizar cartão</button>}
+                <button className="change-plan-button" type="button" disabled={loadingPlans} onClick={togglePlans}><RefreshCw size={17} /> {loadingPlans ? "Carregando planos..." : showPlans ? "Ocultar planos" : "Trocar de plano"}</button>
+              </div>
             </div>
           )}
           {["PAST_DUE", "SUSPENDED"].includes(status) && <button className="billing-primary billing-pay-now" type="button" onClick={payNow}>Pagar agora</button>}

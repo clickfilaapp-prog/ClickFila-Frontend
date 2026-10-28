@@ -6886,6 +6886,8 @@ main > *,
 .next-charge strong { color: #34445c; font-size: 15px; }
 .next-charge small { color: #94a3b8; }
 .change-plan-button { min-width: 180px; background: #eff8ff; }
+.subscription-actions { display: flex; align-items: stretch; flex-direction: column; gap: 10px; }
+.subscription-actions .change-plan-button { width: 100%; }
 .billing-loading { margin: 22px 4px 0; color: #64748b; }
 .billing-pay-now { margin-top: 18px; }
 .checkout-page { width: min(900px, 100%); margin: 0 auto; }
@@ -6897,6 +6899,9 @@ main > *,
 .checkout-loading { display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 280px; color: #64748b; font-weight: 700; }
 .checkout-modal-backdrop { position: fixed; z-index: 1200; inset: 0; display: grid; place-items: center; padding: 24px; background: rgba(11,31,59,.62); backdrop-filter: blur(3px); }
 .checkout-modal { position: relative; width: min(820px, 100%); max-height: calc(100vh - 48px); overflow-y: auto; border-radius: 20px; padding: 28px; background: #fff; box-shadow: 0 28px 80px rgba(11,31,59,.32); }
+.card-update-modal > form { display: flex; width: 100%; flex-direction: column; align-items: stretch; }
+.card-update-modal > form > fieldset,
+.card-update-modal > form > .checkout-submit { width: 100%; }
 .checkout-close { position: absolute; z-index: 1; top: 18px; right: 18px; display: grid; place-items: center; width: 40px; height: 40px; border: 0; border-radius: 50%; background: #f1f5f9; color: #475569; cursor: pointer; }
 .checkout-close:disabled { cursor: wait; opacity: .5; }
 .checkout-heading { display: flex; align-items: center; gap: 14px; padding-right: 46px; margin-bottom: 22px; }
@@ -6949,6 +6954,7 @@ main > *,
   .current-subscription-row { grid-template-columns: 1fr; gap: 20px; }
   .current-plan-data { padding: 0 0 20px; border-right: 0; border-bottom: 1px solid #e8eef5; }
   .change-plan-button { width: 100%; }
+  .subscription-actions { width: 100%; }
   .checkout-modal-backdrop { align-items: end; padding: 0; }
   .checkout-modal { width: 100%; max-height: 94vh; border-radius: 20px 20px 0 0; padding: 22px 16px; }
   .checkout-modal fieldset, .checkout-page-card fieldset { padding: 16px 12px; }

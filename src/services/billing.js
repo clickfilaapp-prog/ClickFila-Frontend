@@ -12,5 +12,11 @@ export const createSubscriptionCheckout = (checkoutData) =>
     body: checkoutData,
   });
 
+export const updateSubscriptionCreditCard = (checkoutData) =>
+  apiRequest(API_ROUTES.subscriptionCreditCard, {
+    method: "PUT",
+    body: checkoutData,
+  });
+
 export const cancelSubscription = (businessId) =>
   apiRequest(API_ROUTES.cancelSubscription(businessId), { method: "POST" });

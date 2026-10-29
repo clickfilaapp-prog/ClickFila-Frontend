@@ -125,6 +125,7 @@ export default function Billing() {
   const periodEnd = firstValue(subscription?.nextBillingDate, subscription?.currentPeriodEnd, subscription?.expiresAt);
   const currentPlanCode = firstValue(subscription?.planCode, subscription?.plan?.code, currentPlan?.code);
   const cancelAtPeriodEnd = Boolean(subscription?.cancelAtPeriodEnd);
+  const canReactivateSubscription = status === "CANCELED" || cancelAtPeriodEnd;
   const creditCard = subscription?.creditCard || null;
   const trialDays = daysUntil(periodEnd);
 
@@ -296,6 +297,7 @@ export default function Billing() {
             </div>
 
             {status === "SUSPENDED" && currentPlanCode && <button className="billing-primary billing-resolve-button" type="button" onClick={() => { setError(""); setSuccessMessage(""); setUpdatingCard(true); }}>Resolver pendência</button>}
+            {canReactivateSubscription && <button className="billing-primary trial-subscribe-button" type="button" disabled={loadingPlans} onClick={togglePlans}>{loadingPlans ? "Carregando planos..." : showPlans ? "Ocultar planos" : "Ativar novamente"}</button>}
             {status === "ACTIVE" && !cancelAtPeriodEnd && <div className="active-subscription-actions">
               {currentPlanCode && <button className="change-plan-button" type="button" onClick={() => { setError(""); setSuccessMessage(""); setUpdatingCard(true); }}><CreditCard size={17} /> Trocar cartão de crédito</button>}
               {businessId && <button className="cancel-subscription-link" type="button" onClick={() => setConfirmCancel(true)}>Cancelar assinatura</button>}
@@ -309,8 +311,8 @@ export default function Billing() {
                 <div className="plan-card-labels"><span className="step">{plan.billingCycle === "YEARLY" ? "ANUAL" : "MENSAL"}</span>{matchesCurrentPlan(plan, subscription) && <span className="current-plan-badge">Plano atual</span>}</div>
                 <h3>{plan.name}</h3><strong>{money.format(Number(plan.price || 0))}</strong>
                 <p><CalendarDays size={17} /> Cobrança {plan.billingCycle === "YEARLY" ? "anual" : "mensal"}</p>
-                <button className="billing-primary" type="button" disabled={matchesCurrentPlan(plan, subscription)} onClick={() => subscribe(plan)}>
-                  {matchesCurrentPlan(plan, subscription) ? "Seu plano atual" : "Escolher plano"}
+                <button className="billing-primary" type="button" disabled={!canReactivateSubscription && matchesCurrentPlan(plan, subscription)} onClick={() => subscribe(plan)}>
+                  {canReactivateSubscription && matchesCurrentPlan(plan, subscription) ? "Reativar este plano" : matchesCurrentPlan(plan, subscription) ? "Seu plano atual" : "Escolher plano"}
                 </button>
               </article>
             ))}

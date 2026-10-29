@@ -9,6 +9,7 @@ import {
   getProfessionalDashboard,
   reactivateBusiness,
 } from "../services/queue";
+import { getMyTeamInvites } from "../services/team";
 
 const BENEFITS = [
   [
@@ -37,7 +38,11 @@ export default function BusinessOnboarding() {
   const [business, setBusiness] = useState(initialDashboard);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [pendingInvites, setPendingInvites] = useState([]);
+  const [pendingInvites, setPendingInvites] = useState(() =>
+    Array.isArray(initialDashboard?.pendingInvites)
+      ? initialDashboard.pendingInvites
+      : [],
+  );
   const [inviteMessage, setInviteMessage] = useState("");
   const [checkingSetup, setCheckingSetup] = useState(!initialDashboard);
 
@@ -62,6 +67,18 @@ export default function BusinessOnboarding() {
       active = false;
     };
   }, [initialDashboard, navigate]);
+
+  useEffect(() => {
+    let active = true;
+    getMyTeamInvites()
+      .then((invites) => {
+        if (active) setPendingInvites(Array.isArray(invites) ? invites : []);
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (!inviteMessage) return undefined;

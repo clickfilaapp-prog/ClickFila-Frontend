@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { AlertTriangle, Building2, CalendarDays, CheckCircle2, CreditCard, Info, Pencil, Power } from "lucide-react";
+import { AlertTriangle, ArrowRightLeft, Building2, CalendarDays, CheckCircle2, CreditCard, Info, Pencil, Power } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import DashboardLayout from "../components/DashboardLayout";
 import CreditCardUpdateModal from "../components/billing/CreditCardUpdateModal";
@@ -116,6 +116,12 @@ export default function Billing() {
     return () => { active = false; };
   }, [navigate, location.state?.businessId, location.state?.businessRole]);
 
+  useEffect(() => {
+    if (!successMessage) return undefined;
+    const timer = window.setTimeout(() => setSuccessMessage(""), 5000);
+    return () => window.clearTimeout(timer);
+  }, [successMessage]);
+
   const status = String(subscription?.status || "").toUpperCase();
   const businessId = business?.id;
   const currentPlan = plans.find((plan) => matchesCurrentPlan(plan, subscription));
@@ -131,7 +137,9 @@ export default function Billing() {
 
   function subscribe(plan) {
     if (!businessId) return setError("Crie ou reative sua empresa antes de assinar um plano.");
-    navigate(`/billing/checkout/${encodeURIComponent(plan.code)}`, { state: { plan } });
+    navigate(`/billing/checkout/${encodeURIComponent(plan.code)}`, {
+      state: { plan, changingPlan: status === "ACTIVE" && !cancelAtPeriodEnd },
+    });
   }
 
   async function togglePlans() {
@@ -252,7 +260,7 @@ export default function Billing() {
           <div><span className="step">MINHA CONTA</span><h1>Empresa e Assinatura</h1><p>Gerencie as informações da sua empresa e acompanhe sua assinatura.</p></div>
         </div>
         {error && <div className="login-auth-error" role="alert">{error}</div>}
-        {successMessage && <div className="toast billing-inline-success" role="status" aria-live="polite">{successMessage}</div>}
+        {successMessage && <div className="toast" role="status" aria-live="polite">{successMessage}</div>}
 
         <section className="business-details-card">
           <div className="business-card-heading">
@@ -299,6 +307,7 @@ export default function Billing() {
             {status === "SUSPENDED" && currentPlanCode && <button className="billing-primary billing-resolve-button" type="button" onClick={() => { setError(""); setSuccessMessage(""); setUpdatingCard(true); }}>Resolver pendência</button>}
             {canReactivateSubscription && <button className="billing-primary trial-subscribe-button" type="button" disabled={loadingPlans} onClick={togglePlans}>{loadingPlans ? "Carregando planos..." : showPlans ? "Ocultar planos" : "Ativar novamente"}</button>}
             {status === "ACTIVE" && !cancelAtPeriodEnd && <div className="active-subscription-actions">
+              <button className="change-plan-button" type="button" disabled={loadingPlans} onClick={togglePlans}><ArrowRightLeft size={17} /> {loadingPlans ? "Carregando planos..." : showPlans ? "Ocultar planos" : "Trocar de plano"}</button>
               {currentPlanCode && <button className="change-plan-button" type="button" onClick={() => { setError(""); setSuccessMessage(""); setUpdatingCard(true); }}><CreditCard size={17} /> Trocar cartão de crédito</button>}
               {businessId && <button className="cancel-subscription-link" type="button" onClick={() => setConfirmCancel(true)}>Cancelar assinatura</button>}
             </div>}

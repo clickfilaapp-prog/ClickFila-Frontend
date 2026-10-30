@@ -6959,6 +6959,19 @@ main > *,
 .card-choice > span { display: flex; flex-direction: column; gap: 3px; }
 .card-choice small { color: #64748b; font-weight: 600; }
 .plan-change-note { margin: -4px 0 20px; border-radius: 10px; padding: 12px 14px; background: #eff6ff; color: #1e40af; font-size: 14px; font-weight: 700; }
+.payment-method-list { grid-template-columns: 1fr 1fr; }
+.pix-payment { display: flex; align-items: center; flex-direction: column; }
+.pix-waiting { display: flex; align-items: center; gap: 14px; width: 100%; margin-bottom: 22px; border-radius: 12px; padding: 16px; background: #fffbeb; color: #92400e; }
+.pix-waiting > svg { flex: 0 0 auto; }
+.pix-waiting h1 { margin: 0 0 4px; font-size: 23px; }
+.pix-waiting p { margin: 0; color: #78350f; }
+.pix-qr-code { width: min(300px, 100%); aspect-ratio: 1; object-fit: contain; border: 1px solid #dce8f3; border-radius: 14px; padding: 10px; background: #fff; }
+.pix-copy-label { align-self: flex-start; margin: 22px 0 7px; color: #34445c; font-size: 13px; font-weight: 800; }
+.pix-copy-row { display: flex; align-items: stretch; gap: 10px; width: 100%; }
+.pix-copy-row textarea { flex: 1; min-width: 0; resize: none; border: 1px solid #bfd3e5; border-radius: 10px; padding: 11px; color: #34445c; font: inherit; word-break: break-all; }
+.pix-copy-row button { display: flex; align-items: center; justify-content: center; gap: 7px; min-width: 112px; }
+.pix-activation-note { width: 100%; margin: 18px 0; border-radius: 10px; padding: 12px 14px; background: #ecfdf5; color: #047857; font-weight: 700; text-align: center; }
+.pix-back { margin: 0; }
 .checkout-alert { margin: 0 0 18px; border: 1px solid #fecaca; border-radius: 10px; padding: 12px 14px; background: #fef2f2; color: #b91c1c; font-weight: 700; }
 .checkout-submit { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 48px; }
 .checkout-submit:disabled { cursor: wait; opacity: .7; }
@@ -6998,6 +7011,8 @@ main > *,
   .checkout-page-card { padding: 22px 16px; }
   .checkout-form-grid,
   .checkout-form-grid.holder-grid { grid-template-columns: 1fr; }
+  .payment-method-list { grid-template-columns: 1fr; }
+  .pix-copy-row { flex-direction: column; }
   .checkout-form-grid .checkout-field:nth-child(1),
   .checkout-form-grid .checkout-field:nth-child(2),
   .checkout-form-grid.holder-grid .checkout-field { grid-column: 1; }

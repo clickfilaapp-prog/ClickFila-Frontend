@@ -32,7 +32,7 @@ export const API_ROUTES = Object.freeze({
   deactivateBusiness: "/api/businesses/deactivate",
   plans: "/api/plans",
   mySubscription: "/api/subscriptions/me",
-  subscriptionCheckout: "/api/subscriptions/checkout",
+  subscriptionCheckout: "/subscriptions/checkout",
   subscriptionPlan: "/api/v1/subscriptions/plan",
   subscriptionCreditCard: "/api/subscriptions/credit-card",
   cancelSubscription: (businessId) =>

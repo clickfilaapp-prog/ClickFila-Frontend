@@ -3,7 +3,7 @@ import { ArrowLeft, CheckCircle2, CreditCard, LoaderCircle, ShieldCheck } from "
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import DashboardLayout from "../components/DashboardLayout";
 import { clearProfessionalDashboardCache, getMyBusiness, getProfessionalDashboard } from "../services/queue";
-import { createSubscriptionCheckout, getMySubscription, getPlans } from "../services/billing";
+import { changeSubscriptionPlan, createSubscriptionCheckout, getMySubscription, getPlans } from "../services/billing";
 
 const money = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 const EMPTY_FORM = { holderName: "", number: "", expiryMonth: "", expiryYear: "", ccv: "", name: "", email: "", cpfCnpj: "", postalCode: "", addressNumber: "", addressComplement: "", phone: "", mobilePhone: "" };
@@ -58,23 +58,28 @@ export default function SubscriptionCheckout() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [savedCard, setSavedCard] = useState(null);
+  const [cardChoice, setCardChoice] = useState("saved");
 
   useEffect(() => {
     let active = true;
-    Promise.all([getProfessionalDashboard(), getMyBusiness().catch(() => null), plan ? Promise.resolve([]) : getPlans()])
-      .then(([dashboard, businessResponse, plans]) => {
+    Promise.all([getProfessionalDashboard(), getMyBusiness().catch(() => null), plan ? Promise.resolve([]) : getPlans(), changingPlan ? getMySubscription().catch(() => null) : Promise.resolve(null)])
+      .then(([dashboard, businessResponse, plans, subscription]) => {
         if (!active) return;
         if (String(dashboard?.loggedMemberRole || "").toUpperCase() !== "OWNER") return navigate("/professionalDashboard", { replace: true });
         const selected = plan || plans.find((item) => String(item.code) === String(planId));
         if (!selected) { setError("O plano selecionado não foi encontrado."); return; }
         setPlan(selected);
+        const currentCard = subscription?.creditCard || null;
+        setSavedCard(currentCard);
+        if (changingPlan && !currentCard) setCardChoice("new");
         const business = businessResponse?.data || businessResponse?.business || businessResponse || {};
         setValues((current) => ({ ...current, name: firstValue(business?.ownerName, business?.user?.name), email: firstValue(business?.user?.login, business?.email), cpfCnpj: digits(firstValue(business?.cpfCnpj, business?.document, business?.taxId), 14), phone: digits(firstValue(business?.user?.phone, business?.phone), 11) }));
       })
       .catch((requestError) => { if (active) setError(requestError.message); })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
-  }, [navigate, planId]);
+  }, [changingPlan, navigate, planId]);
 
   function onChange(event) {
     const { name, value } = event.target;
@@ -85,12 +90,16 @@ export default function SubscriptionCheckout() {
 
   async function submit(event) {
     event.preventDefault();
-    const validation = validate(values);
+    const usingNewCard = !changingPlan || cardChoice === "new";
+    const validation = usingNewCard ? validate(values) : {};
     setErrors(validation); setError("");
     if (Object.keys(validation).length) return;
     setSubmitting(true);
     try {
-      await createSubscriptionCheckout({ planId: plan.code, creditCard: { holderName: values.holderName.trim(), number: values.number, expiryMonth: values.expiryMonth.padStart(2, "0"), expiryYear: values.expiryYear, ccv: values.ccv }, creditCardHolderInfo: { name: values.name.trim(), email: values.email.trim(), cpfCnpj: values.cpfCnpj, postalCode: values.postalCode, addressNumber: values.addressNumber.trim(), ...(values.addressComplement.trim() && { addressComplement: values.addressComplement.trim() }), phone: values.phone, ...(values.mobilePhone && { mobilePhone: values.mobilePhone }) } });
+      const cardPayload = usingNewCard ? { creditCard: { holderName: values.holderName.trim(), number: values.number, expiryMonth: values.expiryMonth.padStart(2, "0"), expiryYear: values.expiryYear, ccv: values.ccv }, creditCardHolderInfo: { name: values.name.trim(), email: values.email.trim(), cpfCnpj: values.cpfCnpj, postalCode: values.postalCode, addressNumber: values.addressNumber.trim(), ...(values.addressComplement.trim() && { addressComplement: values.addressComplement.trim() }), phone: values.phone, ...(values.mobilePhone && { mobilePhone: values.mobilePhone }) } } : { creditCard: null, creditCardHolderInfo: null };
+      const payload = { planId: plan.code, ...cardPayload };
+      if (changingPlan) await changeSubscriptionPlan(payload);
+      else await createSubscriptionCheckout(payload);
       setValues((current) => ({ ...current, ccv: "" }));
       setSuccess(true);
       clearProfessionalDashboardCache();
@@ -108,11 +117,11 @@ export default function SubscriptionCheckout() {
 
   return <DashboardLayout tutorialReady={false}><main className="checkout-page">
     <button className="checkout-back" type="button" onClick={() => navigate("/billing")}><ArrowLeft size={18} /> Voltar para assinatura</button>
-    {loading ? <div className="checkout-page-card checkout-loading"><LoaderCircle className="billing-spinner" /> Carregando pagamento...</div> : success ? <section className="checkout-page-card checkout-success" role="status"><CheckCircle2 size={64} /><h1>{changingPlan ? "Plano alterado com sucesso" : "Assinatura ativada com sucesso"}</h1><p>{changingPlan ? "Seu novo plano já está ativo na assinatura." : "Seu pagamento foi aprovado e os recursos premium já estão liberados."}</p><button className="billing-primary" type="button" onClick={() => navigate("/professionalDashboard", { replace: true, state: { toast: changingPlan ? "Plano alterado com sucesso!" : "Assinatura ativada com sucesso!" } })}>Acessar recursos premium</button></section> : <section className="checkout-page-card">
+    {loading ? <div className="checkout-page-card checkout-loading"><LoaderCircle className="billing-spinner" /> Carregando pagamento...</div> : success ? <section className="checkout-page-card checkout-success" role="status"><CheckCircle2 size={64} /><h1>{changingPlan ? "Troca de plano agendada" : "Assinatura ativada com sucesso"}</h1><p>{changingPlan ? "O novo plano será cobrado e entrará em vigor ao final do ciclo já pago." : "Seu pagamento foi aprovado e os recursos premium já estão liberados."}</p><button className="billing-primary" type="button" onClick={() => navigate(changingPlan ? "/billing" : "/professionalDashboard", { replace: true, state: { toast: changingPlan ? "Troca de plano agendada com sucesso!" : "Assinatura ativada com sucesso!" } })}>{changingPlan ? "Voltar para assinatura" : "Acessar recursos premium"}</button></section> : <section className="checkout-page-card">
       <div className="checkout-heading"><ShieldCheck /><div><span className="step">PAGAMENTO</span><h1>{changingPlan ? "Confirme a troca de plano" : "Finalize sua assinatura"}</h1><p>{plan?.name} {Number(plan?.price) > 0 && `• ${money.format(Number(plan.price))}`}</p></div></div>
       {error && <div className="login-auth-error checkout-payment-error" role="alert" aria-live="assertive">{error}</div>}
-      {plan && <form onSubmit={submit} noValidate><fieldset><legend><CreditCard size={18} /> Dados do cartão</legend><div className="checkout-form-grid"><Field label="Nome impresso no cartão" name="holderName" values={values} errors={errors} onChange={onChange} maxLength={50} autoComplete="cc-name" /><Field label="Número do cartão" name="number" values={values} errors={errors} onChange={onChange} inputMode="numeric" autoComplete="cc-number" placeholder="0000 0000 0000 0000" /><Field label="Mês" name="expiryMonth" values={values} errors={errors} onChange={onChange} inputMode="numeric" autoComplete="cc-exp-month" placeholder="MM" /><Field label="Ano" name="expiryYear" values={values} errors={errors} onChange={onChange} inputMode="numeric" autoComplete="cc-exp-year" placeholder="AAAA" /><Field label="CVV" name="ccv" values={values} errors={errors} onChange={onChange} inputMode="numeric" autoComplete="cc-csc" placeholder="123" /></div></fieldset>
-      <fieldset><legend>Dados do titular</legend><p className="checkout-section-note">Estas informações são obrigatórias para a análise antifraude.</p><div className="checkout-form-grid holder-grid"><Field label="Nome completo" name="name" values={values} errors={errors} onChange={onChange} maxLength={50} autoComplete="name" /><Field label="E-mail" name="email" values={values} errors={errors} onChange={onChange} type="email" maxLength={50} autoComplete="email" /><Field label="CPF/CNPJ" name="cpfCnpj" values={values} errors={errors} onChange={onChange} inputMode="numeric" /><Field label="CEP" name="postalCode" values={values} errors={errors} onChange={onChange} inputMode="numeric" autoComplete="postal-code" /><Field label="Número do endereço" name="addressNumber" values={values} errors={errors} onChange={onChange} maxLength={10} /><Field label="Complemento" name="addressComplement" values={values} errors={errors} onChange={onChange} maxLength={20} optional /><Field label="Telefone" name="phone" values={values} errors={errors} onChange={onChange} inputMode="tel" autoComplete="tel" /><Field label="Celular" name="mobilePhone" values={values} errors={errors} onChange={onChange} optional inputMode="tel" /></div></fieldset><button className="billing-primary checkout-submit" type="submit" disabled={submitting}>{submitting ? <><LoaderCircle className="billing-spinner" size={18} /> Processando...</> : changingPlan ? "Confirmar troca de plano" : "Assinar"}</button></form>}
+      {plan && <form onSubmit={submit} noValidate>{changingPlan && <fieldset className="card-choice-fieldset"><legend><CreditCard size={18} /> Forma de pagamento</legend><div className="card-choice-list">{savedCard && <label className={`card-choice${cardChoice === "saved" ? " selected" : ""}`}><input type="radio" name="cardChoice" value="saved" checked={cardChoice === "saved"} onChange={() => { setCardChoice("saved"); setErrors({}); }} /><CreditCard size={22} /><span><strong>Usar {savedCard.brand || "cartão"} final {savedCard.lastFourDigits}</strong><small>Cartão já cadastrado</small></span></label>}<label className={`card-choice${cardChoice === "new" ? " selected" : ""}`}><input type="radio" name="cardChoice" value="new" checked={cardChoice === "new"} onChange={() => setCardChoice("new")} /><CreditCard size={22} /><span><strong>Trocar de cartão</strong><small>Preencher os dados de um novo cartão</small></span></label></div></fieldset>}{(!changingPlan || cardChoice === "new") && <><fieldset><legend><CreditCard size={18} /> Dados do cartão</legend><div className="checkout-form-grid"><Field label="Nome impresso no cartão" name="holderName" values={values} errors={errors} onChange={onChange} maxLength={50} autoComplete="cc-name" /><Field label="Número do cartão" name="number" values={values} errors={errors} onChange={onChange} inputMode="numeric" autoComplete="cc-number" placeholder="0000 0000 0000 0000" /><Field label="Mês" name="expiryMonth" values={values} errors={errors} onChange={onChange} inputMode="numeric" autoComplete="cc-exp-month" placeholder="MM" /><Field label="Ano" name="expiryYear" values={values} errors={errors} onChange={onChange} inputMode="numeric" autoComplete="cc-exp-year" placeholder="AAAA" /><Field label="CVV" name="ccv" values={values} errors={errors} onChange={onChange} inputMode="numeric" autoComplete="cc-csc" placeholder="123" /></div></fieldset>
+      <fieldset><legend>Dados do titular</legend><p className="checkout-section-note">Estas informações são obrigatórias para a análise antifraude.</p><div className="checkout-form-grid holder-grid"><Field label="Nome completo" name="name" values={values} errors={errors} onChange={onChange} maxLength={50} autoComplete="name" /><Field label="E-mail" name="email" values={values} errors={errors} onChange={onChange} type="email" maxLength={50} autoComplete="email" /><Field label="CPF/CNPJ" name="cpfCnpj" values={values} errors={errors} onChange={onChange} inputMode="numeric" /><Field label="CEP" name="postalCode" values={values} errors={errors} onChange={onChange} inputMode="numeric" autoComplete="postal-code" /><Field label="Número do endereço" name="addressNumber" values={values} errors={errors} onChange={onChange} maxLength={10} /><Field label="Complemento" name="addressComplement" values={values} errors={errors} onChange={onChange} maxLength={20} optional /><Field label="Telefone" name="phone" values={values} errors={errors} onChange={onChange} inputMode="tel" autoComplete="tel" /><Field label="Celular" name="mobilePhone" values={values} errors={errors} onChange={onChange} optional inputMode="tel" /></div></fieldset></>}{changingPlan && <p className="plan-change-note">A cobrança do novo plano será agendada para o último dia do ciclo já pago.</p>}<button className="billing-primary checkout-submit" type="submit" disabled={submitting}>{submitting ? <><LoaderCircle className="billing-spinner" size={18} /> Processando...</> : changingPlan ? "Confirmar troca de plano" : "Assinar"}</button></form>}
     </section>}
   </main></DashboardLayout>;
 }

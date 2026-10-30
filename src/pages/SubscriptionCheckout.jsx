@@ -41,9 +41,10 @@ function responseErrors(data) {
   return errors;
 }
 
-function Field({ label, name, values, errors, onChange, optional = false, ...props }) {
+function Field({ label, name, values, errors, onChange, optional = false, inputMode, ...props }) {
   const error = errors[name];
-  return <label className={`checkout-field${error ? " has-error" : ""}`}><span>{label}{optional && <small> (opcional)</small>}</span><input name={name} value={values[name]} onChange={onChange} aria-invalid={Boolean(error)} aria-describedby={error ? `checkout-${name}-error` : undefined} {...props} />{error && <small id={`checkout-${name}-error`} className="checkout-field-error">{error}</small>}</label>;
+  const effectiveInputMode = inputMode || (name === "addressNumber" ? "numeric" : undefined);
+  return <label className={`checkout-field${error ? " has-error" : ""}`}><span>{label}{optional && <small> (opcional)</small>}</span><input name={name} value={values[name]} onChange={onChange} inputMode={effectiveInputMode} aria-invalid={Boolean(error)} aria-describedby={error ? `checkout-${name}-error` : undefined} {...props} />{error && <small id={`checkout-${name}-error`} className="checkout-field-error">{error}</small>}</label>;
 }
 
 export default function SubscriptionCheckout() {
@@ -86,7 +87,7 @@ export default function SubscriptionCheckout() {
 
   function onChange(event) {
     const { name, value } = event.target;
-    const limits = { number: 19, expiryMonth: 2, expiryYear: 4, ccv: 4, cpfCnpj: 14, postalCode: 8, addressNumber: 10, addressComplement: 20, phone: 11, mobilePhone: 11 };
+    const limits = { number: 19, expiryMonth: 2, expiryYear: 4, ccv: 4, cpfCnpj: 14, postalCode: 8, addressNumber: 10, phone: 11, mobilePhone: 11 };
     setValues((current) => ({ ...current, [name]: limits[name] ? digits(value, limits[name]) : value }));
     setErrors((current) => { if (!current[name]) return current; const next = { ...current }; delete next[name]; return next; });
   }

@@ -60,6 +60,10 @@ function parseSubscriptionPeriodEnd(value) {
   return Number.isNaN(date.getTime()) ? null : date;
 }
 
+function getFriendlyDashboardError() {
+  return "";
+}
+
 const mergeQueueDetails = (previousEntries = [], nextEntries = []) =>
   nextEntries.map((nextEntry) => {
     const previousEntry =
@@ -131,7 +135,7 @@ export default function ProfessionalDashboard() {
       if (isSessionNotFound(requestError)) {
         setDashboard(EMPTY_DASHBOARD);
       } else if (!silent) {
-        setError(requestError.message);
+        setError(getFriendlyDashboardError(requestError, "Não foi possível carregar o painel. Tente novamente."));
       }
     } finally {
       isRefreshing.current = false;
@@ -258,7 +262,7 @@ export default function ProfessionalDashboard() {
             ],
           };
         }),
-      (socketError) => setError(socketError.message),
+      () => {},
     );
   }, [dashboard?.sessionId]);
 
@@ -268,7 +272,7 @@ export default function ProfessionalDashboard() {
     try {
       return await action();
     } catch (requestError) {
-      setError(requestError.message);
+      setError(getFriendlyDashboardError(requestError));
       return null;
     } finally {
       setLoading(false);
@@ -287,7 +291,7 @@ export default function ProfessionalDashboard() {
       await reloadDashboard();
       setSuccessMessage("Vínculo anterior encerrado e novo convite aceito com sucesso!");
     } catch (requestError) {
-      setError(requestError.message);
+      setError(getFriendlyDashboardError(requestError));
     } finally {
       setLoading(false);
     }
@@ -311,7 +315,7 @@ export default function ProfessionalDashboard() {
       if (requestError.status === 409 && requestError.code === "ALREADY_IN_TEAM") {
         setBlockedInvite(invite);
       } else {
-        setError(requestError.message);
+        setError(getFriendlyDashboardError(requestError));
       }
     } finally {
       setLoading(false);
@@ -351,7 +355,7 @@ export default function ProfessionalDashboard() {
       setSuccessMessage(`Convite enviado para ${invite?.email || email}.`);
       return true;
     } catch (requestError) {
-      setError(requestError.message);
+      setError(getFriendlyDashboardError(requestError));
       return false;
     } finally {
       setLoading(false);
@@ -375,7 +379,7 @@ export default function ProfessionalDashboard() {
       setSuccessMessage(`${member?.name || name} foi adicionado à equipe.`);
       return true;
     } catch (requestError) {
-      setError(requestError.message);
+      setError(getFriendlyDashboardError(requestError));
       return false;
     } finally {
       setLoading(false);
@@ -586,7 +590,7 @@ export default function ProfessionalDashboard() {
       setSuccessMessage(`${clientName} foi adicionado à fila.`);
       return true;
     } catch (requestError) {
-      setError(requestError.message);
+      setError(getFriendlyDashboardError(requestError, "Não foi possível adicionar o cliente à fila. Tente novamente."));
       return false;
     } finally {
       setLoading(false);
@@ -787,7 +791,7 @@ export default function ProfessionalDashboard() {
           setPrefix("");
           setEditingPrefix(false);
         } catch (requestError) {
-          setPrefixError(requestError.message);
+          setPrefixError(getFriendlyDashboardError(requestError, "Não foi possível salvar o prefixo."));
         } finally {
           setLoading(false);
         }
@@ -895,7 +899,7 @@ export default function ProfessionalDashboard() {
           setToleranceMinutes("");
           setEditingTolerance(false);
         } catch (requestError) {
-          setToleranceError(requestError.message);
+          setToleranceError(getFriendlyDashboardError(requestError, "Não foi possível salvar o tempo de tolerância."));
         } finally {
           setLoading(false);
         }

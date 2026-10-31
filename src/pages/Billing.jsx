@@ -133,11 +133,11 @@ export default function Billing() {
   const planPrice = Number(firstValue(subscription?.price, subscription?.amount, subscription?.planPrice, subscription?.plan?.price, currentPlan?.price, 0));
   const billingCycle = firstValue(subscription?.billingCycle, subscription?.plan?.billingCycle, currentPlan?.billingCycle);
   const periodEnd = firstValue(subscription?.nextBillingDate, subscription?.currentPeriodEnd, subscription?.expiresAt);
-  const currentPlanCode = firstValue(subscription?.planCode, subscription?.plan?.code, currentPlan?.code);
+  const currentPlanCode = firstValue(subscription?.planCode, subscription?.planId, subscription?.plan?.code, subscription?.plan?.id, currentPlan?.code, currentPlan?.id);
   const cancelAtPeriodEnd = Boolean(subscription?.cancelAtPeriodEnd);
   const canReactivateSubscription = status === "CANCELED" || cancelAtPeriodEnd;
   const savedCreditCard = subscription?.creditCard || null;
-  const paymentMethod = String(subscription?.paymentMethod || (savedCreditCard ? "CREDIT_CARD" : "PIX")).toUpperCase();
+  const paymentMethod = String(firstValue(subscription?.paymentMethod, subscription?.paymentType, subscription?.billingType, savedCreditCard ? "CREDIT_CARD" : "PIX")).trim().toUpperCase();
   const creditCard = paymentMethod === "CREDIT_CARD" ? savedCreditCard : null;
   const trialDays = daysUntil(periodEnd);
 
@@ -228,7 +228,7 @@ export default function Billing() {
   }
 
   async function showPendingPix() {
-    if (!currentPlanCode || loadingPix) return;
+    if (loadingPix) return;
     setLoadingPix(true);
     setError("");
     try {
@@ -248,11 +248,11 @@ export default function Billing() {
   }
 
   async function generateNewPix() {
-    if (!currentPlanCode || loadingPix) return;
+    if (loadingPix) return;
     setLoadingPix(true);
     setError("");
     try {
-      const response = await updateSubscriptionPaymentMethod({ planId: currentPlanCode, paymentMethod: "PIX", creditCard: null, creditCardHolderInfo: null });
+      const response = await updateSubscriptionPaymentMethod({ ...(currentPlanCode && { planId: currentPlanCode }), paymentMethod: "PIX", creditCard: null, creditCardHolderInfo: null });
       if (!response?.pixQrCodeBase64 || !response?.pixCopiaECola) throw new Error("A API não retornou os dados do novo PIX.");
       setPixExpired(false);
       setPixData(response);
@@ -350,7 +350,7 @@ export default function Billing() {
             </div>
 
             {status === "SUSPENDED" && currentPlanCode && <button className="billing-primary billing-resolve-button" type="button" onClick={() => { setError(""); setSuccessMessage(""); setUpdatingCard(true); }}>Resolver pendência</button>}
-            {status === "PENDING" && currentPlanCode && <div className="pending-subscription-actions">
+            {status === "PENDING" && <div className="pending-subscription-actions">
               {paymentMethod === "PIX" ? <>
                 <button className="billing-primary" type="button" disabled={loadingPix} onClick={pixExpired ? generateNewPix : showPendingPix}>{loadingPix ? <><LoaderCircle className="billing-spinner" size={17} /> {pixExpired ? "Gerando PIX..." : "Carregando PIX..."}</> : <><QrCode size={17} /> {pixExpired ? "Gerar novo PIX" : "Visualizar QR Code"}</>}</button>
                 <button className="change-plan-button" type="button" onClick={() => { setError(""); setSuccessMessage(""); setUpdatingCard(true); }}><CreditCard size={17} /> Pagar com Cartão</button>

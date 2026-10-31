@@ -52,6 +52,14 @@ const EMPTY_DASHBOARD = {
 const isSessionNotFound = (error) =>
   error.status === 404 && error.data?.errorCode === "SESSION_NOT_FOUND";
 
+function parseSubscriptionPeriodEnd(value) {
+  if (!value) return null;
+  const rawValue = String(value);
+  const dateOnly = rawValue.match(/^(\d{4}-\d{2}-\d{2})/)?.[1];
+  const date = new Date(dateOnly ? `${dateOnly}T23:59:59.999` : rawValue);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
 const mergeQueueDetails = (previousEntries = [], nextEntries = []) =>
   nextEntries.map((nextEntry) => {
     const previousEntry =
@@ -175,9 +183,14 @@ export default function ProfessionalDashboard() {
   }, [dashboard]);
 
   useEffect(() => {
+    const redirectPeriodEnd = parseSubscriptionPeriodEnd(dashboard?.currentPeriodEnd);
+    const canceledWithPaidAccess = String(dashboard?.subscriptionStatus || "").toUpperCase() === "CANCELED"
+      && redirectPeriodEnd
+      && redirectPeriodEnd.getTime() >= Date.now();
     if (
       dashboard &&
       dashboard.businessIsActive !== true &&
+      !canceledWithPaidAccess &&
       (dashboard.pendingInvites || []).length === 0 &&
       !setupJustCreated.current
     ) {
@@ -454,10 +467,8 @@ export default function ProfessionalDashboard() {
   );
   const subscriptionStatus = String(dashboard?.subscriptionStatus || "").toUpperCase();
   const isBusinessOwner = String(dashboard?.loggedMemberRole || "").toUpperCase() === "OWNER";
-  const periodEnd = dashboard?.currentPeriodEnd
-    ? new Date(String(dashboard.currentPeriodEnd).includes("T") ? dashboard.currentPeriodEnd : `${dashboard.currentPeriodEnd}T23:59:59`)
-    : null;
-  const hasValidPeriodEnd = periodEnd && !Number.isNaN(periodEnd.getTime());
+  const periodEnd = parseSubscriptionPeriodEnd(dashboard?.currentPeriodEnd);
+  const hasValidPeriodEnd = Boolean(periodEnd);
   const periodIsCurrent = Boolean(hasValidPeriodEnd && periodEnd.getTime() >= Date.now());
   const formattedPeriodEnd = hasValidPeriodEnd ? periodEnd.toLocaleDateString("pt-BR") : "data não informada";
   const isGracePeriod = subscriptionStatus === "ACTIVE" && hasValidPeriodEnd && !periodIsCurrent;

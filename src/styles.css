@@ -6919,6 +6919,9 @@ main > *,
 .subscription-state-alert.suspended { border-color: #fecaca; background: #fef2f2; color: #b91c1c; }
 .subscription-state-alert.canceled { border-color: #fde68a; background: #fffbeb; color: #92400e; }
 .subscription-state-alert.trial { border-color: #bfdbfe; background: #eff6ff; color: #1d4ed8; }
+.subscription-state-alert.pending-payment { justify-content: flex-start; border-color: #fdba74; background: #fff7ed; color: #9a3412; }
+.subscription-state-alert.pending-payment span { flex: 1; }
+.subscription-state-alert.pending-payment button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; flex: 0 0 auto; }
 .subscription-status-badge.status-pending { background: #fef3c7; color: #92400e; }
 .pending-subscription-actions { display: flex; align-items: stretch; flex-wrap: wrap; gap: 12px; margin-top: 20px; }
 .pending-subscription-actions button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; }
@@ -7036,6 +7039,8 @@ main > *,
   .payment-method-list { grid-template-columns: 1fr; }
   .pix-copy-row { flex-direction: column; }
   .pending-subscription-actions { align-items: stretch; flex-direction: column; }
+  .subscription-state-alert.pending-payment { align-items: stretch; flex-direction: column; }
+  .subscription-state-alert.pending-payment button { width: 100%; }
   .pending-subscription-actions .cancel-subscription-link { margin-left: 0; }
   .checkout-form-grid .checkout-field:nth-child(1),
   .checkout-form-grid .checkout-field:nth-child(2),

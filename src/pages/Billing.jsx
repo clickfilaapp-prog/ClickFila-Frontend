@@ -74,7 +74,6 @@ export default function Billing() {
   const [successMessage, setSuccessMessage] = useState("");
   const [pixData, setPixData] = useState(null);
   const [loadingPix, setLoadingPix] = useState(false);
-  const [pixExpired, setPixExpired] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -138,7 +137,10 @@ export default function Billing() {
   const canReactivateSubscription = status === "CANCELED" || cancelAtPeriodEnd;
   const savedCreditCard = subscription?.creditCard || null;
   const paymentMethod = String(firstValue(subscription?.paymentMethod, subscription?.paymentType, subscription?.billingType, savedCreditCard ? "CREDIT_CARD" : "PIX")).trim().toUpperCase();
-  const creditCard = paymentMethod === "CREDIT_CARD" ? savedCreditCard : null;
+  const creditCard = paymentMethod === "CREDIT_CARD" && savedCreditCard
+    ? { ...savedCreditCard, brand: savedCreditCard.cardBrand || savedCreditCard.brand }
+    : null;
+  const hasPendingPayment = subscription?.hasPendingPayment === true;
   const trialDays = daysUntil(periodEnd);
 
   useEffect(() => {
@@ -245,11 +247,12 @@ export default function Billing() {
     try {
       const response = await getSubscriptionPixQrCode();
       if (response === null) {
-        setPixExpired(true);
+        setSubscription((current) => current ? { ...current, hasPendingPayment: false } : current);
+        setSuccessMessage("Não há mais uma fatura pendente para pagamento.");
+        getMySubscription().then(setSubscription).catch(() => {});
         return;
       }
       if (!response?.pixQrCodeBase64 || !response?.pixCopiaECola) throw new Error("A API não retornou os dados da cobrança PIX.");
-      setPixExpired(false);
       setPixData(response);
     } catch (requestError) {
       setError(requestError.message);
@@ -265,7 +268,6 @@ export default function Billing() {
     try {
       const response = await updateSubscriptionPaymentMethod({ ...(currentPlanCode && { planId: currentPlanCode }), paymentMethod: "PIX", creditCard: null, creditCardHolderInfo: null });
       if (!response?.pixQrCodeBase64 || !response?.pixCopiaECola) throw new Error("A API não retornou os dados do novo PIX.");
-      setPixExpired(false);
       setPixData(response);
       getMySubscription().then(setSubscription).catch(() => {});
     } catch (requestError) {
@@ -304,8 +306,9 @@ export default function Billing() {
               phone: firstValue(business?.user?.phone, business?.phone, ""),
             }}
             onClose={() => setUpdatingCard(false)}
-            onSuccess={(updatedPaymentMethod) => {
+            onSuccess={(updatedPaymentMethod, response) => {
               setUpdatingCard(false);
+              if (updatedPaymentMethod === "PIX" && response?.pixQrCodeBase64 && response?.pixCopiaECola) setPixData(response);
               setSuccessMessage(updatedPaymentMethod === "PIX" ? "Forma de pagamento alterada para PIX!" : "Cartão atualizado com sucesso!");
               getMySubscription().then(setSubscription).catch(() => {});
             }}
@@ -349,6 +352,11 @@ export default function Billing() {
             {status && <span className={`subscription-status-badge status-${status.toLowerCase()}`}><CheckCircle2 size={15} /> {STATUS_LABELS[status] || status}</span>}
           </div>
           {loading ? <p className="billing-loading">Carregando assinatura...</p> : <>
+            {hasPendingPayment && <div className="subscription-state-alert pending-payment" role="alert">
+              <AlertTriangle />
+              <span>Você tem uma fatura aguardando pagamento.</span>
+              <button className="billing-primary" type="button" disabled={loadingPix} onClick={showPendingPix}>{loadingPix ? <><LoaderCircle className="billing-spinner" size={17} /> Carregando...</> : <><QrCode size={17} /> Pagar Fatura / Ver PIX</>}</button>
+            </div>}
             {status === "SUSPENDED" && <div className="subscription-state-alert suspended" role="alert"><AlertTriangle /><span>Problemas com o pagamento da sua assinatura. Seu acesso está temporariamente suspenso.</span></div>}
             {cancelAtPeriodEnd && <div className="subscription-state-alert canceled" role="status"><AlertTriangle /><span>Sua assinatura está cancelada, mas você ainda tem acesso até {formatDate(periodEnd)}.</span></div>}
             {status === "TRIAL" && <div className="subscription-state-alert trial" role="status"><Info /><span>Você está no período de testes.{trialDays !== null && ` Expira em ${trialDays} ${trialDays === 1 ? "dia" : "dias"}.`}</span></div>}
@@ -363,7 +371,7 @@ export default function Billing() {
             {status === "SUSPENDED" && currentPlanCode && <button className="billing-primary billing-resolve-button" type="button" onClick={() => { setError(""); setSuccessMessage(""); setUpdatingCard(true); }}>Resolver pendência</button>}
             {status === "PENDING" && <div className="pending-subscription-actions">
               {paymentMethod === "PIX" ? <>
-                <button className="billing-primary" type="button" disabled={loadingPix} onClick={pixExpired ? generateNewPix : showPendingPix}>{loadingPix ? <><LoaderCircle className="billing-spinner" size={17} /> {pixExpired ? "Gerando PIX..." : "Carregando PIX..."}</> : <><QrCode size={17} /> {pixExpired ? "Gerar novo PIX" : "Visualizar QR Code"}</>}</button>
+                <button className="billing-primary" type="button" disabled={loadingPix} onClick={showPendingPix}>{loadingPix ? <><LoaderCircle className="billing-spinner" size={17} /> Carregando PIX...</> : <><QrCode size={17} /> Visualizar QR Code</>}</button>
                 <button className="change-plan-button" type="button" onClick={() => { setError(""); setSuccessMessage(""); setUpdatingCard(true); }}><CreditCard size={17} /> Pagar com Cartão</button>
               </> : <button className="billing-primary" type="button" onClick={() => { setError(""); setSuccessMessage(""); setUpdatingCard(true); }}><CreditCard size={17} /> Alterar Cartão</button>}
               <button className="change-plan-button" type="button" disabled={loadingPlans} onClick={togglePlans}><ArrowRightLeft size={17} /> {loadingPlans ? "Carregando planos..." : showPlans ? "Ocultar planos" : "Escolher outro plano"}</button>

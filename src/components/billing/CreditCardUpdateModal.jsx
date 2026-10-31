@@ -50,8 +50,8 @@ export default function CreditCardUpdateModal({ planId, initialValues = {}, init
         creditCard: { holderName: values.holderName.trim(), number: values.number, expiryMonth: values.expiryMonth.padStart(2, "0"), expiryYear: values.expiryYear, ccv: values.ccv },
         creditCardHolderInfo: { name: values.name.trim(), email: values.email.trim(), cpfCnpj: values.cpfCnpj, postalCode: values.postalCode, addressNumber: values.addressNumber.trim(), ...(values.addressComplement.trim() && { addressComplement: values.addressComplement.trim() }), phone: values.phone, ...(values.mobilePhone && { mobilePhone: values.mobilePhone }) },
       } : { creditCard: null, creditCardHolderInfo: null };
-      await updateSubscriptionPaymentMethod({ planId, paymentMethod, ...cardPayload });
-      onSuccess(paymentMethod);
+      const response = await updateSubscriptionPaymentMethod({ planId, paymentMethod, ...cardPayload });
+      onSuccess(paymentMethod, response);
     } catch (requestError) {
       setValues((current) => ({ ...current, ccv: "" }));
       if (["INVALID_SUBSCRIPTION", "SUBSCRIPTION_NOT_FOUND"].includes(requestError.code) || requestError.status === 404) return onInvalidSubscription();

@@ -141,6 +141,17 @@ export default function Billing() {
   const creditCard = paymentMethod === "CREDIT_CARD" ? savedCreditCard : null;
   const trialDays = daysUntil(periodEnd);
 
+  useEffect(() => {
+    const billingAction = location.state?.billingAction;
+    if (loading || status !== "PENDING" || !billingAction) return;
+    navigate(location.pathname, {
+      replace: true,
+      state: { businessRole: location.state?.businessRole, businessId: location.state?.businessId },
+    });
+    if (billingAction === "view-pix" && paymentMethod === "PIX") showPendingPix();
+    if (billingAction === "payment-method") setUpdatingCard(true);
+  }, [loading, location.pathname, location.state?.billingAction, location.state?.businessId, location.state?.businessRole, navigate, paymentMethod, status]);
+
   function subscribe(plan) {
     if (!businessId) return setError("Crie ou reative sua empresa antes de assinar um plano.");
     navigate(`/billing/checkout/${encodeURIComponent(plan.code)}`, {

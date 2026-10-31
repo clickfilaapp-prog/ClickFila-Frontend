@@ -454,10 +454,15 @@ export default function ProfessionalDashboard() {
   );
   const subscriptionStatus = String(dashboard?.subscriptionStatus || "").toUpperCase();
   const isBusinessOwner = String(dashboard?.loggedMemberRole || "").toUpperCase() === "OWNER";
-  const subscriptionLocked = ["PENDING", "SUSPENDED", "CANCELED"].includes(subscriptionStatus);
-  const trialDaysLeft = dashboard?.currentPeriodEnd
-    ? Math.max(0, Math.ceil((new Date(`${dashboard.currentPeriodEnd}T23:59:59`).getTime() - Date.now()) / 86400000))
+  const periodEnd = dashboard?.currentPeriodEnd
+    ? new Date(String(dashboard.currentPeriodEnd).includes("T") ? dashboard.currentPeriodEnd : `${dashboard.currentPeriodEnd}T23:59:59`)
     : null;
+  const hasValidPeriodEnd = periodEnd && !Number.isNaN(periodEnd.getTime());
+  const periodIsCurrent = Boolean(hasValidPeriodEnd && periodEnd.getTime() >= Date.now());
+  const formattedPeriodEnd = hasValidPeriodEnd ? periodEnd.toLocaleDateString("pt-BR") : "data não informada";
+  const isGracePeriod = subscriptionStatus === "ACTIVE" && hasValidPeriodEnd && !periodIsCurrent;
+  const isCanceledWithAccess = subscriptionStatus === "CANCELED" && periodIsCurrent;
+  const subscriptionLocked = subscriptionStatus === "PENDING" || subscriptionStatus === "SUSPENDED" || (subscriptionStatus === "CANCELED" && !isCanceledWithAccess);
 
 
   useEffect(() => {
@@ -966,25 +971,28 @@ export default function ProfessionalDashboard() {
         {successMessage && (
           <div className="toast" role="status" aria-live="polite">{successMessage}</div>
         )}
-        {isBusinessOwner && subscriptionStatus === "TRIAL" && (
-          <div className="subscription-banner trial" role="status">
-            <span>Você está no período de testes. Faltam {trialDaysLeft ?? "—"} dias para expirar.</span>
-            <button type="button" onClick={() => navigate("/billing", { state: { businessRole: dashboard?.loggedMemberRole, businessId: dashboard?.businessId } })}>Ver planos</button>
+        {isGracePeriod && (
+          <div className="subscription-banner past-due" role="alert">
+            <span>⚠️ Sua fatura venceu dia {formattedPeriodEnd}. Regularize o pagamento para evitar o bloqueio do sistema.</span>
+            {isBusinessOwner && <button type="button" onClick={() => navigate("/billing", { state: { businessRole: dashboard?.loggedMemberRole, businessId: dashboard?.businessId } })}>Pagar agora</button>}
           </div>
         )}
-        {isBusinessOwner && subscriptionStatus === "PAST_DUE" && (
-          <div className="subscription-banner past-due" role="alert">
-            <span>Sua fatura está atrasada. Efetue o pagamento para evitar o bloqueio do sistema.</span>
-            <button type="button" onClick={() => navigate("/billing", { state: { businessRole: dashboard?.loggedMemberRole, businessId: dashboard?.businessId } })}>Pagar agora</button>
+        {isCanceledWithAccess && (
+          <div className="subscription-banner canceled-access" role="status">
+            <span>ℹ️ Sua assinatura está cancelada, mas você ainda tem acesso garantido até o dia {formattedPeriodEnd}.</span>
+            {isBusinessOwner && <button type="button" onClick={() => navigate("/billing", { state: { businessRole: dashboard?.loggedMemberRole, businessId: dashboard?.businessId } })}>Reativar assinatura</button>}
           </div>
         )}
         {subscriptionLocked && (
           <section className="subscription-hard-lock" role="alert">
             <AlertTriangle size={42} />
             <span className="step">ACESSO BLOQUEADO</span>
-            <h2>{subscriptionStatus === "CANCELED" ? "Plano cancelado" : subscriptionStatus === "PENDING" ? "Pagamento em processamento" : "Acesso suspenso"}</h2>
-            <p>{subscriptionStatus === "CANCELED" ? "Escolha uma nova assinatura para voltar a usar o sistema." : subscriptionStatus === "PENDING" ? "Seu acesso será liberado automaticamente assim que o pagamento for confirmado." : "Regularize sua assinatura para voltar a usar o sistema."}</p>
-            <button type="button" onClick={() => navigate("/billing", { state: { businessRole: dashboard?.loggedMemberRole, businessId: dashboard?.businessId } })}>{subscriptionStatus === "CANCELED" ? "Escolher nova assinatura" : subscriptionStatus === "PENDING" ? "Ver assinatura" : "Regularizar assinatura"}</button>
+            <h2>{subscriptionStatus === "CANCELED" ? "Assinatura cancelada" : subscriptionStatus === "PENDING" ? "Aguardando pagamento" : "Sistema suspenso"}</h2>
+            <p>{subscriptionStatus === "CANCELED" ? "❌ Sua assinatura foi cancelada. Para voltar a usar o sistema, escolha um novo plano." : subscriptionStatus === "PENDING" ? "⏳ Aguardando a confirmação do pagamento para liberar seu acesso." : "🔒 Sistema suspenso por falta de pagamento. Efetue o pagamento da fatura pendente para reativar seu acesso."}</p>
+            {isBusinessOwner && (subscriptionStatus === "PENDING" ? <div className="subscription-lock-actions">
+              <button type="button" onClick={() => navigate("/billing", { state: { businessRole: dashboard?.loggedMemberRole, businessId: dashboard?.businessId, billingAction: "view-pix" } })}>Ver PIX</button>
+              <button type="button" className="secondary" onClick={() => navigate("/billing", { state: { businessRole: dashboard?.loggedMemberRole, businessId: dashboard?.businessId, billingAction: "payment-method" } })}>Alterar forma de pagamento</button>
+            </div> : <button type="button" onClick={() => navigate("/billing", { state: { businessRole: dashboard?.loggedMemberRole, businessId: dashboard?.businessId } })}>{subscriptionStatus === "CANCELED" ? "Escolher novo plano" : "Pagar agora"}</button>)}
           </section>
         )}
         {dashboard &&

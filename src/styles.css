@@ -6821,12 +6821,16 @@ main > *,
 .billing-danger-zone button { border: 1px solid #dc2626; border-radius: 10px; padding: 11px 16px; background: #fff; color: #b91c1c; font-weight: 800; cursor: pointer; }
 .subscription-banner { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 20px; padding: 15px 18px; border-radius: 12px; font-weight: 700; }
 .subscription-banner.trial { background: #dbeafe; color: #1e3a8a; }
-.subscription-banner.past-due { background: #fee2e2; color: #991b1b; }
+.subscription-banner.past-due { position: sticky; z-index: 20; top: 12px; background: #fee2e2; color: #991b1b; box-shadow: 0 8px 24px rgba(153,27,27,.14); }
 .subscription-banner.past-due button { background: #b91c1c; }
+.subscription-banner.canceled-access { background: #e0f2fe; color: #0c4a6e; }
+.subscription-banner.canceled-access button { background: #0369a1; }
 .subscription-hard-lock { display: flex; flex-direction: column; align-items: center; width: min(580px, 100%); margin: 70px auto; padding: 42px; border: 1px solid #fecaca; border-radius: 22px; background: #fff; box-shadow: 0 25px 70px rgba(127,29,29,.18); text-align: center; color: #b91c1c; }
 .subscription-hard-lock > svg { display: block; margin: 0 auto 10px; flex: 0 0 auto; }
 .subscription-hard-lock h2 { margin: 10px 0; color: #7f1d1d; font-size: 30px; }
 .subscription-hard-lock p { color: #64748b; }
+.subscription-lock-actions { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; }
+.subscription-lock-actions button.secondary { border: 1px solid #147db3; background: #fff; color: #147db3; }
 .subscription-is-locked > :not(.panel-heading):not(.subscription-hard-lock) { display: none !important; }
 @media (max-width: 700px) {
   .subscription-summary, .billing-danger-zone { align-items: stretch; flex-direction: column; }

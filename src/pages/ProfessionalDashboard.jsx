@@ -454,7 +454,7 @@ export default function ProfessionalDashboard() {
   );
   const subscriptionStatus = String(dashboard?.subscriptionStatus || "").toUpperCase();
   const isBusinessOwner = String(dashboard?.loggedMemberRole || "").toUpperCase() === "OWNER";
-  const subscriptionLocked = ["SUSPENDED", "CANCELED"].includes(subscriptionStatus);
+  const subscriptionLocked = ["PENDING", "SUSPENDED", "CANCELED"].includes(subscriptionStatus);
   const trialDaysLeft = dashboard?.currentPeriodEnd
     ? Math.max(0, Math.ceil((new Date(`${dashboard.currentPeriodEnd}T23:59:59`).getTime() - Date.now()) / 86400000))
     : null;
@@ -982,9 +982,9 @@ export default function ProfessionalDashboard() {
           <section className="subscription-hard-lock" role="alert">
             <AlertTriangle size={42} />
             <span className="step">ACESSO BLOQUEADO</span>
-            <h2>{subscriptionStatus === "CANCELED" ? "Plano cancelado" : "Acesso suspenso"}</h2>
-            <p>{subscriptionStatus === "CANCELED" ? "Escolha uma nova assinatura para voltar a usar o sistema." : "Regularize sua assinatura para voltar a usar o sistema."}</p>
-            <button type="button" onClick={() => navigate("/billing", { state: { businessRole: dashboard?.loggedMemberRole, businessId: dashboard?.businessId } })}>{subscriptionStatus === "CANCELED" ? "Escolher nova assinatura" : "Regularizar assinatura"}</button>
+            <h2>{subscriptionStatus === "CANCELED" ? "Plano cancelado" : subscriptionStatus === "PENDING" ? "Pagamento em processamento" : "Acesso suspenso"}</h2>
+            <p>{subscriptionStatus === "CANCELED" ? "Escolha uma nova assinatura para voltar a usar o sistema." : subscriptionStatus === "PENDING" ? "Seu acesso será liberado automaticamente assim que o pagamento for confirmado." : "Regularize sua assinatura para voltar a usar o sistema."}</p>
+            <button type="button" onClick={() => navigate("/billing", { state: { businessRole: dashboard?.loggedMemberRole, businessId: dashboard?.businessId } })}>{subscriptionStatus === "CANCELED" ? "Escolher nova assinatura" : subscriptionStatus === "PENDING" ? "Ver assinatura" : "Regularizar assinatura"}</button>
           </section>
         )}
         {dashboard &&

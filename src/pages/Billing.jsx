@@ -35,7 +35,7 @@ function formatPhone(value) {
 
 const STATUS_LABELS = {
   ACTIVE: "Assinatura ativa", TRIAL: "Em teste", PAST_DUE: "Pagamento pendente",
-  SUSPENDED: "Suspensa", CANCELED: "Cancelada",
+  PENDING: "Aguardando pagamento", SUSPENDED: "Suspensa", CANCELED: "Cancelada",
 };
 
 function daysUntil(value) {
@@ -133,6 +133,7 @@ export default function Billing() {
   const cancelAtPeriodEnd = Boolean(subscription?.cancelAtPeriodEnd);
   const canReactivateSubscription = status === "CANCELED" || cancelAtPeriodEnd;
   const creditCard = subscription?.creditCard || null;
+  const paymentMethod = String(subscription?.paymentMethod || (creditCard ? "CREDIT_CARD" : "PIX")).toUpperCase();
   const trialDays = daysUntil(periodEnd);
 
   function subscribe(plan) {
@@ -241,6 +242,7 @@ export default function Billing() {
         {updatingCard && (
           <CreditCardUpdateModal
             planId={currentPlanCode}
+            initialPaymentMethod={paymentMethod}
             initialValues={{
               name: firstValue(business?.ownerName, business?.user?.name, ""),
               email: firstValue(business?.user?.login, business?.email, ""),
@@ -248,9 +250,9 @@ export default function Billing() {
               phone: firstValue(business?.user?.phone, business?.phone, ""),
             }}
             onClose={() => setUpdatingCard(false)}
-            onSuccess={() => {
+            onSuccess={(updatedPaymentMethod) => {
               setUpdatingCard(false);
-              setSuccessMessage("Cartão atualizado com sucesso!");
+              setSuccessMessage(updatedPaymentMethod === "PIX" ? "Forma de pagamento alterada para PIX!" : "Cartão atualizado com sucesso!");
               getMySubscription().then(setSubscription).catch(() => {});
             }}
             onInvalidSubscription={() => { setUpdatingCard(false); setError("Não foi possível localizar uma assinatura ativa para atualização."); }}
@@ -300,7 +302,7 @@ export default function Billing() {
             <div className="current-subscription-row">
               <div className="current-plan-data"><span>Plano atual</span><strong>{planName}</strong>{planPrice > 0 && <b>{money.format(planPrice)} <small>/{billingCycle === "YEARLY" ? "ano" : "mês"}</small></b>}</div>
               {creditCard && <div className="saved-card"><CreditCard size={22} /><div><span>Cartão atual</span><strong>{creditCard.brand || "Cartão"} final {creditCard.lastFourDigits}</strong></div></div>}
-              {!creditCard && status !== "TRIAL" && <div className="saved-card empty"><CreditCard size={22} /><div><span>Cartão atual</span><strong>Não informado</strong></div></div>}
+              {!creditCard && status !== "TRIAL" && <div className="saved-card empty"><CreditCard size={22} /><div><span>Forma de pagamento</span><strong>{paymentMethod === "PIX" ? "PIX" : "Não informado"}</strong></div></div>}
               {status === "ACTIVE" && !cancelAtPeriodEnd && <div className="next-charge"><CalendarDays size={21} /><div><span>Próxima cobrança</span><strong>{formatDate(periodEnd)}</strong>{periodEnd && <small>Renovação automática</small>}</div></div>}
             </div>
 
@@ -308,7 +310,7 @@ export default function Billing() {
             {canReactivateSubscription && <button className="billing-primary trial-subscribe-button" type="button" disabled={loadingPlans} onClick={togglePlans}>{loadingPlans ? "Carregando planos..." : showPlans ? "Ocultar planos" : "Ativar novamente"}</button>}
             {status === "ACTIVE" && !cancelAtPeriodEnd && <div className="active-subscription-actions">
               <button className="change-plan-button" type="button" disabled={loadingPlans} onClick={togglePlans}><ArrowRightLeft size={17} /> {loadingPlans ? "Carregando planos..." : showPlans ? "Ocultar planos" : "Trocar de plano"}</button>
-              {currentPlanCode && <button className="change-plan-button" type="button" onClick={() => { setError(""); setSuccessMessage(""); setUpdatingCard(true); }}><CreditCard size={17} /> Trocar cartão de crédito</button>}
+              {currentPlanCode && <button className="change-plan-button" type="button" onClick={() => { setError(""); setSuccessMessage(""); setUpdatingCard(true); }}><CreditCard size={17} /> Alterar forma de pagamento</button>}
               {businessId && <button className="cancel-subscription-link" type="button" onClick={() => setConfirmCancel(true)}>Cancelar assinatura</button>}
             </div>}
             {status === "TRIAL" && <button className="billing-primary trial-subscribe-button" type="button" disabled={loadingPlans} onClick={togglePlans}>{loadingPlans ? "Carregando planos..." : showPlans ? "Ocultar planos" : "Escolher plano e assinar"}</button>}

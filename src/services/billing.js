@@ -18,10 +18,10 @@ export const changeSubscriptionPlan = (planData) =>
     body: planData,
   });
 
-export const updateSubscriptionCreditCard = (checkoutData) =>
-  apiRequest(API_ROUTES.subscriptionCreditCard, {
+export const updateSubscriptionPaymentMethod = (paymentData) =>
+  apiRequest(API_ROUTES.subscriptionPaymentMethod, {
     method: "PUT",
-    body: checkoutData,
+    body: paymentData,
   });
 
 export const cancelSubscription = (businessId) =>

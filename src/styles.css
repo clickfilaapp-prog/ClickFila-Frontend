@@ -6926,7 +6926,7 @@ main > *,
 .active-subscription-actions { display: flex; align-items: center; justify-content: flex-end; gap: 18px; margin-top: 22px; padding-top: 18px; border-top: 1px solid #e8eef5; }
 .cancel-subscription-link { border: 0; padding: 8px; background: transparent; color: #b91c1c; font-weight: 800; text-decoration: underline; cursor: pointer; }
 .billing-resolve-button { margin-top: 20px; background: #dc2626; }
-.trial-subscribe-button { margin-top: 20px; }
+.trial-subscribe-button { margin-top: 14px; }
 .checkout-page { width: min(900px, 100%); margin: 0 auto; }
 .checkout-back { display: inline-flex; align-items: center; gap: 8px; margin: 0 0 18px; border: 0; padding: 8px 0; background: transparent; color: #147db3; font-weight: 800; cursor: pointer; }
 .checkout-page-card { border: 1px solid #dce8f3; border-radius: 20px; padding: 30px; background: #fff; box-shadow: 0 14px 40px rgba(11,31,59,.09); }
@@ -7016,12 +7016,13 @@ main > *,
   .business-edit-form > div { align-items: stretch; flex-direction: column; }
   .business-edit-form input,
   .business-edit-form button { width: 100%; }
-  .current-subscription-row { grid-template-columns: minmax(0, 1fr); align-items: start; gap: 14px; }
+  .current-subscription-row { grid-template-columns: minmax(0, 1fr); grid-auto-rows: max-content; align-content: start; align-items: start; gap: 14px; }
   .current-plan-data { padding: 0 0 14px; border-right: 0; border-bottom: 1px solid #e8eef5; }
   .current-subscription-row > .saved-card,
   .current-subscription-row > .next-charge { width: 100%; margin: 0; justify-self: stretch; justify-content: flex-start; align-items: flex-start; text-align: left; }
   .current-subscription-row > .saved-card > div,
   .current-subscription-row > .next-charge > div { align-items: flex-start; width: 100%; text-align: left; }
+  .current-subscription-row > .saved-card:last-child { align-self: start; height: auto; min-height: 0; }
   .current-subscription-row > .saved-card:has(+ .next-charge) { align-self: start; box-sizing: border-box; height: 50px; min-height: 0; padding: 0 0 14px; border-right: 0; border-bottom: 1px solid #e8eef5; }
   .active-subscription-actions { align-items: stretch; flex-direction: column; }
   .change-plan-button { width: 100%; }

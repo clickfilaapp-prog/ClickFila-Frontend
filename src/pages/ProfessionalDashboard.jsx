@@ -185,13 +185,16 @@ export default function ProfessionalDashboard() {
 
   useEffect(() => {
     const redirectPeriodEnd = parseSubscriptionPeriodEnd(dashboard?.currentPeriodEnd);
-    const canceledWithPaidAccess = String(dashboard?.subscriptionStatus || "").toUpperCase() === "CANCELED"
+    const redirectSubscriptionStatus = String(dashboard?.subscriptionStatus || "").toUpperCase();
+    const canceledWithPaidAccess = redirectSubscriptionStatus === "CANCELED"
       && redirectPeriodEnd
       && redirectPeriodEnd.getTime() >= Date.now();
+    const subscriptionControlsBusinessAccess = ["PENDING", "SUSPENDED", "CANCELED"].includes(redirectSubscriptionStatus);
     if (
       dashboard &&
       dashboard.businessIsActive !== true &&
       !canceledWithPaidAccess &&
+      !subscriptionControlsBusinessAccess &&
       (dashboard.pendingInvites || []).length === 0 &&
       !setupJustCreated.current
     ) {
@@ -472,7 +475,7 @@ export default function ProfessionalDashboard() {
   const hasValidPeriodEnd = Boolean(periodEnd);
   const periodIsCurrent = Boolean(hasValidPeriodEnd && periodEnd.getTime() >= Date.now());
   const formattedPeriodEnd = hasValidPeriodEnd ? periodEnd.toLocaleDateString("pt-BR") : "data não informada";
-  const isGracePeriod = subscriptionStatus === "ACTIVE" && hasValidPeriodEnd && !periodIsCurrent;
+  const isGracePeriod = subscriptionStatus === "ACTIVE" && dashboard?.businessIsActive === true && hasValidPeriodEnd && !periodIsCurrent;
   const isCanceledWithAccess = subscriptionStatus === "CANCELED" && periodIsCurrent;
   const subscriptionLocked = subscriptionStatus === "PENDING" || subscriptionStatus === "SUSPENDED" || (subscriptionStatus === "CANCELED" && !isCanceledWithAccess);
 

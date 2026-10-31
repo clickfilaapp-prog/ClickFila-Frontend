@@ -6891,14 +6891,14 @@ main > *,
 .subscription-status-badge.status-suspended,
 .subscription-status-badge.status-past_due { background: #fee2e2; color: #b91c1c; }
 .subscription-status-badge.status-trial { background: #dbeafe; color: #1d4ed8; }
-.current-subscription-row { display: grid; grid-template-columns: minmax(180px, 1fr) minmax(210px, 1fr) auto; align-items: center; gap: 28px; padding: 22px 4px 2px; }
+.current-subscription-row { display: grid; grid-template-columns: minmax(180px, 1fr) minmax(210px, 1fr) auto; align-items: start; gap: 28px; padding: 22px 4px 2px; }
 .current-plan-data { padding-right: 28px; border-right: 1px solid #e8eef5; }
 .current-plan-data > strong { color: #0b1f3b; font-size: 18px; }
 .current-plan-data > b { color: #147db3; font-size: 22px; }
 .current-plan-data small { font-size: 12px; font-weight: 600; }
 .next-charge { display: flex; align-items: flex-start; gap: 12px; color: #7890a7; }
 .saved-card { display: flex; align-items: flex-start; gap: 12px; color: #7e22ce; }
-.saved-card > div { display: flex; flex-direction: column; gap: 5px; }
+.saved-card > div { display: flex; align-items: flex-start; flex-direction: column; gap: 5px; text-align: left; }
 .saved-card span { color: #64748b; font-size: 13px; font-weight: 700; }
 .saved-card strong { color: #34445c; font-size: 15px; text-transform: uppercase; }
 .saved-card.empty { color: #94a3b8; }

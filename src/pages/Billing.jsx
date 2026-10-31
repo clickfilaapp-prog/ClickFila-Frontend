@@ -6,7 +6,7 @@ import CreditCardUpdateModal from "../components/billing/CreditCardUpdateModal";
 import PixPaymentModal from "../components/billing/PixPaymentModal";
 import ConfirmationModal from "../components/professionalDashboard/ConfirmationModal";
 import { clearProfessionalDashboardCache, deactivateBusiness, getMyBusiness, getProfessionalDashboard, updateMyBusiness } from "../services/queue";
-import { cancelSubscription, createSubscriptionCheckout, getMySubscription, getPlans } from "../services/billing";
+import { cancelSubscription, getMySubscription, getPlans, getSubscriptionPixQrCode, updateSubscriptionPaymentMethod } from "../services/billing";
 
 const money = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 
@@ -74,6 +74,7 @@ export default function Billing() {
   const [successMessage, setSuccessMessage] = useState("");
   const [pixData, setPixData] = useState(null);
   const [loadingPix, setLoadingPix] = useState(false);
+  const [pixExpired, setPixExpired] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -231,9 +232,31 @@ export default function Billing() {
     setLoadingPix(true);
     setError("");
     try {
-      const response = await createSubscriptionCheckout({ planId: currentPlanCode, paymentMethod: "PIX", creditCard: null, creditCardHolderInfo: null });
+      const response = await getSubscriptionPixQrCode();
+      if (response === null) {
+        setPixExpired(true);
+        return;
+      }
       if (!response?.pixQrCodeBase64 || !response?.pixCopiaECola) throw new Error("A API não retornou os dados da cobrança PIX.");
+      setPixExpired(false);
       setPixData(response);
+    } catch (requestError) {
+      setError(requestError.message);
+    } finally {
+      setLoadingPix(false);
+    }
+  }
+
+  async function generateNewPix() {
+    if (!currentPlanCode || loadingPix) return;
+    setLoadingPix(true);
+    setError("");
+    try {
+      const response = await updateSubscriptionPaymentMethod({ planId: currentPlanCode, paymentMethod: "PIX", creditCard: null, creditCardHolderInfo: null });
+      if (!response?.pixQrCodeBase64 || !response?.pixCopiaECola) throw new Error("A API não retornou os dados do novo PIX.");
+      setPixExpired(false);
+      setPixData(response);
+      getMySubscription().then(setSubscription).catch(() => {});
     } catch (requestError) {
       setError(requestError.message);
     } finally {
@@ -329,8 +352,8 @@ export default function Billing() {
             {status === "SUSPENDED" && currentPlanCode && <button className="billing-primary billing-resolve-button" type="button" onClick={() => { setError(""); setSuccessMessage(""); setUpdatingCard(true); }}>Resolver pendência</button>}
             {status === "PENDING" && currentPlanCode && <div className="pending-subscription-actions">
               {paymentMethod === "PIX" ? <>
-                <button className="billing-primary" type="button" disabled={loadingPix} onClick={showPendingPix}>{loadingPix ? <><LoaderCircle className="billing-spinner" size={17} /> Carregando PIX...</> : <><QrCode size={17} /> Visualizar QR Code</>}</button>
-                <button className="change-plan-button" type="button" onClick={() => { setError(""); setSuccessMessage(""); setUpdatingCard(true); }}><CreditCard size={17} /> Pagar com Cartão de Crédito</button>
+                <button className="billing-primary" type="button" disabled={loadingPix} onClick={pixExpired ? generateNewPix : showPendingPix}>{loadingPix ? <><LoaderCircle className="billing-spinner" size={17} /> {pixExpired ? "Gerando PIX..." : "Carregando PIX..."}</> : <><QrCode size={17} /> {pixExpired ? "Gerar novo PIX" : "Visualizar QR Code"}</>}</button>
+                <button className="change-plan-button" type="button" onClick={() => { setError(""); setSuccessMessage(""); setUpdatingCard(true); }}><CreditCard size={17} /> Pagar com Cartão</button>
               </> : <button className="billing-primary" type="button" onClick={() => { setError(""); setSuccessMessage(""); setUpdatingCard(true); }}><CreditCard size={17} /> Alterar Cartão</button>}
               <button className="change-plan-button" type="button" disabled={loadingPlans} onClick={togglePlans}><ArrowRightLeft size={17} /> {loadingPlans ? "Carregando planos..." : showPlans ? "Ocultar planos" : "Escolher outro plano"}</button>
               {businessId && <button className="cancel-subscription-link" type="button" onClick={() => setConfirmCancel(true)}>Cancelar assinatura</button>}

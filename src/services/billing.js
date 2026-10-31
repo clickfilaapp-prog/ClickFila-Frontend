@@ -12,6 +12,9 @@ export const createSubscriptionCheckout = (checkoutData) =>
     body: checkoutData,
   });
 
+export const getSubscriptionPixQrCode = () =>
+  apiRequest(API_ROUTES.subscriptionPixQrCode, { method: "GET" });
+
 export const changeSubscriptionPlan = (planData) =>
   apiRequest(API_ROUTES.subscriptionPlan, {
     method: "PUT",

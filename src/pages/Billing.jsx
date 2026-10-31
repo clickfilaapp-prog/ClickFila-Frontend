@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { AlertTriangle, ArrowRightLeft, Building2, CalendarDays, CheckCircle2, CreditCard, Info, Pencil, Power } from "lucide-react";
+import { AlertTriangle, ArrowRightLeft, Building2, CalendarDays, CheckCircle2, CreditCard, Info, LoaderCircle, Pencil, Power, QrCode } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import DashboardLayout from "../components/DashboardLayout";
 import CreditCardUpdateModal from "../components/billing/CreditCardUpdateModal";
+import PixPaymentModal from "../components/billing/PixPaymentModal";
 import ConfirmationModal from "../components/professionalDashboard/ConfirmationModal";
 import { clearProfessionalDashboardCache, deactivateBusiness, getMyBusiness, getProfessionalDashboard, updateMyBusiness } from "../services/queue";
-import { cancelSubscription, getMySubscription, getPlans } from "../services/billing";
+import { cancelSubscription, createSubscriptionCheckout, getMySubscription, getPlans } from "../services/billing";
 
 const money = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 
@@ -71,6 +72,8 @@ export default function Billing() {
   const [cancelingSubscription, setCancelingSubscription] = useState(false);
   const [updatingCard, setUpdatingCard] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
+  const [pixData, setPixData] = useState(null);
+  const [loadingPix, setLoadingPix] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -132,8 +135,9 @@ export default function Billing() {
   const currentPlanCode = firstValue(subscription?.planCode, subscription?.plan?.code, currentPlan?.code);
   const cancelAtPeriodEnd = Boolean(subscription?.cancelAtPeriodEnd);
   const canReactivateSubscription = status === "CANCELED" || cancelAtPeriodEnd;
-  const creditCard = subscription?.creditCard || null;
-  const paymentMethod = String(subscription?.paymentMethod || (creditCard ? "CREDIT_CARD" : "PIX")).toUpperCase();
+  const savedCreditCard = subscription?.creditCard || null;
+  const paymentMethod = String(subscription?.paymentMethod || (savedCreditCard ? "CREDIT_CARD" : "PIX")).toUpperCase();
+  const creditCard = paymentMethod === "CREDIT_CARD" ? savedCreditCard : null;
   const trialDays = daysUntil(periodEnd);
 
   function subscribe(plan) {
@@ -222,9 +226,25 @@ export default function Billing() {
     }
   }
 
+  async function showPendingPix() {
+    if (!currentPlanCode || loadingPix) return;
+    setLoadingPix(true);
+    setError("");
+    try {
+      const response = await createSubscriptionCheckout({ planId: currentPlanCode, paymentMethod: "PIX", creditCard: null, creditCardHolderInfo: null });
+      if (!response?.pixQrCodeBase64 || !response?.pixCopiaECola) throw new Error("A API não retornou os dados da cobrança PIX.");
+      setPixData(response);
+    } catch (requestError) {
+      setError(requestError.message);
+    } finally {
+      setLoadingPix(false);
+    }
+  }
+
   return (
     <DashboardLayout tutorialReady={false}>
       <main className="billing-main">
+        {pixData && <PixPaymentModal pixData={pixData} onClose={() => setPixData(null)} />}
         {confirmDeactivate && (
           <ConfirmationModal
             confirmation={{ title: "Desativar minha empresa", message: "Sua empresa ficará inativa e não poderá receber novas pessoas na fila. Deseja continuar?", confirmLabel: "Sim, desativar empresa", danger: true }}
@@ -242,7 +262,7 @@ export default function Billing() {
         {updatingCard && (
           <CreditCardUpdateModal
             planId={currentPlanCode}
-            initialPaymentMethod={paymentMethod}
+            initialPaymentMethod={status === "PENDING" ? "CREDIT_CARD" : paymentMethod}
             initialValues={{
               name: firstValue(business?.ownerName, business?.user?.name, ""),
               email: firstValue(business?.user?.login, business?.email, ""),
@@ -307,6 +327,12 @@ export default function Billing() {
             </div>
 
             {status === "SUSPENDED" && currentPlanCode && <button className="billing-primary billing-resolve-button" type="button" onClick={() => { setError(""); setSuccessMessage(""); setUpdatingCard(true); }}>Resolver pendência</button>}
+            {status === "PENDING" && currentPlanCode && <div className="pending-subscription-actions">
+              {paymentMethod === "PIX" ? <>
+                <button className="billing-primary" type="button" disabled={loadingPix} onClick={showPendingPix}>{loadingPix ? <><LoaderCircle className="billing-spinner" size={17} /> Carregando PIX...</> : <><QrCode size={17} /> Visualizar QR Code</>}</button>
+                <button className="change-plan-button" type="button" onClick={() => { setError(""); setSuccessMessage(""); setUpdatingCard(true); }}><CreditCard size={17} /> Pagar com Cartão de Crédito</button>
+              </> : <button className="billing-primary" type="button" onClick={() => { setError(""); setSuccessMessage(""); setUpdatingCard(true); }}><CreditCard size={17} /> Alterar Cartão</button>}
+            </div>}
             {canReactivateSubscription && <button className="billing-primary trial-subscribe-button" type="button" disabled={loadingPlans} onClick={togglePlans}>{loadingPlans ? "Carregando planos..." : showPlans ? "Ocultar planos" : "Ativar novamente"}</button>}
             {status === "ACTIVE" && !cancelAtPeriodEnd && <div className="active-subscription-actions">
               <button className="change-plan-button" type="button" disabled={loadingPlans} onClick={togglePlans}><ArrowRightLeft size={17} /> {loadingPlans ? "Carregando planos..." : showPlans ? "Ocultar planos" : "Trocar de plano"}</button>

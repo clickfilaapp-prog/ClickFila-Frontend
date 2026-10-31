@@ -55,7 +55,8 @@ export default function CreditCardUpdateModal({ planId, initialValues = {}, init
     } catch (requestError) {
       setValues((current) => ({ ...current, ccv: "" }));
       if (["INVALID_SUBSCRIPTION", "SUBSCRIPTION_NOT_FOUND"].includes(requestError.code) || requestError.status === 404) return onInvalidSubscription();
-      if (![400, 422].includes(requestError.status)) setError(requestError.message);
+      if (paymentMethod === "CREDIT_CARD" && requestError.status === 400) setError(`${requestError.message || "O cartão foi recusado."} Tente novamente com outro cartão.`);
+      else if (![400, 422].includes(requestError.status)) setError(requestError.message);
     } finally { setSubmitting(false); }
   }
 

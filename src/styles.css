@@ -6914,6 +6914,9 @@ main > *,
 .subscription-state-alert.suspended { border-color: #fecaca; background: #fef2f2; color: #b91c1c; }
 .subscription-state-alert.canceled { border-color: #fde68a; background: #fffbeb; color: #92400e; }
 .subscription-state-alert.trial { border-color: #bfdbfe; background: #eff6ff; color: #1d4ed8; }
+.subscription-status-badge.status-pending { background: #fef3c7; color: #92400e; }
+.pending-subscription-actions { display: flex; align-items: center; gap: 12px; margin-top: 20px; }
+.pending-subscription-actions button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; }
 .active-subscription-actions { display: flex; align-items: center; justify-content: flex-end; gap: 18px; margin-top: 22px; padding-top: 18px; border-top: 1px solid #e8eef5; }
 .cancel-subscription-link { border: 0; padding: 8px; background: transparent; color: #b91c1c; font-weight: 800; text-decoration: underline; cursor: pointer; }
 .billing-resolve-button { margin-top: 20px; background: #dc2626; }
@@ -6961,6 +6964,7 @@ main > *,
 .plan-change-note { margin: -4px 0 20px; border-radius: 10px; padding: 12px 14px; background: #eff6ff; color: #1e40af; font-size: 14px; font-weight: 700; }
 .payment-method-list { grid-template-columns: 1fr 1fr; }
 .pix-payment { display: flex; align-items: center; flex-direction: column; }
+.pix-payment-modal { width: min(620px, 100%); }
 .pix-waiting { display: flex; align-items: center; gap: 14px; width: 100%; margin-bottom: 22px; border-radius: 12px; padding: 16px; background: #fffbeb; color: #92400e; }
 .pix-waiting > svg { flex: 0 0 auto; }
 .pix-waiting h1 { margin: 0 0 4px; font-size: 23px; }
@@ -7013,6 +7017,7 @@ main > *,
   .checkout-form-grid.holder-grid { grid-template-columns: 1fr; }
   .payment-method-list { grid-template-columns: 1fr; }
   .pix-copy-row { flex-direction: column; }
+  .pending-subscription-actions { align-items: stretch; flex-direction: column; }
   .checkout-form-grid .checkout-field:nth-child(1),
   .checkout-form-grid .checkout-field:nth-child(2),
   .checkout-form-grid.holder-grid .checkout-field { grid-column: 1; }

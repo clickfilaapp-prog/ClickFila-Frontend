@@ -332,6 +332,8 @@ export default function Billing() {
                 <button className="billing-primary" type="button" disabled={loadingPix} onClick={showPendingPix}>{loadingPix ? <><LoaderCircle className="billing-spinner" size={17} /> Carregando PIX...</> : <><QrCode size={17} /> Visualizar QR Code</>}</button>
                 <button className="change-plan-button" type="button" onClick={() => { setError(""); setSuccessMessage(""); setUpdatingCard(true); }}><CreditCard size={17} /> Pagar com Cartão de Crédito</button>
               </> : <button className="billing-primary" type="button" onClick={() => { setError(""); setSuccessMessage(""); setUpdatingCard(true); }}><CreditCard size={17} /> Alterar Cartão</button>}
+              <button className="change-plan-button" type="button" disabled={loadingPlans} onClick={togglePlans}><ArrowRightLeft size={17} /> {loadingPlans ? "Carregando planos..." : showPlans ? "Ocultar planos" : "Escolher outro plano"}</button>
+              {businessId && <button className="cancel-subscription-link" type="button" onClick={() => setConfirmCancel(true)}>Cancelar assinatura</button>}
             </div>}
             {canReactivateSubscription && <button className="billing-primary trial-subscribe-button" type="button" disabled={loadingPlans} onClick={togglePlans}>{loadingPlans ? "Carregando planos..." : showPlans ? "Ocultar planos" : "Ativar novamente"}</button>}
             {status === "ACTIVE" && !cancelAtPeriodEnd && <div className="active-subscription-actions">

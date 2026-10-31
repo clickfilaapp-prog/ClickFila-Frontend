@@ -12,7 +12,12 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || "";
 const LGPD_REQUIRED_EVENT = "barberflow:lgpd-consent-required";
 let pendingLgpdConsent = null;
 let refreshRequest = null;
+let subscriptionAccessAllowed = false;
 const pendingMutationRequests = new Map();
+
+export function setSubscriptionAccessAllowed(allowed) {
+  subscriptionAccessAllowed = allowed === true;
+}
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -141,7 +146,7 @@ apiClient.interceptors.response.use(
       (requestMethod === "POST" &&
         ["/api/users/client", "/api/users/professional"].includes(requestUrl));
 
-    if (status === 402) {
+    if (status === 402 && !subscriptionAccessAllowed) {
       if (window.location.pathname !== "/billing") {
         window.location.replace("/billing");
       }

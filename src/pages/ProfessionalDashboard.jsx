@@ -28,6 +28,7 @@ import {
   updateQueueTolerance,
 } from "../services/queue";
 import { subscribeToQueue } from "../services/queueSocket";
+import { setSubscriptionAccessAllowed } from "../services/api";
 import {
   acceptTeamInvite,
   createQuickTeamMember,
@@ -474,6 +475,13 @@ export default function ProfessionalDashboard() {
   const isGracePeriod = subscriptionStatus === "ACTIVE" && hasValidPeriodEnd && !periodIsCurrent;
   const isCanceledWithAccess = subscriptionStatus === "CANCELED" && periodIsCurrent;
   const subscriptionLocked = subscriptionStatus === "PENDING" || subscriptionStatus === "SUSPENDED" || (subscriptionStatus === "CANCELED" && !isCanceledWithAccess);
+
+  useEffect(() => {
+    const hasSubscriptionAccess = subscriptionStatus === "TRIAL"
+      || subscriptionStatus === "ACTIVE"
+      || isCanceledWithAccess;
+    setSubscriptionAccessAllowed(hasSubscriptionAccess && !subscriptionLocked);
+  }, [isCanceledWithAccess, subscriptionLocked, subscriptionStatus]);
 
 
   useEffect(() => {

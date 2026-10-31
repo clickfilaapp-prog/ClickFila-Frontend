@@ -115,7 +115,15 @@ export default function SubscriptionCheckout() {
       else {
         const response = await createSubscriptionCheckout(payload);
         if (usingPix) {
-          if (!response?.pixQrCodeBase64 || !response?.pixCopiaECola) throw new Error("A API não retornou os dados da cobrança PIX.");
+          if (!response?.pixQrCodeBase64) {
+            clearProfessionalDashboardCache();
+            navigate("/professionalDashboard", {
+              replace: true,
+              state: { message: "Reativação agendada com sucesso. Você continuará com acesso durante o período já pago." },
+            });
+            return;
+          }
+          if (!response?.pixCopiaECola) throw new Error("A API não retornou o código PIX copia e cola.");
           setPixData(response);
         }
       }

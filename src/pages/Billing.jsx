@@ -135,6 +135,7 @@ export default function Billing() {
   const currentPlanCode = firstValue(subscription?.planCode, subscription?.planId, subscription?.plan?.code, subscription?.plan?.id, currentPlan?.code, currentPlan?.id);
   const cancelAtPeriodEnd = Boolean(subscription?.cancelAtPeriodEnd);
   const canReactivateSubscription = status === "CANCELED" || cancelAtPeriodEnd;
+  const displayedStatus = canReactivateSubscription ? "CANCELED" : status;
   const savedCreditCard = subscription?.creditCard || null;
   const paymentMethod = String(firstValue(subscription?.paymentMethod, subscription?.paymentType, subscription?.billingType, savedCreditCard ? "CREDIT_CARD" : "PIX")).trim().toUpperCase();
   const creditCard = paymentMethod === "CREDIT_CARD" && savedCreditCard
@@ -349,10 +350,10 @@ export default function Billing() {
           <div className="business-card-heading">
             <div className="billing-card-icon subscription-icon"><CreditCard /></div>
             <div><h2>Assinatura atual</h2><p>Confira seu plano e o status da sua assinatura.</p></div>
-            {status && <span className={`subscription-status-badge status-${status.toLowerCase()}`}><CheckCircle2 size={15} /> {STATUS_LABELS[status] || status}</span>}
+            {displayedStatus && <span className={`subscription-status-badge status-${displayedStatus.toLowerCase()}`}><CheckCircle2 size={15} /> {STATUS_LABELS[displayedStatus] || displayedStatus}</span>}
           </div>
           {loading ? <p className="billing-loading">Carregando assinatura...</p> : <>
-            {hasPendingPayment && <div className="subscription-state-alert pending-payment" role="alert">
+            {hasPendingPayment && !canReactivateSubscription && <div className="subscription-state-alert pending-payment" role="alert">
               <AlertTriangle />
               <span>Você tem uma fatura aguardando pagamento.</span>
               <button className="billing-primary" type="button" disabled={loadingPix} onClick={showPendingPix}>{loadingPix ? <><LoaderCircle className="billing-spinner" size={17} /> Carregando...</> : <><QrCode size={17} /> Pagar Fatura / Ver PIX</>}</button>
@@ -369,7 +370,7 @@ export default function Billing() {
             </div>
 
             {status === "SUSPENDED" && currentPlanCode && <button className="billing-primary billing-resolve-button" type="button" onClick={() => { setError(""); setSuccessMessage(""); setUpdatingCard(true); }}>Resolver pendência</button>}
-            {status === "PENDING" && <div className="pending-subscription-actions">
+            {status === "PENDING" && !canReactivateSubscription && <div className="pending-subscription-actions">
               {paymentMethod === "PIX" ? <>
                 <button className="billing-primary" type="button" disabled={loadingPix} onClick={showPendingPix}>{loadingPix ? <><LoaderCircle className="billing-spinner" size={17} /> Carregando PIX...</> : <><QrCode size={17} /> Visualizar QR Code</>}</button>
                 <button className="change-plan-button" type="button" onClick={() => { setError(""); setSuccessMessage(""); setUpdatingCard(true); }}><CreditCard size={17} /> Pagar com Cartão</button>

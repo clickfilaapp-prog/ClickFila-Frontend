@@ -6958,8 +6958,12 @@ main > *,
 .checkout-field-error { color: #b91c1c; font-size: 12px; font-weight: 700; }
 .card-choice-list { display: grid; gap: 12px; }
 .card-choice { display: flex; align-items: center; gap: 12px; border: 1px solid #bfd3e5; border-radius: 12px; padding: 15px; color: #34445c; cursor: pointer; transition: border-color .2s, background .2s, box-shadow .2s; }
+.card-choice > input[type="radio"] { flex: 0 0 auto; width: 16px; height: 16px; margin: 0; padding: 0; }
 .simple-payment-choice { min-height: 58px; }
 .simple-payment-choice > strong { font-size: 15px; }
+.card-update-modal .card-choice { min-height: 58px; }
+.card-update-modal .card-choice small { display: none; }
+.card-update-modal .card-choice > span { gap: 0; }
 .card-choice.selected { border-color: #147db3; background: #f0f9ff; box-shadow: 0 0 0 3px rgba(20,125,179,.1); }
 .card-choice input { accent-color: #147db3; }
 .card-choice > svg { flex: 0 0 auto; color: #147db3; }

@@ -7012,7 +7012,7 @@ main > *,
   .current-subscription-row > .next-charge { width: 100%; margin: 0; justify-self: stretch; justify-content: flex-start; align-items: flex-start; text-align: left; }
   .current-subscription-row > .saved-card > div,
   .current-subscription-row > .next-charge > div { align-items: flex-start; width: 100%; text-align: left; }
-  .current-subscription-row > .saved-card:has(+ .next-charge) { align-self: start; padding: 0 0 14px; border-right: 0; border-bottom: 1px solid #e8eef5; }
+  .current-subscription-row > .saved-card:has(+ .next-charge) { align-self: start; box-sizing: border-box; height: 50px; min-height: 0; padding: 0 0 14px; border-right: 0; border-bottom: 1px solid #e8eef5; }
   .active-subscription-actions { align-items: stretch; flex-direction: column; }
   .change-plan-button { width: 100%; }
   .subscription-actions { width: 100%; }

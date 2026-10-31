@@ -7005,8 +7005,12 @@ main > *,
   .business-edit-form > div { align-items: stretch; flex-direction: column; }
   .business-edit-form input,
   .business-edit-form button { width: 100%; }
-  .current-subscription-row { grid-template-columns: 1fr; gap: 20px; }
+  .current-subscription-row { grid-template-columns: minmax(0, 1fr); align-items: start; gap: 20px; }
   .current-plan-data { padding: 0 0 20px; border-right: 0; border-bottom: 1px solid #e8eef5; }
+  .current-subscription-row > .saved-card,
+  .current-subscription-row > .next-charge { width: 100%; margin: 0; justify-self: stretch; justify-content: flex-start; align-items: flex-start; text-align: left; }
+  .current-subscription-row > .saved-card > div,
+  .current-subscription-row > .next-charge > div { align-items: flex-start; width: 100%; text-align: left; }
   .active-subscription-actions { align-items: stretch; flex-direction: column; }
   .change-plan-button { width: 100%; }
   .subscription-actions { width: 100%; }

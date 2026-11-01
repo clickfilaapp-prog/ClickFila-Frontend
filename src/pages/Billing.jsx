@@ -137,7 +137,7 @@ export default function Billing() {
   const canReactivateSubscription = status === "CANCELED" || cancelAtPeriodEnd;
   const displayedStatus = canReactivateSubscription ? "CANCELED" : status;
   const savedCreditCard = subscription?.creditCard || null;
-  const paymentMethod = String(firstValue(subscription?.paymentMethod, subscription?.paymentType, subscription?.billingType, savedCreditCard ? "CREDIT_CARD" : "PIX")).trim().toUpperCase();
+  const paymentMethod = String(firstValue(subscription?.activePaymentMethod, subscription?.paymentMethod, subscription?.paymentType, subscription?.billingType, savedCreditCard ? "CREDIT_CARD" : "PIX")).trim().toUpperCase();
   const creditCard = paymentMethod === "CREDIT_CARD" && savedCreditCard
     ? { ...savedCreditCard, brand: savedCreditCard.cardBrand || savedCreditCard.brand }
     : null;
@@ -158,7 +158,7 @@ export default function Billing() {
   function subscribe(plan) {
     if (!businessId) return setError("Crie ou reative sua empresa antes de assinar um plano.");
     navigate(`/billing/checkout/${encodeURIComponent(plan.code)}`, {
-      state: { plan, changingPlan: status === "ACTIVE" && !cancelAtPeriodEnd },
+      state: { plan, changingPlan: status === "ACTIVE" && !cancelAtPeriodEnd, savedCard: savedCreditCard },
     });
   }
 
@@ -299,6 +299,7 @@ export default function Billing() {
         {updatingCard && (
           <CreditCardUpdateModal
             planId={currentPlanCode}
+            savedCard={savedCreditCard}
             initialPaymentMethod={status === "PENDING" ? "CREDIT_CARD" : paymentMethod}
             initialValues={{
               name: firstValue(business?.ownerName, business?.user?.name, ""),

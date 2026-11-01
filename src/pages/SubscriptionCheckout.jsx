@@ -60,7 +60,7 @@ export default function SubscriptionCheckout() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [savedCard, setSavedCard] = useState(null);
+  const [savedCard] = useState(location.state?.savedCard || null);
   const [cardChoice, setCardChoice] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("");
   const [pixData, setPixData] = useState(null);
@@ -68,15 +68,13 @@ export default function SubscriptionCheckout() {
 
   useEffect(() => {
     let active = true;
-    Promise.all([getProfessionalDashboard(), getMyBusiness().catch(() => null), plan ? Promise.resolve([]) : getPlans(), changingPlan ? getMySubscription().catch(() => null) : Promise.resolve(null)])
-      .then(([dashboard, businessResponse, plans, subscription]) => {
+    Promise.all([getProfessionalDashboard(), getMyBusiness().catch(() => null), plan ? Promise.resolve([]) : getPlans()])
+      .then(([dashboard, businessResponse, plans]) => {
         if (!active) return;
         if (String(dashboard?.loggedMemberRole || "").toUpperCase() !== "OWNER") return navigate("/professionalDashboard", { replace: true });
         const selected = plan || plans.find((item) => String(item.code) === String(planId));
         if (!selected) { setError("O plano selecionado não foi encontrado."); return; }
         setPlan(selected);
-        const currentCard = subscription?.creditCard || null;
-        setSavedCard(currentCard);
         const business = businessResponse?.data || businessResponse?.business || businessResponse || {};
         setValues((current) => ({ ...current, name: firstValue(business?.ownerName, business?.user?.name), email: firstValue(business?.user?.login, business?.email), cpfCnpj: digits(firstValue(business?.cpfCnpj, business?.document, business?.taxId), 14), phone: digits(firstValue(business?.user?.phone, business?.phone), 11) }));
       })
@@ -109,7 +107,7 @@ export default function SubscriptionCheckout() {
     if (Object.keys(validation).length) return;
     setSubmitting(true);
     try {
-      const cardPayload = usingNewCard ? { creditCard: { holderName: values.holderName.trim(), number: values.number, expiryMonth: values.expiryMonth.padStart(2, "0"), expiryYear: values.expiryYear, ccv: values.ccv }, creditCardHolderInfo: { name: values.name.trim(), email: values.email.trim(), cpfCnpj: values.cpfCnpj, postalCode: values.postalCode, addressNumber: values.addressNumber.trim(), ...(values.addressComplement.trim() && { addressComplement: values.addressComplement.trim() }), phone: values.phone, ...(values.mobilePhone && { mobilePhone: values.mobilePhone }) } } : { creditCard: null, creditCardHolderInfo: null };
+      const cardPayload = usingNewCard ? { creditCard: { holderName: values.holderName.trim(), number: values.number, expiryMonth: values.expiryMonth.padStart(2, "0"), expiryYear: values.expiryYear, ccv: values.ccv }, creditCardHolderInfo: { name: values.name.trim(), email: values.email.trim(), cpfCnpj: values.cpfCnpj, postalCode: values.postalCode, addressNumber: values.addressNumber.trim(), ...(values.addressComplement.trim() && { addressComplement: values.addressComplement.trim() }), phone: values.phone, ...(values.mobilePhone && { mobilePhone: values.mobilePhone }) } } : cardChoice === "saved" ? { savedCardId: savedCard.id } : {};
       const payload = { planId: plan.code, paymentMethod: usingPix ? "PIX" : "CREDIT_CARD", ...cardPayload };
       if (changingPlan) await changeSubscriptionPlan(payload);
       else {

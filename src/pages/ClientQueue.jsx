@@ -22,7 +22,7 @@ import {
 } from "../services/clientNotifications";
 
 export default function ClientQueue() {
-  const [ticketCode, setTicketCode] = useState("");
+  const [ticketCode, setTicketCode] = useState(() => localStorage.getItem("queue-client-ticket-code") || "");
   const [serviceName, setServiceName] = useState("");
   const [queue, setQueue] = useState(null);
   const [entry, setEntry] = useState(null);
@@ -108,7 +108,6 @@ export default function ClientQueue() {
       }
       setSessionId(null);
       localStorage.removeItem("queue-client-session-id");
-      localStorage.removeItem("queue-client-ticket-code");
     } catch (error) {
       if (!silent) setMessage(error.message);
     }
@@ -127,6 +126,33 @@ export default function ClientQueue() {
 
   useEffect(() => {
     loadActiveEntry();
+  }, []);
+
+  useEffect(() => {
+    const savedCode = localStorage.getItem("queue-client-ticket-code");
+    if (!savedCode || savedCode.length < 4 || savedCode.length > 10) return;
+
+    let active = true;
+    setLoading(true);
+    getQueueByCode(savedCode)
+      .then((result) => {
+        if (!active) return;
+        setTicketCode(savedCode);
+        setQueue(result);
+        if (!result.isActive) setMessage("Esta fila está fechada no momento.");
+      })
+      .catch((error) => {
+        if (!active) return;
+        localStorage.removeItem("queue-client-ticket-code");
+        setTicketCode("");
+        setQueue(null);
+        if (error.status !== 404) setMessage(error.message);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+
+    return () => { active = false; };
   }, []);
 
   useEffect(() => {
@@ -233,6 +259,8 @@ export default function ClientQueue() {
     try {
       const result = await getQueueByCode(code);
       setQueue(result);
+      setTicketCode(code);
+      localStorage.setItem("queue-client-ticket-code", code);
       if (!result.isActive) setMessage("Esta fila está fechada no momento.");
     } catch (error) {
       setMessage(
@@ -343,8 +371,10 @@ export default function ClientQueue() {
   function handleBackToSearch() {
     setQueue(null);
     setTicketCode("");
+    setServiceName("");
     setMessage("");
     setMessageKind("error");
+    localStorage.removeItem("queue-client-ticket-code");
   }
 
   return (

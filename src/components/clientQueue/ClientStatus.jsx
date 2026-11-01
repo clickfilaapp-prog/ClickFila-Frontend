@@ -67,7 +67,9 @@ export default function ClientStatus({
   entry,
   loading,
   message,
+  messageKind = "error",
   onCancel,
+  onFinish,
   onDone,
 }) {
   const status = STATUS[entry.status] || STATUS.WAITING;
@@ -132,7 +134,7 @@ export default function ClientStatus({
         {status.label}
       </div>
       {message && (
-        <div className="login-auth-error" role="status">
+        <div className={messageKind === "success" ? "login-auth-success" : "login-auth-error"} role="status">
           {message}
         </div>
       )}
@@ -161,6 +163,15 @@ export default function ClientStatus({
       {finished ? (
         <button className="login-auth-submit" type="button" onClick={onDone}>
           Buscar outra fila
+        </button>
+      ) : entry.status === "IN_SERVICE" ? (
+        <button
+          className="cancel-queue finish-client-service"
+          type="button"
+          disabled={loading}
+          onClick={onFinish}
+        >
+          {loading ? "Saindo..." : "Sair do atendimento"}
         </button>
       ) : ["WAITING", "CALLED"].includes(entry.status) ? (
         <button

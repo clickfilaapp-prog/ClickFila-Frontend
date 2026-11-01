@@ -7006,7 +7006,7 @@ main > *,
 .checkout-alert { margin: 0 0 18px; border: 1px solid #fecaca; border-radius: 10px; padding: 12px 14px; background: #fef2f2; color: #b91c1c; font-weight: 700; }
 .card-update-modal .checkout-alert { position: fixed; z-index: 1300; top: 24px; right: 24px; width: min(380px, calc(100vw - 48px)); margin: 0; border: 0; padding: 12px 17px; background: #8f1d1d; color: #fff; box-shadow: 0 10px 35px #0002; font-size: 13px; animation: notification-in .25s ease-out, notification-out .25s ease-in 4.75s forwards; }
 .checkout-submit { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 48px; }
-.checkout-submit:disabled { cursor: wait; opacity: .7; }
+.checkout-submit:disabled { cursor: not-allowed; opacity: .7; }
 .checkout-success { display: flex; min-height: 360px; align-items: center; justify-content: center; flex-direction: column; text-align: center; }
 .checkout-success > svg { color: #16a34a; }
 .checkout-success h2 { margin: 20px 0 8px; color: #0b1f3b; font-size: 28px; }

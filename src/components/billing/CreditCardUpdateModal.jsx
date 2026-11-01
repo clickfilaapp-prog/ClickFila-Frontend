@@ -54,7 +54,15 @@ export default function CreditCardUpdateModal({ planId, savedCard = null, initia
     event.preventDefault();
     const validation = paymentMethod === "CREDIT_CARD" ? validate(values) : {};
     setErrors(validation); setError("");
-    if (Object.keys(validation).length) return;
+    if (Object.keys(validation).length) {
+      setError("Verifique os campos destacados e corrija os dados inválidos.");
+      window.setTimeout(() => {
+        const firstInvalidField = document.querySelector(".card-update-modal .checkout-field.has-error input");
+        firstInvalidField?.focus();
+        firstInvalidField?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 0);
+      return;
+    }
     setSubmitting(true);
     try {
       const cardPayload = paymentMethod === "SAVED_CARD" ? { savedCardId: savedCard.id } : paymentMethod === "CREDIT_CARD" ? {

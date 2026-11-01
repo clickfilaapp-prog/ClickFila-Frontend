@@ -109,7 +109,15 @@ export default function SubscriptionCheckout() {
     const usingNewCard = changingPlan ? cardChoice === "new" : paymentMethod === "CREDIT_CARD";
     const validation = usingNewCard ? validate(values) : {};
     setErrors(validation); setError("");
-    if (Object.keys(validation).length) return;
+    if (Object.keys(validation).length) {
+      setError("Verifique os campos destacados e corrija os dados inválidos.");
+      window.setTimeout(() => {
+        const firstInvalidField = document.querySelector(".checkout-page .checkout-field.has-error input");
+        firstInvalidField?.focus();
+        firstInvalidField?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 0);
+      return;
+    }
     setSubmitting(true);
     try {
       const cardPayload = usingNewCard ? { creditCard: { holderName: values.holderName.trim(), number: values.number, expiryMonth: values.expiryMonth.padStart(2, "0"), expiryYear: values.expiryYear, ccv: values.ccv }, creditCardHolderInfo: { name: values.name.trim(), email: values.email.trim(), cpfCnpj: values.cpfCnpj, postalCode: values.postalCode, addressNumber: values.addressNumber.trim(), phone: values.phone } } : cardChoice === "saved" ? { savedCardId: savedCard.id } : {};

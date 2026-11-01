@@ -1,4 +1,5 @@
 import React from "react";
+import { createPortal } from "react-dom";
 
 export default function ConfirmationModal({
   confirmation,
@@ -6,7 +7,7 @@ export default function ConfirmationModal({
   onBack,
   onConfirm,
 }) {
-  return (
+  return createPortal(
     <div
       className={`confirmation-modal ${confirmation.danger ? "danger" : ""}`}
       role="alertdialog"
@@ -51,6 +52,7 @@ export default function ConfirmationModal({
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

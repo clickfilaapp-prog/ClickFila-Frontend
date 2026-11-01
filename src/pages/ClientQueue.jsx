@@ -367,7 +367,7 @@ export default function ClientQueue() {
       await finishService(entry.id);
       resetTracking();
       setMessageKind("success");
-      setMessage("Você saiu do atendimento. Agora pode buscar outra fila.");
+      setMessage("Atendimento finalizado com sucesso. Agora você pode buscar outra fila.");
     } catch (error) {
       setMessageKind("error");
       setMessage(error.message);
@@ -426,10 +426,10 @@ export default function ClientQueue() {
         {confirmFinish && (
           <ConfirmationModal
             confirmation={{
-              title: "Sair do atendimento",
-              message: "Use esta opção somente se o estabelecimento esqueceu de finalizar seu atendimento. Deseja sair agora?",
+              title: "Finalizar atendimento",
+              message: "Use esta opção somente se o estabelecimento esqueceu de finalizar seu atendimento. Deseja finalizar agora?",
               backLabel: "Voltar",
-              confirmLabel: "Sim, sair do atendimento",
+              confirmLabel: "Sim, finalizar atendimento",
             }}
             loading={loading}
             onBack={() => setConfirmFinish(false)}

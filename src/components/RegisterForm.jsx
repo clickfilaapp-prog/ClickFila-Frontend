@@ -32,17 +32,20 @@ export default function RegisterForm({
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [validationError, setValidationError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
   const [privacyAccepted, setPrivacyAccepted] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const isProfessional = role === "professional";
 
   function updateField(field, value) {
     setForm((current) => ({ ...current, [field]: value }));
+    if (field === "password" || field === "confirmPassword") setPasswordError("");
   }
 
   async function handleSubmit(event) {
     event.preventDefault();
     setValidationError("");
+    setPasswordError("");
     const phoneDigits = form.phone.replace(/\D/g, "");
     const normalizedName = form.name.trim();
     if (normalizedName.length < 3 || normalizedName.length > 50) {
@@ -53,11 +56,12 @@ export default function RegisterForm({
       setValidationError("Informe um telefone com DDD e 10 ou 11 dígitos.");
       return;
     }
-    if (form.password.length < 6) {
-      setValidationError("A senha deve ter no mínimo 6 caracteres.");
+    if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9\s]).{8,12}$/.test(form.password)) {
+      setPasswordError("Use de 8 a 12 caracteres, com letra maiúscula, minúscula, número e caractere especial.");
       return;
     }
     if (form.password !== form.confirmPassword) {
+      setPasswordError("As senhas não conferem.");
       setValidationError("As senhas não conferem.");
       return;
     }
@@ -130,26 +134,28 @@ export default function RegisterForm({
       <PasswordField
         label="Senha"
         required
-        minLength={6}
+        minLength={8}
         maxLength={12}
         value={form.password}
         onChange={(event) => updateField("password", event.target.value)}
         visible={showPassword}
         setVisible={setShowPassword}
-        placeholder="Mínimo de 6 caracteres"
+        placeholder="Crie uma senha forte"
         visibilityLabel="senha"
-        helpText="Use de 6 a 12 caracteres."
+        helpText="Use de 8 a 12 caracteres, com maiúscula, minúscula, número e caractere especial."
+        error={passwordError}
       />
       <PasswordField
         label="Confirmar senha"
         required
-        minLength={6}
+        minLength={8}
         maxLength={12}
         value={form.confirmPassword}
         onChange={(event) => updateField("confirmPassword", event.target.value)}
         visible={showConfirmPassword}
         setVisible={setShowConfirmPassword}
         placeholder="Digite a senha novamente"
+        error={passwordError && form.password !== form.confirmPassword ? passwordError : ""}
         visibilityLabel="confirmação"
       />
       <div className="registration-consent-options">

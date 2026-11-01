@@ -15,10 +15,11 @@ export default function PasswordField({
   placeholder,
   visibilityLabel,
   helpText,
+  error,
   ...inputProps
 }) {
   return (
-    <label className={labelAction ? "password-label" : undefined}>
+    <label className={`${labelAction ? "password-label" : ""}${error ? " password-field-error" : ""}`.trim() || undefined}>
       {labelAction ? <span>{label}</span> : label}
       {labelAction}
       <div className="input-wrap password-wrap">
@@ -28,6 +29,7 @@ export default function PasswordField({
           value={value}
           onChange={onChange}
           placeholder={placeholder}
+          aria-invalid={Boolean(error)}
           {...inputProps}
           maxLength={inputProps.maxLength ?? 12}
         />
@@ -44,6 +46,7 @@ export default function PasswordField({
         </button>
       </div>
       {helpText && <small className="password-help-text">{helpText}</small>}
+      {error && <small className="password-validation-error" role="alert">{error}</small>}
     </label>
   );
 }

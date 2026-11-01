@@ -5,6 +5,7 @@ import DashboardLayout from "../components/DashboardLayout";
 import PixPaymentModal from "../components/billing/PixPaymentModal";
 import { clearProfessionalDashboardCache, getMyBusiness, getProfessionalDashboard } from "../services/queue";
 import { changeSubscriptionPlan, createSubscriptionCheckout, getMySubscription, getPlans } from "../services/billing";
+import { isValidCpfCnpj } from "../utils/documentValidation";
 
 const money = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 const EMPTY_FORM = { holderName: "", number: "", expiryMonth: "", expiryYear: "", ccv: "", name: "", email: "", cpfCnpj: "", postalCode: "", addressNumber: "", addressComplement: "", phone: "", mobilePhone: "" };
@@ -23,7 +24,7 @@ function validate(values) {
   if (values.email && values.email.length > 50) errors.email = "O e-mail deve ter no máximo 50 caracteres.";
   else if (values.email && !values.email.includes("@")) errors.email = "O e-mail deve conter @.";
   else if (values.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email)) errors.email = "E-mail inválido.";
-  if (values.cpfCnpj && ![11, 14].includes(values.cpfCnpj.length)) errors.cpfCnpj = "CPF ou CNPJ inválido.";
+  if (values.cpfCnpj && !isValidCpfCnpj(values.cpfCnpj)) errors.cpfCnpj = "CPF/CNPJ inválido";
   if (values.postalCode && values.postalCode.length !== 8) errors.postalCode = "CEP inválido.";
   if (values.phone && ![10, 11].includes(values.phone.length)) errors.phone = "Telefone inválido.";
   if (values.mobilePhone && ![10, 11].includes(values.mobilePhone.length)) errors.mobilePhone = "Celular inválido.";

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { CreditCard, LoaderCircle, QrCode, ShieldCheck, X } from "lucide-react";
 import { updateSubscriptionPaymentMethod } from "../../services/billing";
+import { isValidCpfCnpj } from "../../utils/documentValidation";
 
 const EMPTY = { holderName: "", number: "", expiryMonth: "", expiryYear: "", ccv: "", name: "", email: "", cpfCnpj: "", postalCode: "", addressNumber: "", addressComplement: "", phone: "", mobilePhone: "" };
 const digits = (value, limit) => String(value || "").replace(/\D/g, "").slice(0, limit);
@@ -14,7 +15,7 @@ function validate(values) {
   if (values.expiryYear && !/^\d{4}$/.test(values.expiryYear)) errors.expiryYear = "Use o ano com 4 dígitos.";
   if (values.ccv && !/^\d{3,4}$/.test(values.ccv)) errors.ccv = "CVV inválido.";
   if (values.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email)) errors.email = "E-mail inválido.";
-  if (values.cpfCnpj && ![11, 14].includes(values.cpfCnpj.length)) errors.cpfCnpj = "CPF ou CNPJ inválido.";
+  if (values.cpfCnpj && !isValidCpfCnpj(values.cpfCnpj)) errors.cpfCnpj = "CPF/CNPJ inválido";
   if (values.postalCode && values.postalCode.length !== 8) errors.postalCode = "CEP inválido.";
   if (values.phone && ![10, 11].includes(values.phone.length)) errors.phone = "Telefone inválido.";
   return errors;

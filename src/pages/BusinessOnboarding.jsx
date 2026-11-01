@@ -10,6 +10,7 @@ import {
   reactivateBusiness,
 } from "../services/queue";
 import { getMyTeamInvites } from "../services/team";
+import { isValidCpfCnpj } from "../utils/documentValidation";
 
 const BENEFITS = [
   [
@@ -38,6 +39,7 @@ export default function BusinessOnboarding() {
   const [business, setBusiness] = useState(initialDashboard);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [documentError, setDocumentError] = useState("");
   const [pendingInvites, setPendingInvites] = useState(() =>
     Array.isArray(initialDashboard?.pendingInvites)
       ? initialDashboard.pendingInvites
@@ -101,6 +103,11 @@ export default function BusinessOnboarding() {
       return;
     }
     const documentDigits = cpfCnpj.replace(/\D/g, "");
+    if (!isValidCpfCnpj(documentDigits)) {
+      setDocumentError("CPF/CNPJ inválido");
+      return;
+    }
+    setDocumentError("");
     if (![11, 14].includes(documentDigits.length)) {
       setError("Informe um CPF ou CNPJ válido.");
       return;
@@ -212,7 +219,7 @@ export default function BusinessOnboarding() {
             <p className="onboarding-form-description">
               Você poderá ajustar os dados da empresa mais tarde.
             </p>
-            <div className="onboarding-field">
+            <div className={`onboarding-field${documentError ? " has-error" : ""}`}>
               <label htmlFor="onboarding-business-name">Nome da empresa</label>
               <input
                 id="onboarding-business-name"
@@ -237,10 +244,12 @@ export default function BusinessOnboarding() {
                 value={cpfCnpj}
                 onChange={(event) => {
                   setCpfCnpj(event.target.value);
+                  setDocumentError("");
                   setError("");
                 }}
                 placeholder="Digite o CPF ou CNPJ"
               />
+              {documentError && <small className="onboarding-field-error" role="alert">{documentError}</small>}
             </div>
             {error && (
               <div className="login-auth-error" role="alert">

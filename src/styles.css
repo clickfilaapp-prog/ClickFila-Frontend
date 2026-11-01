@@ -1956,6 +1956,8 @@ label {
   font-weight: 500;
   line-height: 1.4;
 }
+.password-field-error input { border-color: #dc2626; background: #fffafa; color: #991b1b; box-shadow: 0 0 0 3px rgba(220,38,38,.08); }
+.password-validation-error { display: block; margin-top: 6px; color: #b91c1c; font-size: 10px; font-weight: 700; line-height: 1.4; }
 .character-limit {
   display: block;
   margin-top: 0;
@@ -6963,6 +6965,8 @@ main > *,
 .checkout-field input:focus { border-color: #147db3; box-shadow: 0 0 0 3px rgba(20,125,179,.12); }
 .checkout-field.has-error input { border-color: #dc2626; background: #fffafa; box-shadow: 0 0 0 3px rgba(220,38,38,.08); }
 .checkout-field-error { color: #b91c1c; font-size: 12px; font-weight: 700; }
+.onboarding-field.has-error input { border-color: #dc2626; background: #fffafa; box-shadow: 0 0 0 3px rgba(220,38,38,.08); }
+.onboarding-field-error { color: #b91c1c; font-size: 12px; font-weight: 700; }
 .card-choice-list { display: grid; gap: 12px; }
 .card-choice { display: flex; align-items: center; gap: 12px; border: 1px solid #bfd3e5; border-radius: 12px; padding: 15px; color: #34445c; cursor: pointer; transition: border-color .2s, background .2s, box-shadow .2s; }
 .card-choice > input[type="radio"] { flex: 0 0 auto; width: 16px; height: 16px; margin: 0; padding: 0; }

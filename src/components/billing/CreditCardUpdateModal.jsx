@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { CreditCard, LoaderCircle, QrCode, ShieldCheck, X } from "lucide-react";
 import { updateSubscriptionPaymentMethod } from "../../services/billing";
 import { isValidCpfCnpj } from "../../utils/documentValidation";
@@ -33,6 +33,12 @@ export default function CreditCardUpdateModal({ planId, savedCard = null, initia
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
+  useEffect(() => {
+    if (!error) return undefined;
+    const timer = window.setTimeout(() => setError(""), 5000);
+    return () => window.clearTimeout(timer);
+  }, [error]);
+
   function choose(method) { setPaymentMethod(method); setErrors({}); setError(""); }
   function onChange({ target: { name, value } }) {
     const limits = { number: 19, expiryMonth: 2, expiryYear: 4, ccv: 4, cpfCnpj: 14, postalCode: 8, addressNumber: 10, phone: 11, mobilePhone: 11 };
@@ -57,7 +63,7 @@ export default function CreditCardUpdateModal({ planId, savedCard = null, initia
     } catch (requestError) {
       setValues((current) => ({ ...current, ccv: "" }));
       if (["INVALID_SUBSCRIPTION", "SUBSCRIPTION_NOT_FOUND"].includes(requestError.code) || requestError.status === 404) return onInvalidSubscription();
-      if (paymentMethod === "CREDIT_CARD" && requestError.status === 400) setError(`${requestError.message || "O cartão foi recusado."} Tente novamente com outro cartão.`);
+      if (paymentMethod === "CREDIT_CARD" && requestError.status === 400) setError(requestError.message || "Não foi possível processar o cartão. Tente novamente com outro cartão.");
       else if (![400, 422].includes(requestError.status)) setError(requestError.message);
     } finally { setSubmitting(false); }
   }

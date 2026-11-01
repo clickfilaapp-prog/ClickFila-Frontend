@@ -1,5 +1,6 @@
 import React from "react";
 import {
+  ArrowLeft,
   CheckCircle2,
   CircleX,
   PauseCircle,
@@ -123,6 +124,14 @@ export default function QueueFinder({
               </small>
               <button className="login-auth-submit" disabled={loading}>
                 {loading ? "Entrando..." : "Entrar na fila"}
+              </button>
+              <button
+                className="queue-back-to-search"
+                type="button"
+                disabled={loading}
+                onClick={onBackToSearch}
+              >
+                <ArrowLeft size={17} /> Voltar e escolher outra fila
               </button>
             </form>
           )}

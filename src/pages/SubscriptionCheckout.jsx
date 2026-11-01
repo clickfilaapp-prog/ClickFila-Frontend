@@ -9,14 +9,14 @@ import { isValidCpfCnpj } from "../utils/documentValidation";
 import { useViaCep } from "../hooks/useViaCep";
 
 const money = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
-const EMPTY_FORM = { holderName: "", number: "", expiryMonth: "", expiryYear: "", ccv: "", name: "", email: "", cpfCnpj: "", postalCode: "", address: "", city: "", state: "", addressNumber: "", addressComplement: "", phone: "", mobilePhone: "" };
+const EMPTY_FORM = { holderName: "", number: "", expiryMonth: "", expiryYear: "", ccv: "", name: "", email: "", cpfCnpj: "", postalCode: "", addressNumber: "", addressComplement: "", phone: "", mobilePhone: "" };
 const FIELDS = new Set(Object.keys(EMPTY_FORM));
 const firstValue = (...values) => values.find((value) => value !== undefined && value !== null && value !== "") ?? "";
 const digits = (value, limit) => String(value || "").replace(/\D/g, "").slice(0, limit);
 
 function validate(values) {
   const errors = {};
-  const required = { holderName: "Informe o nome impresso no cartão.", number: "Informe o número do cartão.", expiryMonth: "Informe o mês de validade.", expiryYear: "Informe o ano de validade.", ccv: "Informe o CVV.", name: "Informe o nome do titular.", email: "Informe o e-mail do titular.", cpfCnpj: "Informe o CPF ou CNPJ.", postalCode: "Informe o CEP.", address: "Informe a rua ou avenida.", city: "Informe a cidade.", state: "Informe a UF.", addressNumber: "Informe o número do endereço.", phone: "Informe o telefone." };
+  const required = { holderName: "Informe o nome impresso no cartão.", number: "Informe o número do cartão.", expiryMonth: "Informe o mês de validade.", expiryYear: "Informe o ano de validade.", ccv: "Informe o CVV.", name: "Informe o nome do titular.", email: "Informe o e-mail do titular.", cpfCnpj: "Informe o CPF ou CNPJ.", postalCode: "Informe o CEP.", addressNumber: "Informe o número do endereço.", phone: "Informe o telefone." };
   Object.entries(required).forEach(([field, message]) => { if (!String(values[field] || "").trim()) errors[field] = message; });
   if (values.number && !/^\d{13,19}$/.test(values.number)) errors.number = "Número do cartão inválido.";
   if (values.expiryMonth && (Number(values.expiryMonth) < 1 || Number(values.expiryMonth) > 12)) errors.expiryMonth = "Mês de validade inválido.";
@@ -45,13 +45,11 @@ function responseErrors(data) {
 }
 
 function Field({ label, name, values, errors, onChange, optional = false, inputMode, ...props }) {
-  if (name === "mobilePhone") return null;
+  if (name === "mobilePhone" || name === "addressComplement") return null;
   const error = errors[name];
   const effectiveInputMode = inputMode || (name === "addressNumber" ? "numeric" : undefined);
   const field = <label className={`checkout-field${error ? " has-error" : ""}`}><span>{label}{optional && <small> (opcional)</small>}</span><input name={name} value={values[name]} onChange={onChange} onBlur={name === "postalCode" ? () => window.dispatchEvent(new CustomEvent("billing:lookup-cep", { detail: values.postalCode })) : props.onBlur} inputMode={effectiveInputMode} aria-invalid={Boolean(error)} aria-describedby={error ? `checkout-${name}-error` : undefined} {...props} />{error && <small id={`checkout-${name}-error`} className="checkout-field-error">{error}</small>}</label>;
-  if (name !== "postalCode") return field;
-  const addressError = errors.address;
-  return <>{field}<label className={`checkout-field${addressError ? " has-error" : ""}`}><span>Rua / Avenida</span><input name="address" value={values.address} onChange={onChange} autoComplete="street-address" maxLength={100} aria-invalid={Boolean(addressError)} />{addressError && <small className="checkout-field-error">{addressError}</small>}</label><Field label="Cidade" name="city" values={values} errors={errors} onChange={onChange} maxLength={60} /><Field label="UF" name="state" values={values} errors={errors} onChange={onChange} maxLength={2} /></>;
+  return field;
 }
 
 export default function SubscriptionCheckout() {
@@ -121,7 +119,7 @@ export default function SubscriptionCheckout() {
     if (Object.keys(validation).length) return;
     setSubmitting(true);
     try {
-      const cardPayload = usingNewCard ? { creditCard: { holderName: values.holderName.trim(), number: values.number, expiryMonth: values.expiryMonth.padStart(2, "0"), expiryYear: values.expiryYear, ccv: values.ccv }, creditCardHolderInfo: { name: values.name.trim(), email: values.email.trim(), cpfCnpj: values.cpfCnpj, postalCode: values.postalCode, address: values.address.trim(), city: values.city.trim(), state: values.state.trim().toUpperCase(), addressNumber: values.addressNumber.trim(), ...(values.addressComplement.trim() && { addressComplement: values.addressComplement.trim() }), phone: values.phone } } : cardChoice === "saved" ? { savedCardId: savedCard.id } : {};
+      const cardPayload = usingNewCard ? { creditCard: { holderName: values.holderName.trim(), number: values.number, expiryMonth: values.expiryMonth.padStart(2, "0"), expiryYear: values.expiryYear, ccv: values.ccv }, creditCardHolderInfo: { name: values.name.trim(), email: values.email.trim(), cpfCnpj: values.cpfCnpj, postalCode: values.postalCode, addressNumber: values.addressNumber.trim(), phone: values.phone } } : cardChoice === "saved" ? { savedCardId: savedCard.id } : {};
       const payload = { planId: plan.code, paymentMethod: usingPix ? "PIX" : "CREDIT_CARD", ...cardPayload };
       if (changingPlan) await changeSubscriptionPlan(payload);
       else {

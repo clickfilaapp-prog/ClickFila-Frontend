@@ -1335,8 +1335,8 @@ main {
   background: #006666;
   box-shadow: 0 9px 22px rgba(0, 128, 128, 0.24);
 }
-.queue-back-to-search { display: inline-flex; align-items: center; justify-content: center; gap: 7px; width: 100%; min-height: 44px; border: 1px solid #cbd5e1; border-radius: 10px; background: #fff; color: #475569; font-weight: 700; cursor: pointer; }
-.queue-back-to-search:hover:not(:disabled) { border-color: #0891b2; color: #087f8c; background: #f0fdfa; }
+.queue-back-to-search { display: inline-flex; align-items: center; justify-content: center; gap: 7px; width: 100%; min-height: 44px; border: 1px solid #0284c7; border-radius: 10px; background: #0284c7; color: #fff; font-weight: 700; cursor: pointer; }
+.queue-back-to-search:hover:not(:disabled) { border-color: #0369a1; color: #fff; background: #0369a1; box-shadow: 0 9px 22px rgba(2,132,199,.24); }
 .queue-back-to-search:disabled { cursor: not-allowed; opacity: .6; }
 .queue-preview {
   margin-top: 4px;

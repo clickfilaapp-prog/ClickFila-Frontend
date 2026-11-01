@@ -130,19 +130,23 @@ export default function SubscriptionCheckout() {
       if (changingPlan || !usingPix) setSuccess(true);
       clearProfessionalDashboardCache();
       getMySubscription().catch(() => {});
-    } catch (requestError) {
+} catch (requestError) {
       setValues((current) => ({ ...current, ccv: "" }));
-      if (usingNewCard && requestError.status === 400) setError(`${requestError.message || "O cartão foi recusado."} Tente novamente com outro cartão.`);
-      else if (requestError.code === "PAYMENT_REJECTED") setError(`${requestError.message} Tente novamente com outro cartão.`);
-      else {
+
+      if ([400, 422].includes(requestError.status) && requestError.data) {
         const fieldErrors = responseErrors(requestError.data);
-        if ([400, 422].includes(requestError.status)) {
-          if (Object.keys(fieldErrors).length) setErrors(fieldErrors);
-          setError("");
-        } else setError(requestError.message);
+        if (Object.keys(fieldErrors).length > 0) {
+          setErrors(fieldErrors);
+          setError(""); 
+          return;    
+        }
       }
-    } finally { setSubmitting(false); }
-  }
+
+      setError(requestError.message);
+      
+    } finally {
+      setSubmitting(false);
+    }
 
   async function copyPixCode() {
     try {

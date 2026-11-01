@@ -60,12 +60,27 @@ export default function CreditCardUpdateModal({ planId, savedCard = null, initia
       const effectivePaymentMethod = paymentMethod === "SAVED_CARD" ? "CREDIT_CARD" : paymentMethod;
       const response = await updateSubscriptionPaymentMethod({ planId, paymentMethod: effectivePaymentMethod, ...cardPayload });
       onSuccess(effectivePaymentMethod, response);
-    } catch (requestError) {
+} catch (requestError) {
       setValues((current) => ({ ...current, ccv: "" }));
-      if (["INVALID_SUBSCRIPTION", "SUBSCRIPTION_NOT_FOUND"].includes(requestError.code) || requestError.status === 404) return onInvalidSubscription();
-      if (paymentMethod === "CREDIT_CARD" && requestError.status === 400) setError(requestError.message || "Não foi possível processar o cartão. Tente novamente com outro cartão.");
-      else if (![400, 422].includes(requestError.status)) setError(requestError.message);
-    } finally { setSubmitting(false); }
+
+      if (["INVALID_SUBSCRIPTION", "SUBSCRIPTION_NOT_FOUND"].includes(requestError.code) || requestError.status === 404) {
+        return onInvalidSubscription();
+      }
+
+      if ([400, 422].includes(requestError.status) && requestError.data) {
+        const fieldErrors = responseErrors(requestError.data); // Pinta de vermelho os inputs específicos
+        if (Object.keys(fieldErrors).length > 0) {
+          setErrors(fieldErrors);
+          setError(""); 
+          return; 
+        }
+      }
+
+      setError(requestError.message);
+
+    } finally { 
+      setSubmitting(false); 
+    }
   }
 
   return <div className="checkout-modal-backdrop" role="presentation"><section className="checkout-modal card-update-modal" role="dialog" aria-modal="true" aria-labelledby="payment-update-title"><button className="checkout-close" type="button" aria-label="Fechar" disabled={submitting} onClick={onClose}><X /></button><div className="checkout-heading"><ShieldCheck /><div><h2 id="payment-update-title">Atualizar forma de pagamento</h2><p>Escolha como deseja pagar as próximas faturas.</p></div></div>{error && <div className="checkout-alert" role="alert">{error}</div>}<form onSubmit={submit} noValidate><fieldset><legend>Forma de pagamento</legend><div className="card-choice-list payment-method-list">{savedCard && <label className={`card-choice${paymentMethod === "SAVED_CARD" ? " selected" : ""}`}><input type="radio" name="paymentMethod" checked={paymentMethod === "SAVED_CARD"} onChange={() => choose("SAVED_CARD")} /><CreditCard size={22} /><span><strong>Cartão {savedCard.brand || savedCard.cardBrand || "salvo"} final {savedCard.lastFourDigits}</strong><small>Usar cartão salvo</small></span></label>}<label className={`card-choice${paymentMethod === "CREDIT_CARD" ? " selected" : ""}`}><input type="radio" name="paymentMethod" checked={paymentMethod === "CREDIT_CARD"} onChange={() => choose("CREDIT_CARD")} /><CreditCard size={22} /><span><strong>Novo cartão de crédito</strong><small>Cadastrar um novo cartão</small></span></label><label className={`card-choice${paymentMethod === "PIX" ? " selected" : ""}`}><input type="radio" name="paymentMethod" checked={paymentMethod === "PIX"} onChange={() => choose("PIX")} /><QrCode size={22} /><span><strong>PIX</strong><small>Usar PIX nas próximas faturas</small></span></label></div></fieldset>{paymentMethod === "CREDIT_CARD" && <><fieldset><legend><CreditCard size={18} /> Dados do cartão</legend><div className="checkout-form-grid"><Field label="Nome impresso no cartão" name="holderName" values={values} errors={errors} onChange={onChange} /><Field label="Número do cartão" name="number" values={values} errors={errors} onChange={onChange} inputMode="numeric" /><Field label="Mês" name="expiryMonth" values={values} errors={errors} onChange={onChange} inputMode="numeric" placeholder="MM" /><Field label="Ano" name="expiryYear" values={values} errors={errors} onChange={onChange} inputMode="numeric" placeholder="AAAA" /><Field label="CVV" name="ccv" values={values} errors={errors} onChange={onChange} inputMode="numeric" /></div></fieldset><fieldset><legend>Dados do titular</legend><div className="checkout-form-grid holder-grid"><Field label="Nome completo" name="name" values={values} errors={errors} onChange={onChange} /><Field label="E-mail" name="email" values={values} errors={errors} onChange={onChange} type="email" /><Field label="CPF/CNPJ" name="cpfCnpj" values={values} errors={errors} onChange={onChange} inputMode="numeric" /><Field label="CEP" name="postalCode" values={values} errors={errors} onChange={onChange} inputMode="numeric" /><Field label="Número do endereço" name="addressNumber" values={values} errors={errors} onChange={onChange} /><Field label="Complemento" name="addressComplement" values={values} errors={errors} onChange={onChange} optional /><Field label="Telefone" name="phone" values={values} errors={errors} onChange={onChange} inputMode="tel" /><Field label="Celular" name="mobilePhone" values={values} errors={errors} onChange={onChange} optional inputMode="tel" /></div></fieldset></>}<button className="billing-primary checkout-submit" type="submit" disabled={submitting}>{submitting ? <><LoaderCircle className="billing-spinner" size={18} /> Atualizando...</> : paymentMethod === "PIX" ? "Usar PIX" : paymentMethod === "SAVED_CARD" ? "Usar cartão salvo" : "Salvar novo cartão"}</button></form></section></div>;

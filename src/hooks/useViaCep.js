@@ -17,9 +17,15 @@ export function useViaCep(setValues, setErrors) {
       if (!response.ok) throw new Error("CEP não encontrado.");
       const address = await response.json();
       if (address.erro) throw new Error("CEP não encontrado.");
-      setValues((current) => ({ ...current, postalCode, address: address.logradouro || "" }));
+      setValues((current) => ({
+        ...current,
+        postalCode,
+        address: address.logradouro || "",
+        city: address.localidade || "",
+        state: address.uf || "",
+      }));
     } catch {
-      setValues((current) => ({ ...current, postalCode: "", address: "" }));
+      setValues((current) => ({ ...current, postalCode: "", address: "", city: "", state: "" }));
       setErrors((current) => ({ ...current, postalCode: "CEP inválido ou não encontrado." }));
     } finally {
       setLoadingCep(false);

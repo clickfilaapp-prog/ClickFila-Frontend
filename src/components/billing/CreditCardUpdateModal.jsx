@@ -4,12 +4,12 @@ import { updateSubscriptionPaymentMethod } from "../../services/billing";
 import { isValidCpfCnpj } from "../../utils/documentValidation";
 import { useViaCep } from "../../hooks/useViaCep";
 
-const EMPTY = { holderName: "", number: "", expiryMonth: "", expiryYear: "", ccv: "", name: "", email: "", cpfCnpj: "", postalCode: "", address: "", addressNumber: "", addressComplement: "", phone: "", mobilePhone: "" };
+const EMPTY = { holderName: "", number: "", expiryMonth: "", expiryYear: "", ccv: "", name: "", email: "", cpfCnpj: "", postalCode: "", address: "", city: "", state: "", addressNumber: "", addressComplement: "", phone: "", mobilePhone: "" };
 const digits = (value, limit) => String(value || "").replace(/\D/g, "").slice(0, limit);
 
 function validate(values) {
   const errors = {};
-  const required = { holderName: "Informe o nome impresso no cartão.", number: "Informe o número do cartão.", expiryMonth: "Informe o mês de validade.", expiryYear: "Informe o ano de validade.", ccv: "Informe o CVV.", name: "Informe o nome do titular.", email: "Informe o e-mail do titular.", cpfCnpj: "Informe o CPF ou CNPJ.", postalCode: "Informe o CEP.", address: "Informe a rua ou avenida.", addressNumber: "Informe o número do endereço.", phone: "Informe o telefone." };
+  const required = { holderName: "Informe o nome impresso no cartão.", number: "Informe o número do cartão.", expiryMonth: "Informe o mês de validade.", expiryYear: "Informe o ano de validade.", ccv: "Informe o CVV.", name: "Informe o nome do titular.", email: "Informe o e-mail do titular.", cpfCnpj: "Informe o CPF ou CNPJ.", postalCode: "Informe o CEP.", address: "Informe a rua ou avenida.", city: "Informe a cidade.", state: "Informe a UF.", addressNumber: "Informe o número do endereço.", phone: "Informe o telefone." };
   Object.entries(required).forEach(([field, message]) => { if (!String(values[field] || "").trim()) errors[field] = message; });
   if (values.number && !/^\d{13,19}$/.test(values.number)) errors.number = "Número do cartão inválido.";
   if (values.expiryMonth && (Number(values.expiryMonth) < 1 || Number(values.expiryMonth) > 12)) errors.expiryMonth = "Mês inválido.";
@@ -23,11 +23,12 @@ function validate(values) {
 }
 
 function Field({ label, name, values, errors, onChange, optional, inputMode, ...props }) {
+  if (name === "mobilePhone") return null;
   const error = errors[name];
   const field = <label className={`checkout-field${error ? " has-error" : ""}`}><span>{label}{optional && <small> (opcional)</small>}</span><input name={name} value={values[name]} onChange={onChange} onBlur={name === "postalCode" ? () => window.dispatchEvent(new CustomEvent("billing:lookup-cep", { detail: values.postalCode })) : props.onBlur} inputMode={inputMode || (name === "addressNumber" ? "numeric" : undefined)} aria-invalid={Boolean(error)} {...props} />{error && <small className="checkout-field-error">{error}</small>}</label>;
   if (name !== "postalCode") return field;
   const addressError = errors.address;
-  return <>{field}<label className={`checkout-field${addressError ? " has-error" : ""}`}><span>Rua / Avenida</span><input name="address" value={values.address} onChange={onChange} autoComplete="street-address" maxLength={100} aria-invalid={Boolean(addressError)} />{addressError && <small className="checkout-field-error">{addressError}</small>}</label></>;
+  return <>{field}<label className={`checkout-field${addressError ? " has-error" : ""}`}><span>Rua / Avenida</span><input name="address" value={values.address} onChange={onChange} autoComplete="street-address" maxLength={100} aria-invalid={Boolean(addressError)} />{addressError && <small className="checkout-field-error">{addressError}</small>}</label><Field label="Cidade" name="city" values={values} errors={errors} onChange={onChange} maxLength={60} /><Field label="UF" name="state" values={values} errors={errors} onChange={onChange} maxLength={2} /></>;
 }
 
 export default function CreditCardUpdateModal({ planId, savedCard = null, initialValues = {}, initialPaymentMethod = "CREDIT_CARD", onClose, onSuccess, onInvalidSubscription }) {
@@ -66,7 +67,7 @@ export default function CreditCardUpdateModal({ planId, savedCard = null, initia
     try {
       const cardPayload = paymentMethod === "SAVED_CARD" ? { savedCardId: savedCard.id } : paymentMethod === "CREDIT_CARD" ? {
         creditCard: { holderName: values.holderName.trim(), number: values.number, expiryMonth: values.expiryMonth.padStart(2, "0"), expiryYear: values.expiryYear, ccv: values.ccv },
-        creditCardHolderInfo: { name: values.name.trim(), email: values.email.trim(), cpfCnpj: values.cpfCnpj, postalCode: values.postalCode, address: values.address.trim(), addressNumber: values.addressNumber.trim(), ...(values.addressComplement.trim() && { addressComplement: values.addressComplement.trim() }), phone: values.phone, ...(values.mobilePhone && { mobilePhone: values.mobilePhone }) },
+        creditCardHolderInfo: { name: values.name.trim(), email: values.email.trim(), cpfCnpj: values.cpfCnpj, postalCode: values.postalCode, address: values.address.trim(), city: values.city.trim(), state: values.state.trim().toUpperCase(), addressNumber: values.addressNumber.trim(), ...(values.addressComplement.trim() && { addressComplement: values.addressComplement.trim() }), phone: values.phone },
       } : {};
       const effectivePaymentMethod = paymentMethod === "SAVED_CARD" ? "CREDIT_CARD" : paymentMethod;
       const response = await updateSubscriptionPaymentMethod({ planId, paymentMethod: effectivePaymentMethod, ...cardPayload });

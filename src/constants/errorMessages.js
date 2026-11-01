@@ -4,7 +4,7 @@ const GENERIC_SYSTEM_ERROR = "Ocorreu um erro interno de comunicação. Nossa eq
 
 export const ErrorDictionary = {
   // =========================================================================
-  // Erros de Empresa (Fluxo esperado / Tratável pelo usuário)
+  // Erros de Empresa e Negócio (Fluxo esperado / Tratável pelo usuário)
   // =========================================================================
   INVALID_CREDENTIALS: "E-mail ou senha incorretos.",
   INVALID_OTP: "O código informado é inválido. Confira e tente novamente.",
@@ -54,9 +54,17 @@ export const ErrorDictionary = {
   MISSING_DOCUMENT: "Informe um CPF ou CNPJ válido para continuar.",
   PAYMENT_REJECTED: "O pagamento foi recusado pelo cartão ou banco. Verifique os dados e tente novamente.",
   QUEUE_EMPTY: "Não há clientes aguardando na fila no momento.",
+  
+  // ---> ERROS DE PAGAMENTO E ASSINATURA ADICIONADOS <---
+  INVALID_CARD: "Os dados do cartão de crédito são inválidos ou foram rejeitados pela operadora.",
+  INVALID_PAYMENT_METHOD: "O método de pagamento selecionado não é suportado.",
+  PAYMENT_METHOD_DENIED: "Você não tem permissão para utilizar este método de pagamento.",
+  PIX_NOT_ALLOWED: "Não foi possível gerar o PIX para esta cobrança específica.",
+  SAME_PLAN: "Sua empresa já está inscrita neste plano.",
+  SUBSCRIPTION_ALREADY_EXISTS: "Você já possui uma assinatura ativa. Utilize a opção de atualizar pagamento.",
 
   // =========================================================================
-  // Erros de Integração e Sistema (Falhas técnicas genéricas ocultadas do cliente)
+  // Erros de Integração e Sistema (Falhas de sincronização / Dados não encontrados)
   // =========================================================================
   USER_NOT_FOUND: "Erro de sincronização. Por favor, faça login novamente.",
   PROFESSIONAL_NOT_FOUND: "Erro ao carregar seu perfil. Contate o suporte se o problema persistir.",
@@ -65,8 +73,6 @@ export const ErrorDictionary = {
   UNAUTHORIZED: "Sua sessão expirou ou você não tem permissão. Faça login novamente.",
   REFRESH_TOKEN_EXPIRED: "Sua sessão expirou ou você não tem permissão. Faça login novamente.",
   CONCURRENT_MODIFICATION: "Os dados foram atualizados por outro dispositivo. Recarregando...",
-  
-  // ---> NOVOS ERROS DE SISTEMA / SINCRONIA MAPEADOS <---
   INVALID_REFRESH_TOKEN: "Sua sessão expirou. Faça login novamente.",
   ENTRY_NOT_FOUND: "Registro não encontrado na fila. A fila pode ter sido atualizada.",
   BUSINESS_NOT_FOUND: "Perfil da empresa não encontrado. Recarregue a página.",
@@ -76,15 +82,19 @@ export const ErrorDictionary = {
   TEAM_MEMBER_NOT_FOUND: "Vínculo com a equipe não encontrado.",
   PLAN_NOT_FOUND: "O plano selecionado não está mais disponível.",
   SUBSCRIPTION_NOT_FOUND: "Não foi possível localizar os dados da sua assinatura.",
-  INVALID_SUBSCRIPTION: "Assinatura inválida para realizar esta ação.",
-  
-  // Mascarando falhas de código puro com a mensagem genérica:
+  INVALID_SUBSCRIPTION: "Sua assinatura atual é inválida para realizar esta ação.",
+  PAYMENT_METHOD_NOT_FOUND: "O método de pagamento selecionado não foi encontrado.",
+
+  // =========================================================================
+  // Erros Técnicos Mascarados (Ocultos do usuário final)
+  // =========================================================================
   ACCESS_DENIED: GENERIC_SYSTEM_ERROR,
   TOKEN_GENERATION_ERROR: GENERIC_SYSTEM_ERROR,
   MALFORMED_JSON: GENERIC_SYSTEM_ERROR,
   TYPE_MISMATCH: GENERIC_SYSTEM_ERROR,
   MISSING_PARAMETER: GENERIC_SYSTEM_ERROR,
-  GATEWAY_ERROR: GENERIC_SYSTEM_ERROR, // Erro na API do Asaas
-  INVALID_STATE: GENERIC_SYSTEM_ERROR, // Estado inconsistente no banco
-  UNSUPPORTED_CYCLE: GENERIC_SYSTEM_ERROR, // Frequência de cobrança não suportada
+  GATEWAY_ERROR: GENERIC_SYSTEM_ERROR,       
+  INVALID_STATE: GENERIC_SYSTEM_ERROR,  
+  UNSUPPORTED_CYCLE: GENERIC_SYSTEM_ERROR,
+  MISSING_PAYMENT_DATA: GENERIC_SYSTEM_ERROR
 };

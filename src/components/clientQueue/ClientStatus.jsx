@@ -171,7 +171,7 @@ export default function ClientStatus({
           disabled={loading}
           onClick={onFinish}
         >
-          {loading ? "Saindo..." : "Sair do atendimento"}
+          {loading ? "Saindo..." : "Já finalizou? Clique aqui para sair"}
         </button>
       ) : ["WAITING", "CALLED"].includes(entry.status) ? (
         <button

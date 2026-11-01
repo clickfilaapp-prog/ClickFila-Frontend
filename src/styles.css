@@ -1545,6 +1545,8 @@ main {
   cursor: default;
   opacity: 0.58;
 }
+.finish-client-service { background: #0284c7; border-color: #0284c7; cursor: pointer; }
+.finish-client-service:hover:not(:disabled) { background: #0369a1; border-color: #0369a1; box-shadow: 0 8px 20px rgba(2,132,199,.24); }
 /* Cartão de acompanhamento em tempo real do status do cliente. */
 .client-status-card {
   width: min(100%, 660px);

@@ -38,12 +38,6 @@ export default function CreditCardUpdateModal({ planId, savedCard = null, initia
   const { loadingCep } = useViaCep(setValues, setErrors);
 
   useEffect(() => {
-    const button = document.querySelector(".card-update-modal .checkout-submit");
-    if (!button) return;
-    button.disabled = submitting || loadingCep || (paymentMethod === "CREDIT_CARD" && values.postalCode.length !== 8);
-  }, [loadingCep, paymentMethod, submitting, values.postalCode]);
-
-  useEffect(() => {
     if (!error) return undefined;
     const timer = window.setTimeout(() => setError(""), 5000);
     return () => window.clearTimeout(timer);

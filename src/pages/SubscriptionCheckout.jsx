@@ -72,13 +72,6 @@ export default function SubscriptionCheckout() {
   const { loadingCep } = useViaCep(setValues, setErrors);
 
   useEffect(() => {
-    const button = document.querySelector(".checkout-page .checkout-submit");
-    if (!button) return;
-    const requiresCep = (!changingPlan && paymentMethod === "CREDIT_CARD") || (changingPlan && cardChoice === "new");
-    button.disabled = submitting || loadingCep || (requiresCep && values.postalCode.length !== 8) || (!changingPlan && !paymentMethod) || (changingPlan && !cardChoice);
-  }, [cardChoice, changingPlan, loadingCep, paymentMethod, submitting, values.postalCode]);
-
-  useEffect(() => {
     let active = true;
     Promise.all([getProfessionalDashboard(), getMyBusiness().catch(() => null), plan ? Promise.resolve([]) : getPlans()])
       .then(([dashboard, businessResponse, plans]) => {

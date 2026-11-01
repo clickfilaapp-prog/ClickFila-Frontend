@@ -232,7 +232,7 @@ export default function Billing() {
       setSubscription((current) => ({ ...current, cancelAtPeriodEnd: true }));
       setConfirmCancel(false);
       setShowPlans(false);
-      setSuccessMessage("Assinatura cancelada. Seu acesso continuará disponível até o fim do período atual.");
+      setSuccessMessage("Assinatura cancelada. O valor pago não será estornado, mas seu acesso continuará disponível até o fim do ciclo já pago.");
     } catch (requestError) {
       setConfirmCancel(false);
       setError(requestError.message);
@@ -290,7 +290,7 @@ export default function Billing() {
         )}
         {confirmCancel && (
           <ConfirmationModal
-            confirmation={{ title: "Cancelar assinatura", message: "Seu plano atual será cancelado. Deseja continuar?", backLabel: "Voltar", confirmLabel: "Sim, cancelar assinatura", danger: true }}
+            confirmation={{ title: "Cancelar assinatura", message: "O valor pago não será estornado. Você continuará com acesso até o final do ciclo já pago. Deseja continuar?", backLabel: "Voltar", confirmLabel: "Sim, cancelar assinatura", danger: true }}
             loading={cancelingSubscription}
             onBack={() => setConfirmCancel(false)}
             onConfirm={confirmSubscriptionCancellation}

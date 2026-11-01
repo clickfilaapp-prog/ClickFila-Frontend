@@ -46,6 +46,23 @@ function daysUntil(value) {
   return Math.max(0, Math.ceil((end.getTime() - Date.now()) / 86400000));
 }
 
+function billingDaysUntil(value) {
+  if (!value) return null;
+  const dueDate = new Date(String(value).includes("T") ? value : `${value}T00:00:00`);
+  if (Number.isNaN(dueDate.getTime())) return null;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  dueDate.setHours(0, 0, 0, 0);
+  return Math.round((dueDate.getTime() - today.getTime()) / 86400000);
+}
+
+function normalizePixData(response) {
+  if (!response) return null;
+  const pixQrCodeBase64 = response.pixQrCodeBase64 || response.encodedImage;
+  const pixCopiaECola = response.pixCopiaECola || response.payload;
+  return pixQrCodeBase64 && pixCopiaECola ? { ...response, pixQrCodeBase64, pixCopiaECola } : null;
+}
+
 function matchesCurrentPlan(plan, subscription) {
   const current = [subscription?.planCode, subscription?.planName, subscription?.plan?.code, subscription?.plan?.name]
     .filter(Boolean).map((value) => String(value).toLowerCase());
@@ -143,6 +160,19 @@ export default function Billing() {
     : null;
   const hasPendingPayment = subscription?.hasPendingPayment === true;
   const trialDays = daysUntil(periodEnd);
+  const pendingDays = billingDaysUntil(subscription?.currentPeriodEnd);
+  const pendingPaymentAlert = (() => {
+    if (!hasPendingPayment || canReactivateSubscription) return null;
+    if (paymentMethod === "PIX") {
+      if (pendingDays === null) return { tone: "upcoming", message: "Você tem uma fatura PIX aguardando pagamento." };
+      if (pendingDays > 0) return { tone: "upcoming", message: `Faltam ${pendingDays} ${pendingDays === 1 ? "dia" : "dias"} para o vencimento da sua fatura.` };
+      if (pendingDays === 0) return { tone: "due-today", message: "Sua fatura vence hoje. Efetue o pagamento para evitar a suspensão do acesso." };
+      const overdueDays = Math.abs(pendingDays);
+      return { tone: "overdue", message: `Sua fatura venceu há ${overdueDays} ${overdueDays === 1 ? "dia" : "dias"}. Pague agora para não perder o acesso.` };
+    }
+    if (paymentMethod === "CREDIT_CARD" && pendingDays !== null && pendingDays < 0) return { tone: "overdue", message: "O pagamento automático falhou. Atualize sua forma de pagamento (novo cartão ou PIX) para manter o sistema ativo." };
+    return null;
+  })();
 
   useEffect(() => {
     const billingAction = location.state?.billingAction;
@@ -246,31 +276,14 @@ export default function Billing() {
     setLoadingPix(true);
     setError("");
     try {
-      const response = await getSubscriptionPixQrCode();
+      let response = await getSubscriptionPixQrCode();
       if (response === null) {
-        setSubscription((current) => current ? { ...current, hasPendingPayment: false } : current);
-        setSuccessMessage("Não há mais uma fatura pendente para pagamento.");
+        response = await updateSubscriptionPaymentMethod({ paymentMethod: "PIX" });
         getMySubscription().then(setSubscription).catch(() => {});
-        return;
       }
-      if (!response?.pixQrCodeBase64 || !response?.pixCopiaECola) throw new Error("A API não retornou os dados da cobrança PIX.");
-      setPixData(response);
-    } catch (requestError) {
-      setError(requestError.message);
-    } finally {
-      setLoadingPix(false);
-    }
-  }
-
-  async function generateNewPix() {
-    if (loadingPix) return;
-    setLoadingPix(true);
-    setError("");
-    try {
-      const response = await updateSubscriptionPaymentMethod({ ...(currentPlanCode && { planId: currentPlanCode }), paymentMethod: "PIX", creditCard: null, creditCardHolderInfo: null });
-      if (!response?.pixQrCodeBase64 || !response?.pixCopiaECola) throw new Error("A API não retornou os dados do novo PIX.");
-      setPixData(response);
-      getMySubscription().then(setSubscription).catch(() => {});
+      const normalizedPix = normalizePixData(response);
+      if (!normalizedPix) throw new Error("A API não retornou os dados da cobrança PIX.");
+      setPixData(normalizedPix);
     } catch (requestError) {
       setError(requestError.message);
     } finally {
@@ -354,10 +367,10 @@ export default function Billing() {
             {displayedStatus && <span className={`subscription-status-badge status-${displayedStatus.toLowerCase()}`}><CheckCircle2 size={15} /> {STATUS_LABELS[displayedStatus] || displayedStatus}</span>}
           </div>
           {loading ? <p className="billing-loading">Carregando assinatura...</p> : <>
-            {hasPendingPayment && !canReactivateSubscription && <div className="subscription-state-alert pending-payment" role="alert">
+            {pendingPaymentAlert && <div className={`subscription-state-alert pending-payment ${pendingPaymentAlert.tone}`} role="alert">
               <AlertTriangle />
-              <span>Você tem uma fatura aguardando pagamento.</span>
-              <button className="billing-primary" type="button" disabled={loadingPix} onClick={showPendingPix}>{loadingPix ? <><LoaderCircle className="billing-spinner" size={17} /> Carregando...</> : <><QrCode size={17} /> Pagar Fatura / Ver PIX</>}</button>
+              <span>{pendingPaymentAlert.message}</span>
+              {paymentMethod === "PIX" && <button className="billing-primary" type="button" disabled={loadingPix} onClick={showPendingPix}>{loadingPix ? <><LoaderCircle className="billing-spinner" size={17} /> Carregando...</> : <><QrCode size={17} /> Pagar Fatura / Ver PIX</>}</button>}
             </div>}
             {status === "SUSPENDED" && <div className="subscription-state-alert suspended" role="alert"><AlertTriangle /><span>Problemas com o pagamento da sua assinatura. Seu acesso está temporariamente suspenso.</span></div>}
             {cancelAtPeriodEnd && <div className="subscription-state-alert canceled" role="status"><AlertTriangle /><span>Sua assinatura está cancelada, mas você ainda tem acesso até {formatDate(periodEnd)}.</span></div>}
@@ -372,10 +385,7 @@ export default function Billing() {
 
             {status === "SUSPENDED" && currentPlanCode && <button className="billing-primary billing-resolve-button" type="button" onClick={() => { setError(""); setSuccessMessage(""); setUpdatingCard(true); }}>Resolver pendência</button>}
             {status === "PENDING" && !canReactivateSubscription && <div className="pending-subscription-actions">
-              {paymentMethod === "PIX" ? <>
-                <button className="billing-primary" type="button" disabled={loadingPix} onClick={showPendingPix}>{loadingPix ? <><LoaderCircle className="billing-spinner" size={17} /> Carregando PIX...</> : <><QrCode size={17} /> Visualizar QR Code</>}</button>
-                <button className="change-plan-button" type="button" onClick={() => { setError(""); setSuccessMessage(""); setUpdatingCard(true); }}><CreditCard size={17} /> Pagar com Cartão</button>
-              </> : <button className="billing-primary" type="button" onClick={() => { setError(""); setSuccessMessage(""); setUpdatingCard(true); }}><CreditCard size={17} /> Alterar Cartão</button>}
+              <button className="change-plan-button" type="button" onClick={() => { setError(""); setSuccessMessage(""); setUpdatingCard(true); }}><CreditCard size={17} /> Alterar forma de pagamento</button>
               <button className="change-plan-button" type="button" disabled={loadingPlans} onClick={togglePlans}><ArrowRightLeft size={17} /> {loadingPlans ? "Carregando planos..." : showPlans ? "Ocultar planos" : "Escolher outro plano"}</button>
               {businessId && <button className="cancel-subscription-link" type="button" onClick={() => setConfirmCancel(true)}>Cancelar assinatura</button>}
             </div>}

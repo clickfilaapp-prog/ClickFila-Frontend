@@ -6927,6 +6927,9 @@ main > *,
 .subscription-state-alert.canceled { border-color: #fde68a; background: #fffbeb; color: #92400e; }
 .subscription-state-alert.trial { border-color: #bfdbfe; background: #eff6ff; color: #1d4ed8; }
 .subscription-state-alert.pending-payment { justify-content: flex-start; border-color: #fdba74; background: #fff7ed; color: #9a3412; }
+.subscription-state-alert.pending-payment.upcoming { border-color: #bfdbfe; background: #eff6ff; color: #1d4ed8; }
+.subscription-state-alert.pending-payment.due-today { border-color: #fdba74; background: #fff7ed; color: #9a3412; }
+.subscription-state-alert.pending-payment.overdue { border-color: #fecaca; background: #fef2f2; color: #b91c1c; }
 .subscription-state-alert.pending-payment span { flex: 1; }
 .subscription-state-alert.pending-payment button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; flex: 0 0 auto; }
 .subscription-status-badge.status-pending { background: #fef3c7; color: #92400e; }

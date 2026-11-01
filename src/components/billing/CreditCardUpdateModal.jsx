@@ -60,7 +60,7 @@ export default function CreditCardUpdateModal({ planId, savedCard = null, initia
       const effectivePaymentMethod = paymentMethod === "SAVED_CARD" ? "CREDIT_CARD" : paymentMethod;
       const response = await updateSubscriptionPaymentMethod({ planId, paymentMethod: effectivePaymentMethod, ...cardPayload });
       onSuccess(effectivePaymentMethod, response);
-} catch (requestError) {
+    } catch (requestError) {
       setValues((current) => ({ ...current, ccv: "" }));
 
       if (["INVALID_SUBSCRIPTION", "SUBSCRIPTION_NOT_FOUND"].includes(requestError.code) || requestError.status === 404) {

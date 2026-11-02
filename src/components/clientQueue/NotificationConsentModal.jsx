@@ -21,9 +21,9 @@ export default function NotificationConsentModal({
         <h2 id="notification-consent-title">Acompanhe sua vez</h2>
         <p id="notification-consent-description">
           Para receber avisos quando sua posição mudar ou quando chegar a sua
-          vez, continue e depois escolha “Permitir” na janela de notificações
-          do navegador. Sem essa autorização, o acompanhamento funcionará
-          apenas enquanto esta tela estiver aberta.
+          vez, continue e depois escolha “Permitir” na janela de notificações do
+          navegador. Sem essa autorização, o acompanhamento funcionará apenas
+          enquanto esta tela estiver aberta.
         </p>
         <div className="notification-consent-actions">
           <button type="button" disabled={isSubmitting} onClick={onSkip}>

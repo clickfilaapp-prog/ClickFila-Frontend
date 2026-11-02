@@ -41,7 +41,9 @@ export default function LgpdConsentModal({
         </button>
 
         <div className="lgpd-modal-heading">
-          <span><ShieldCheck size={23} /></span>
+          <span>
+            <ShieldCheck size={23} />
+          </span>
           <div>
             <small>Privacidade e proteção de dados</small>
             <h2 id="lgpd-modal-title">Termo de consentimento LGPD</h2>
@@ -50,8 +52,11 @@ export default function LgpdConsentModal({
 
         <p id="lgpd-modal-description">
           {accessFlow
-            ? "Antes de continuar, leia como seus dados serão utilizados de acordo com a Lei Geral de Proteção de Dados (Lei nº 13.709/2018)."
-            : "Antes de criar seu cadastro, leia como seus dados serão utilizados de acordo com a Lei Geral de Proteção de Dados (Lei nº 13.709/2018)."}
+            ? "Antes de continuar, leia como seus dados serão utilizados de " +
+              "acordo com a Lei Geral de Proteção de Dados (Lei nº 13.709/2018)."
+            : "Antes de criar seu cadastro, leia como seus dados serão " +
+              "utilizados de acordo com a Lei Geral de Proteção de Dados " +
+              "(Lei nº 13.709/2018)."}
         </p>
 
         <div className="lgpd-modal-content">
@@ -64,11 +69,23 @@ export default function LgpdConsentModal({
 
           <h3>Por que coletamos esses dados?</h3>
           <ul>
-            <li><CheckCircle2 size={15} />Criar e identificar sua conta.</li>
-            <li><CheckCircle2 size={15} />Permitir o acesso e a recuperação segura da conta.</li>
-            <li><CheckCircle2 size={15} />Viabilizar a comunicação e o funcionamento das filas.</li>
+            <li>
+              <CheckCircle2 size={15} />
+              Criar e identificar sua conta.
+            </li>
+            <li>
+              <CheckCircle2 size={15} />
+              Permitir o acesso e a recuperação segura da conta.
+            </li>
+            <li>
+              <CheckCircle2 size={15} />
+              Viabilizar a comunicação e o funcionamento das filas.
+            </li>
             {isProfessional && (
-              <li><CheckCircle2 size={15} />Identificar o estabelecimento para os clientes.</li>
+              <li>
+                <CheckCircle2 size={15} />
+                Identificar o estabelecimento para os clientes.
+              </li>
             )}
           </ul>
 

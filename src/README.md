@@ -16,7 +16,10 @@ Interface React e integração com o backend do Click Fila.
 - `routes`: URLs e registro das páginas.
 - `services`: funções que acessam os endpoints.
 
-Os arquivos `index.js` funcionam como entradas públicas de cada módulo, evitando imports acoplados à estrutura interna. As páginas coordenam estado, chamadas e suas funções auxiliares; os blocos visuais ficam em subpastas de `components`.
+Os arquivos `index.js` funcionam como entradas públicas de cada módulo,
+evitando imports acoplados à estrutura interna. As páginas coordenam estado,
+chamadas e suas funções auxiliares; os blocos visuais ficam em subpastas de
+`components`.
 
 O componente `LgpdConsentGate.jsx` concentra exclusivamente o fluxo global de consentimento LGPD.
 

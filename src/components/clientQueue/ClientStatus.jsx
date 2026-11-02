@@ -74,8 +74,7 @@ export default function ClientStatus({
 }) {
   const status = STATUS[entry.status] || STATUS.WAITING;
   const finished = entry.status === "FINISHED";
-  const canShowTimer =
-    entry.status === "CALLED" && entry.toleranceExpiresAt;
+  const canShowTimer = entry.status === "CALLED" && entry.toleranceExpiresAt;
 
   return (
     <section
@@ -87,7 +86,13 @@ export default function ClientStatus({
         {finished ? (
           <CheckCircle2 size={30} />
         ) : entry.status === "IN_SERVICE" ? (
-          <img className="app-symbol-icon" src="/favicon.png" alt="" width="30" height="30" />
+          <img
+            className="app-symbol-icon"
+            src="/favicon.png"
+            alt=""
+            width="30"
+            height="30"
+          />
         ) : (
           <Ticket size={30} />
         )}
@@ -123,7 +128,9 @@ export default function ClientStatus({
           {entry.status === "CALLED" && (
             <small>
               {Number.isFinite(Number(entry.toleranceMinute))
-                ? `Você tem ${entry.toleranceMinute} minuto${Number(entry.toleranceMinute) === 1 ? "" : "s"} para comparecer`
+                ? `Você tem ${entry.toleranceMinute} minuto${
+                    Number(entry.toleranceMinute) === 1 ? "" : "s"
+                  } para comparecer`
                 : "Dirija-se ao profissional antes do tempo terminar"}
             </small>
           )}
@@ -134,7 +141,14 @@ export default function ClientStatus({
         {status.label}
       </div>
       {message && (
-        <div className={messageKind === "success" ? "login-auth-success" : "login-auth-error"} role="status">
+        <div
+          className={
+            messageKind === "success"
+              ? "login-auth-success"
+              : "login-auth-error"
+          }
+          role="status"
+        >
           {message}
         </div>
       )}

@@ -10,7 +10,9 @@ function escapeHtml(value) {
 }
 
 function clean(value, maxLength) {
-  return String(value || "").trim().slice(0, maxLength);
+  return String(value || "")
+    .trim()
+    .slice(0, maxLength);
 }
 
 export default async function handler(request, response) {
@@ -24,7 +26,9 @@ export default async function handler(request, response) {
   const contactEmail = process.env.CONTACT_EMAIL;
 
   if (!resendApiKey || !resendFromEmail || !contactEmail) {
-    console.error("As variáveis de ambiente do formulário de contato não estão configuradas.");
+    console.error(
+      "As variáveis de ambiente do formulário de contato não estão configuradas.",
+    );
     return response.status(500).json({
       message: "O suporte está temporariamente indisponível.",
     });
@@ -32,9 +36,10 @@ export default async function handler(request, response) {
 
   let body;
   try {
-    body = typeof request.body === "string"
-      ? JSON.parse(request.body || "{}")
-      : request.body || {};
+    body =
+      typeof request.body === "string"
+        ? JSON.parse(request.body || "{}")
+        : request.body || {};
   } catch {
     return response.status(400).json({ message: "Dados inválidos." });
   }

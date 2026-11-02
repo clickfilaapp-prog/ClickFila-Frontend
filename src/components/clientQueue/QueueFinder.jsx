@@ -55,7 +55,11 @@ export default function QueueFinder({
         </div>
       )}
       {!queue && (
-        <form className="queue-code-field" data-tour="client-ticket-search" onSubmit={onSearch}>
+        <form
+          className="queue-code-field"
+          data-tour="client-ticket-search"
+          onSubmit={onSearch}
+        >
           <input
             aria-label="Código da fila"
             required

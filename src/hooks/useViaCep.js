@@ -4,30 +4,45 @@ export function useViaCep(setValues, setErrors) {
   const [loadingCep, setLoadingCep] = useState(false);
 
   async function lookupCep(event) {
-    const postalCode = String(event?.target?.value || "").replace(/\D/g, "").slice(0, 8);
+    const postalCode = String(event?.target?.value || "")
+      .replace(/\D/g, "")
+      .slice(0, 8);
     if (postalCode.length !== 8) {
-      setErrors((current) => ({ ...current, postalCode: "CEP deve conter 8 números." }));
+      setErrors((current) => ({
+        ...current,
+        postalCode: "CEP deve conter 8 números.",
+      }));
       return;
     }
 
     setLoadingCep(true);
-    setErrors((current) => { const next = { ...current }; delete next.postalCode; return next; });
+    setErrors((current) => {
+      const next = { ...current };
+      delete next.postalCode;
+      return next;
+    });
     try {
-      const response = await fetch(`https://viacep.com.br/ws/${postalCode}/json/`);
+      const response = await fetch(
+        `https://viacep.com.br/ws/${postalCode}/json/`,
+      );
       if (!response.ok) throw new Error("CEP não encontrado.");
       const address = await response.json();
       if (address.erro) throw new Error("CEP não encontrado.");
       setValues((current) => ({ ...current, postalCode }));
     } catch {
       setValues((current) => ({ ...current, postalCode: "" }));
-      setErrors((current) => ({ ...current, postalCode: "CEP inválido ou não encontrado." }));
+      setErrors((current) => ({
+        ...current,
+        postalCode: "CEP inválido ou não encontrado.",
+      }));
     } finally {
       setLoadingCep(false);
     }
   }
 
   useEffect(() => {
-    const handleLookup = (event) => lookupCep({ target: { value: event.detail } });
+    const handleLookup = (event) =>
+      lookupCep({ target: { value: event.detail } });
     window.addEventListener("billing:lookup-cep", handleLookup);
     return () => window.removeEventListener("billing:lookup-cep", handleLookup);
   });

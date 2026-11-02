@@ -23,7 +23,9 @@ import {
 } from "../services/clientNotifications";
 
 export default function ClientQueue() {
-  const [ticketCode, setTicketCode] = useState(() => localStorage.getItem("queue-client-ticket-code") || "");
+  const [ticketCode, setTicketCode] = useState(
+    () => localStorage.getItem("queue-client-ticket-code") || "",
+  );
   const [serviceName, setServiceName] = useState("");
   const [queue, setQueue] = useState(null);
   const [entry, setEntry] = useState(null);
@@ -154,7 +156,9 @@ export default function ClientQueue() {
         if (active) setLoading(false);
       });
 
-    return () => { active = false; };
+    return () => {
+      active = false;
+    };
   }, []);
 
   useEffect(() => {
@@ -367,7 +371,9 @@ export default function ClientQueue() {
       await finishService(entry.id);
       resetTracking();
       setMessageKind("success");
-      setMessage("Atendimento finalizado com sucesso. Agora você pode buscar outra fila.");
+      setMessage(
+        "Atendimento finalizado com sucesso. Agora você pode buscar outra fila.",
+      );
     } catch (error) {
       setMessageKind("error");
       setMessage(error.message);
@@ -427,7 +433,9 @@ export default function ClientQueue() {
           <ConfirmationModal
             confirmation={{
               title: "Finalizar atendimento",
-              message: "Use esta opção somente se o estabelecimento esqueceu de finalizar seu atendimento. Deseja finalizar agora?",
+              message:
+                "Use esta opção somente se o estabelecimento esqueceu de " +
+                "finalizar seu atendimento. Deseja finalizar agora?",
               backLabel: "Voltar",
               confirmLabel: "Sim, finalizar atendimento",
             }}

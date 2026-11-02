@@ -171,86 +171,18 @@ export default function BusinessOnboarding() {
         {!checkingSetup && business?.businessIsActive === false && (
           <section className="onboarding-reactivation onboarding-form">
             <div className="onboarding-form-heading">
-              <div className="onboarding-form-icon"><Building2 size={26} /></div>
+              <div className="onboarding-form-icon">
+                <Building2 size={26} />
+              </div>
               <div>
                 <span className="step">BEM-VINDO DE VOLTA</span>
                 <h2>Deseja reativar a barbearia {business.businessName}?</h2>
               </div>
             </div>
             <p className="onboarding-form-description">
-              Reative sua barbearia para voltar a gerenciar a fila e os atendimentos.
+              Reative sua barbearia para voltar a gerenciar a fila e os
+              atendimentos.
             </p>
-            {error && <div className="login-auth-error" role="alert">{error}</div>}
-            <button className="login-auth-submit" type="button" disabled={loading} onClick={handleReactivation}>
-              {loading ? "Reativando..." : "Reativar barbearia"}
-            </button>
-          </section>
-        )}
-        {!checkingSetup && business?.businessIsActive !== false && <section className="onboarding-hero">
-          <div className="onboarding-copy">
-            <span className="step">COMECE SUA EMPRESA</span>
-            <h1>Uma empresa mais organizada começa aqui.</h1>
-            <p>
-              Crie sua empresa em poucos segundos e transforme a experiência
-              da sua equipe e dos seus clientes.
-            </p>
-            <div className="onboarding-benefits">
-              {BENEFITS.map(([Icon, title, description]) => (
-                <article key={title}>
-                  <Icon size={23} />
-                  <div>
-                    <strong>{title}</strong>
-                    <p>{description}</p>
-                  </div>
-                </article>
-              ))}
-            </div>
-          </div>
-          <form className="onboarding-form" onSubmit={handleSubmit}>
-            <div className="onboarding-form-heading">
-              <div className="onboarding-form-icon">
-                <Building2 size={26} />
-              </div>
-              <div>
-                <span className="step">ÚLTIMO PASSO</span>
-                <h2>Como se chama sua empresa?</h2>
-              </div>
-            </div>
-            <p className="onboarding-form-description">
-              Você poderá ajustar os dados da empresa mais tarde.
-            </p>
-            <div className={`onboarding-field${documentError ? " has-error" : ""}`}>
-              <label htmlFor="onboarding-business-name">Nome da empresa</label>
-              <input
-                id="onboarding-business-name"
-                autoFocus
-                required
-                minLength={2}
-                maxLength={150}
-                value={name}
-                onChange={(event) => {
-                  setName(event.target.value);
-                  setError("");
-                }}
-                placeholder="Ex.: Studio Essência"
-              />
-            </div>
-            <div className="onboarding-field">
-              <label htmlFor="onboarding-business-document">CPF ou CNPJ</label>
-              <input
-                id="onboarding-business-document"
-                required
-                inputMode="numeric"
-                value={cpfCnpj}
-                onChange={(event) => {
-                  setCpfCnpj(event.target.value);
-                  setDocumentError("");
-                  setError("");
-                }}
-                placeholder="Digite o CPF ou CNPJ"
-              />
-              {documentError && <small className="onboarding-field-error" role="alert">{documentError}</small>}
-            </div>
             {error && (
               <div className="login-auth-error" role="alert">
                 {error}
@@ -258,13 +190,105 @@ export default function BusinessOnboarding() {
             )}
             <button
               className="login-auth-submit"
-              type="submit"
+              type="button"
               disabled={loading}
+              onClick={handleReactivation}
             >
-              {loading ? "Criando sua empresa..." : "Criar minha empresa"}
+              {loading ? "Reativando..." : "Reativar barbearia"}
             </button>
-          </form>
-        </section>}
+          </section>
+        )}
+        {!checkingSetup && business?.businessIsActive !== false && (
+          <section className="onboarding-hero">
+            <div className="onboarding-copy">
+              <span className="step">COMECE SUA EMPRESA</span>
+              <h1>Uma empresa mais organizada começa aqui.</h1>
+              <p>
+                Crie sua empresa em poucos segundos e transforme a experiência
+                da sua equipe e dos seus clientes.
+              </p>
+              <div className="onboarding-benefits">
+                {BENEFITS.map(([Icon, title, description]) => (
+                  <article key={title}>
+                    <Icon size={23} />
+                    <div>
+                      <strong>{title}</strong>
+                      <p>{description}</p>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </div>
+            <form className="onboarding-form" onSubmit={handleSubmit}>
+              <div className="onboarding-form-heading">
+                <div className="onboarding-form-icon">
+                  <Building2 size={26} />
+                </div>
+                <div>
+                  <span className="step">ÚLTIMO PASSO</span>
+                  <h2>Como se chama sua empresa?</h2>
+                </div>
+              </div>
+              <p className="onboarding-form-description">
+                Você poderá ajustar os dados da empresa mais tarde.
+              </p>
+              <div
+                className={`onboarding-field${documentError ? " has-error" : ""}`}
+              >
+                <label htmlFor="onboarding-business-name">
+                  Nome da empresa
+                </label>
+                <input
+                  id="onboarding-business-name"
+                  autoFocus
+                  required
+                  minLength={2}
+                  maxLength={150}
+                  value={name}
+                  onChange={(event) => {
+                    setName(event.target.value);
+                    setError("");
+                  }}
+                  placeholder="Ex.: Studio Essência"
+                />
+              </div>
+              <div className="onboarding-field">
+                <label htmlFor="onboarding-business-document">
+                  CPF ou CNPJ
+                </label>
+                <input
+                  id="onboarding-business-document"
+                  required
+                  inputMode="numeric"
+                  value={cpfCnpj}
+                  onChange={(event) => {
+                    setCpfCnpj(event.target.value);
+                    setDocumentError("");
+                    setError("");
+                  }}
+                  placeholder="Digite o CPF ou CNPJ"
+                />
+                {documentError && (
+                  <small className="onboarding-field-error" role="alert">
+                    {documentError}
+                  </small>
+                )}
+              </div>
+              {error && (
+                <div className="login-auth-error" role="alert">
+                  {error}
+                </div>
+              )}
+              <button
+                className="login-auth-submit"
+                type="submit"
+                disabled={loading}
+              >
+                {loading ? "Criando sua empresa..." : "Criar minha empresa"}
+              </button>
+            </form>
+          </section>
+        )}
       </main>
     </DashboardLayout>
   );

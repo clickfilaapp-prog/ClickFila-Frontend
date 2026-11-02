@@ -65,45 +65,53 @@ export default function AuthenticationLayout({ page, children }) {
     <div className="auth-page-with-footer">
       <main className="login-main">
         <section className="login-shell">
-        <div className="login-intro">
-          <div className="login-slideshow" aria-hidden="true">
-            {IMAGES.map((image, index) => (
-              <img
-                className={`login-hero-image ${index === activeImage ? "active" : ""} ${index === previousImage ? "leaving" : ""}`}
-                src={image}
-                alt=""
-                key={image}
-              />
-            ))}
+          <div className="login-intro">
+            <div className="login-slideshow" aria-hidden="true">
+              {IMAGES.map((image, index) => (
+                <img
+                  className={[
+                    "login-hero-image",
+                    index === activeImage ? "active" : "",
+                    index === previousImage ? "leaving" : "",
+                  ]
+                    .filter(Boolean)
+                    .join(" ")}
+                  src={image}
+                  alt=""
+                  key={image}
+                />
+              ))}
+            </div>
+            <div className="login-image-overlay" />
+            <div className="login-glow" />
+            <div className="login-brand">
+              <span>
+                <img src="/favicon.png" alt="" />
+              </span>{" "}
+              Click <i>Fila</i>
+            </div>
+            <div className="login-copy login-copy-transition" key={page}>
+              <span className="step">
+                <Sparkles size={14} /> {content.eyebrow}
+              </span>
+              <h1>{content.title}</h1>
+              <p>{content.description}</p>
+            </div>
           </div>
-          <div className="login-image-overlay" />
-          <div className="login-glow" />
-          <div className="login-brand">
-            <span>
-              <img src="/favicon.png" alt="" />
-            </span>{" "}
-            Click <i>Fila</i>
+          <div className="login-panel">
+            <div className="login-heading">
+              <span className="login-mobile-brand">
+                <img src="/favicon.png" alt="" />
+                <span>
+                  Click <i>Fila</i>
+                </span>
+              </span>
+              <span className="step">NOVO CADASTRO</span>
+              <h2>{content.panel[0]}</h2>
+              <p>{content.panel[1]}</p>
+            </div>
+            {children}
           </div>
-          <div className="login-copy login-copy-transition" key={page}>
-            <span className="step">
-              <Sparkles size={14} /> {content.eyebrow}
-            </span>
-            <h1>{content.title}</h1>
-            <p>{content.description}</p>
-          </div>
-        </div>
-        <div className="login-panel">
-          <div className="login-heading">
-            <span className="login-mobile-brand">
-              <img src="/favicon.png" alt="" />
-              <span>Click <i>Fila</i></span>
-            </span>
-            <span className="step">NOVO CADASTRO</span>
-            <h2>{content.panel[0]}</h2>
-            <p>{content.panel[1]}</p>
-          </div>
-          {children}
-        </div>
         </section>
       </main>
       <SiteFooter />

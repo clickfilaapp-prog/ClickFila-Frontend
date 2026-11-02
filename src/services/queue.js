@@ -84,16 +84,16 @@ export const createQueueSession = async () => {
   } catch (error) {
     if (error.status === 409 && error.code === "QUEUE_ALREADY_EXISTS") {
       console.log("Fila inativa encontrada. A carregar sessão existente...");
-      
+
       const dashboard = await getProfessionalDashboard({ force: true });
-      
+
       return {
         id: dashboard?.sessionId,
         ticketCode: dashboard?.ticketCode,
         isActive: dashboard?.isActive ?? false,
       };
     }
-    
+
     throw error;
   }
 };

@@ -146,154 +146,163 @@ export default function Login() {
   return (
     <div className="auth-page-with-footer">
       <main className="login-auth-main">
-      {reactivationCredentials && (
-        <ConfirmationModal
-          confirmation={{
-            title: "Reativar conta",
-            message:
-              "Sua conta está em processo de exclusão. Deseja cancelar a exclusão e reativar sua conta?",
-            backLabel: "Não, manter exclusão",
-            confirmLabel: "Sim, reativar",
-          }}
-          loading={isReactivating}
-          onBack={() => setReactivationCredentials(null)}
-          onConfirm={handleReactivation}
-        />
-      )}
-      <div className="login-auth-content">
-      <section className="login-auth-shell">
-        <div className="login-auth-visual-column">
-        <aside className="login-auth-visual">
-          {LOGIN_IMAGES.map((image, index) => (
-            <img
-              className={`login-hero-image ${index === activeImage ? "active" : ""} ${index === previousImage ? "leaving" : ""}`}
-              src={image}
-              alt=""
-              aria-hidden="true"
-              key={image}
-            />
-          ))}
-          <div className="login-auth-overlay" />
-          <div className="login-auth-brand">
-            <img src="/favicon.png" alt="" />
-            <span>Click <i>Fila</i></span>
-          </div>
-          <div className="login-auth-copy">
-            <span>SEU MOMENTO DE BRILHAR</span>
-            <h1>Cuide do seu tempo e acompanhe seu atendimento.</h1>
-            <p>
-              Acesse sua conta para entrar na fila e acompanhar cada etapa em
-              tempo real.
-            </p>
-          </div>
-        </aside>
-        </div>
+        {reactivationCredentials && (
+          <ConfirmationModal
+            confirmation={{
+              title: "Reativar conta",
+              message:
+                "Sua conta está em processo de exclusão. Deseja cancelar a exclusão e reativar sua conta?",
+              backLabel: "Não, manter exclusão",
+              confirmLabel: "Sim, reativar",
+            }}
+            loading={isReactivating}
+            onBack={() => setReactivationCredentials(null)}
+            onConfirm={handleReactivation}
+          />
+        )}
+        <div className="login-auth-content">
+          <section className="login-auth-shell">
+            <div className="login-auth-visual-column">
+              <aside className="login-auth-visual">
+                {LOGIN_IMAGES.map((image, index) => (
+                  <img
+                    className={[
+                      "login-hero-image",
+                      index === activeImage ? "active" : "",
+                      index === previousImage ? "leaving" : "",
+                    ]
+                      .filter(Boolean)
+                      .join(" ")}
+                    src={image}
+                    alt=""
+                    aria-hidden="true"
+                    key={image}
+                  />
+                ))}
+                <div className="login-auth-overlay" />
+                <div className="login-auth-brand">
+                  <img src="/favicon.png" alt="" />
+                  <span>
+                    Click <i>Fila</i>
+                  </span>
+                </div>
+                <div className="login-auth-copy">
+                  <span>SEU MOMENTO DE BRILHAR</span>
+                  <h1>Cuide do seu tempo e acompanhe seu atendimento.</h1>
+                  <p>
+                    Acesse sua conta para entrar na fila e acompanhar cada etapa
+                    em tempo real.
+                  </p>
+                </div>
+              </aside>
+            </div>
 
-        <div className="login-auth-panel">
-          {recoveringPassword ? (
-            <PasswordResetFlow
-              initialEmail={email}
-              onBack={() => setRecoveringPassword(false)}
-            />
-          ) : (
-            <>
-              <div className="login-auth-heading">
-                <h1>Bem-vindo ao Click Fila</h1>
-                <p>Informe suas credenciais para acessar sua conta.</p>
-              </div>
-
-              <form className="login-auth-form" onSubmit={handleSubmit}>
-                {(error || successMessage) && (
-                  <div
-                    className={
-                      error ? "login-auth-error" : "login-auth-success"
-                    }
-                    role="status"
-                  >
-                    {error || successMessage}
-                  </div>
-                )}
-
-                <label>
-                  E-mail
-                  <div className="input-wrap">
-                    <Mail size={18} />
-                    <input
-                      type="email"
-                      required
-                      value={email}
-                      onChange={(event) => setEmail(event.target.value)}
-                      placeholder="seu@email.com"
-                    />
-                  </div>
-                </label>
-
-                <PasswordField
-                  label="Senha"
-                  required
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
-                  visible={showPassword}
-                  setVisible={setShowPassword}
-                  placeholder="••••••••"
-                  visibilityLabel="senha"
+            <div className="login-auth-panel">
+              {recoveringPassword ? (
+                <PasswordResetFlow
+                  initialEmail={email}
+                  onBack={() => setRecoveringPassword(false)}
                 />
+              ) : (
+                <>
+                  <div className="login-auth-heading">
+                    <h1>Bem-vindo ao Click Fila</h1>
+                    <p>Informe suas credenciais para acessar sua conta.</p>
+                  </div>
 
-                <button
-                  className="forgot-password"
-                  type="button"
-                  onClick={() => {
-                    setError("");
-                    setRecoveringPassword(true);
-                  }}
-                >
-                  Esqueceu sua senha?
-                </button>
+                  <form className="login-auth-form" onSubmit={handleSubmit}>
+                    {(error || successMessage) && (
+                      <div
+                        className={
+                          error ? "login-auth-error" : "login-auth-success"
+                        }
+                        role="status"
+                      >
+                        {error || successMessage}
+                      </div>
+                    )}
 
-                <button
-                  className="login-auth-submit login-account-submit"
-                  type="submit"
-                  disabled={isLoading}
-                >
-                  <LogIn size={20} />{" "}
-                  {isLoading ? "Entrando..." : "Entrar na conta"}
-                </button>
-              </form>
+                    <label>
+                      E-mail
+                      <div className="input-wrap">
+                        <Mail size={18} />
+                        <input
+                          type="email"
+                          required
+                          value={email}
+                          onChange={(event) => setEmail(event.target.value)}
+                          placeholder="seu@email.com"
+                        />
+                      </div>
+                    </label>
 
-              <div className="login-divider">
-                <span>ou</span>
-              </div>
+                    <PasswordField
+                      label="Senha"
+                      required
+                      value={password}
+                      onChange={(event) => setPassword(event.target.value)}
+                      visible={showPassword}
+                      setVisible={setShowPassword}
+                      placeholder="••••••••"
+                      visibilityLabel="senha"
+                    />
 
-              <button
-                className="google-login-button"
-                type="button"
-                onClick={handleGoogleLogin}
-              >
-                <span className="google-mark" aria-hidden="true">
-                  G
-                </span>
-                Google
-              </button>
+                    <button
+                      className="forgot-password"
+                      type="button"
+                      onClick={() => {
+                        setError("");
+                        setRecoveringPassword(true);
+                      }}
+                    >
+                      Esqueceu sua senha?
+                    </button>
 
-              <p className="login-auth-register">
-                Ainda não tem uma conta?{" "}
-                <Link to="/register">Cadastre-se grátis</Link>
-              </p>
+                    <button
+                      className="login-auth-submit login-account-submit"
+                      type="submit"
+                      disabled={isLoading}
+                    >
+                      <LogIn size={20} />{" "}
+                      {isLoading ? "Entrando..." : "Entrar na conta"}
+                    </button>
+                  </form>
 
-              <div className="login-auth-professional">
-                <strong>Você trabalha com atendimento ao público?</strong>
-                <span>
-                  Organize sua fila, sua equipe e seus atendimentos em um só lugar.
-                </span>
-                <Link to="/professionalRegister">
-                  Quero organizar minha fila →
-                </Link>
-              </div>
-            </>
-          )}
+                  <div className="login-divider">
+                    <span>ou</span>
+                  </div>
+
+                  <button
+                    className="google-login-button"
+                    type="button"
+                    onClick={handleGoogleLogin}
+                  >
+                    <span className="google-mark" aria-hidden="true">
+                      G
+                    </span>
+                    Google
+                  </button>
+
+                  <p className="login-auth-register">
+                    Ainda não tem uma conta?{" "}
+                    <Link to="/register">Cadastre-se grátis</Link>
+                  </p>
+
+                  <div className="login-auth-professional">
+                    <strong>Você trabalha com atendimento ao público?</strong>
+                    <span>
+                      Organize sua fila, sua equipe e seus atendimentos em um só
+                      lugar.
+                    </span>
+                    <Link to="/professionalRegister">
+                      Quero organizar minha fila →
+                    </Link>
+                  </div>
+                </>
+              )}
+            </div>
+          </section>
         </div>
-      </section>
-      </div>
       </main>
       <SiteFooter />
     </div>

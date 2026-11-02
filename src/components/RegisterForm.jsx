@@ -39,7 +39,8 @@ export default function RegisterForm({
 
   function updateField(field, value) {
     setForm((current) => ({ ...current, [field]: value }));
-    if (field === "password" || field === "confirmPassword") setPasswordError("");
+    if (field === "password" || field === "confirmPassword")
+      setPasswordError("");
   }
 
   async function handleSubmit(event) {
@@ -56,8 +57,14 @@ export default function RegisterForm({
       setValidationError("Informe um telefone com DDD e 10 ou 11 dígitos.");
       return;
     }
-    if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9\s]).{8,12}$/.test(form.password)) {
-      setPasswordError("Use de 8 a 12 caracteres, com letra maiúscula, minúscula, número e caractere especial.");
+    if (
+      !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9\s]).{8,12}$/.test(
+        form.password,
+      )
+    ) {
+      setPasswordError(
+        "Use de 8 a 12 caracteres, com letra maiúscula, minúscula, número e caractere especial.",
+      );
       return;
     }
     if (form.password !== form.confirmPassword) {
@@ -155,7 +162,11 @@ export default function RegisterForm({
         visible={showConfirmPassword}
         setVisible={setShowConfirmPassword}
         placeholder="Digite a senha novamente"
-        error={passwordError && form.password !== form.confirmPassword ? passwordError : ""}
+        error={
+          passwordError && form.password !== form.confirmPassword
+            ? passwordError
+            : ""
+        }
         visibilityLabel="confirmação"
       />
       <div className="registration-consent-options">
@@ -190,11 +201,7 @@ export default function RegisterForm({
           />
           <span>
             Li e concordo com os{" "}
-            <Link
-              to="/termos-de-uso"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
+            <Link to="/termos-de-uso" target="_blank" rel="noopener noreferrer">
               Termos de Uso
             </Link>
             , incluindo as regras de funcionamento da fila.

@@ -28,7 +28,9 @@ function CallCountdown({ toleranceExpiresAt, onExpired }) {
   const minutes = String(Math.floor(totalSeconds / 60)).padStart(2, "0");
   const seconds = String(totalSeconds % 60).padStart(2, "0");
   return (
-    <div className={`call-countdown ${totalSeconds === 0 ? "is-expired" : "is-running"}`}>
+    <div
+      className={`call-countdown ${totalSeconds === 0 ? "is-expired" : "is-running"}`}
+    >
       <div
         className={`salon-timer ${totalSeconds === 0 ? "expired" : ""}`}
         role="timer"
@@ -80,7 +82,10 @@ export default function CurrentServiceCard({
   }
 
   return (
-    <article data-tour="professional-service" className={`now-card status-${current.status.toLowerCase().replace("_", "-")}`}>
+    <article
+      data-tour="professional-service"
+      className={`now-card status-${current.status.toLowerCase().replace("_", "-")}`}
+    >
       <Ticket size={34} aria-hidden="true" />
       <span className="step">ATENDIMENTO ATUAL</span>
       <h2>{current.clientName}</h2>

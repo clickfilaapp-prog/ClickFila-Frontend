@@ -19,8 +19,9 @@ function getEmailVerifiedFromToken(token) {
       decodeURIComponent(
         atob(token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/"))
           .split("")
-          .map((character) =>
-            `%${character.charCodeAt(0).toString(16).padStart(2, "0")}`,
+          .map(
+            (character) =>
+              `%${character.charCodeAt(0).toString(16).padStart(2, "0")}`,
           )
           .join(""),
       ),

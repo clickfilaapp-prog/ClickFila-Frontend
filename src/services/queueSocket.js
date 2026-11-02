@@ -8,12 +8,7 @@ const MAX_RECONNECT_FAILURES = 5;
 const AUTHENTICATION_ERROR_PATTERN = /jwt|user\s+not\s+found/i;
 
 function getSocketErrorMessage(error) {
-  return [
-    error?.headers?.message,
-    error?.body,
-    error?.message,
-    error?.reason,
-  ]
+  return [error?.headers?.message, error?.body, error?.message, error?.reason]
     .filter(Boolean)
     .join(" ");
 }
@@ -148,9 +143,7 @@ export function subscribeToQueue(
     redirectingToLogin = true;
     stopClient();
     clearAuthSession();
-    onError?.(
-      new Error("Sua sessão expirou. Entre novamente para continuar."),
-    );
+    onError?.(new Error("Sua sessão expirou. Entre novamente para continuar."));
     window.location.replace("/login");
   }
 

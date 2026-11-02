@@ -7,7 +7,9 @@ export default function WaitingList({ waiting }) {
       <div className="management-top">
         <div>
           <span className="step">PRÓXIMOS</span>
-          <h2>Minha fila <b>{waiting.length}</b></h2>
+          <h2>
+            Minha fila <b>{waiting.length}</b>
+          </h2>
         </div>
       </div>
       {waiting.length ? (
@@ -15,7 +17,9 @@ export default function WaitingList({ waiting }) {
           <div className="manage-item" key={entry.id}>
             <UsersRound size={20} />
             <div>
-              <strong>{index + 1}. {entry.clientName}</strong>
+              <strong>
+                {index + 1}. {entry.clientName}
+              </strong>
               <small className="client-request-note">
                 <b>OBS:</b> {entry.serviceName}
               </small>

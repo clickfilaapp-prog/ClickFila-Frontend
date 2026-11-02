@@ -103,7 +103,9 @@ export default function ProfessionalDashboard() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [confirmation, setConfirmation] = useState(null);
   const [selectingMember, setSelectingMember] = useState(false);
-  const [successMessage, setSuccessMessage] = useState(location.state?.message || "");
+  const [successMessage, setSuccessMessage] = useState(
+    location.state?.message || "",
+  );
   const [inviteAlert, setInviteAlert] = useState(null);
   const [teamManagementOpen, setTeamManagementOpen] = useState(false);
   const [sentInvites, setSentInvites] = useState([]);
@@ -120,7 +122,9 @@ export default function ProfessionalDashboard() {
       setError("");
     }
     try {
-      let persistedDashboard = await getProfessionalDashboard({ force: !silent });
+      let persistedDashboard = await getProfessionalDashboard({
+        force: !silent,
+      });
       setDashboard((currentDashboard) => {
         const nextDashboard = persistedDashboard || EMPTY_DASHBOARD;
         return {
@@ -135,7 +139,12 @@ export default function ProfessionalDashboard() {
       if (isSessionNotFound(requestError)) {
         setDashboard(EMPTY_DASHBOARD);
       } else if (!silent) {
-        setError(getFriendlyDashboardError(requestError, "Não foi possível carregar o painel. Tente novamente."));
+        setError(
+          getFriendlyDashboardError(
+            requestError,
+            "Não foi possível carregar o painel. Tente novamente.",
+          ),
+        );
       }
     } finally {
       isRefreshing.current = false;
@@ -187,12 +196,21 @@ export default function ProfessionalDashboard() {
   }, [dashboard]);
 
   useEffect(() => {
-    const redirectPeriodEnd = parseSubscriptionPeriodEnd(dashboard?.currentPeriodEnd);
-    const redirectSubscriptionStatus = String(dashboard?.subscriptionStatus || "").toUpperCase();
-    const canceledWithPaidAccess = redirectSubscriptionStatus === "CANCELED"
-      && redirectPeriodEnd
-      && redirectPeriodEnd.getTime() >= Date.now();
-    const subscriptionControlsBusinessAccess = ["PENDING", "SUSPENDED", "CANCELED"].includes(redirectSubscriptionStatus);
+    const redirectPeriodEnd = parseSubscriptionPeriodEnd(
+      dashboard?.currentPeriodEnd,
+    );
+    const redirectSubscriptionStatus = String(
+      dashboard?.subscriptionStatus || "",
+    ).toUpperCase();
+    const canceledWithPaidAccess =
+      redirectSubscriptionStatus === "CANCELED" &&
+      redirectPeriodEnd &&
+      redirectPeriodEnd.getTime() >= Date.now();
+    const subscriptionControlsBusinessAccess = [
+      "PENDING",
+      "SUSPENDED",
+      "CANCELED",
+    ].includes(redirectSubscriptionStatus);
     if (
       dashboard &&
       dashboard.businessIsActive !== true &&
@@ -289,7 +307,9 @@ export default function ProfessionalDashboard() {
       await acceptTeamInvite(blockedInvite.id);
       setBlockedInvite(null);
       await reloadDashboard();
-      setSuccessMessage("Vínculo anterior encerrado e novo convite aceito com sucesso!");
+      setSuccessMessage(
+        "Vínculo anterior encerrado e novo convite aceito com sucesso!",
+      );
     } catch (requestError) {
       setError(getFriendlyDashboardError(requestError));
     } finally {
@@ -312,7 +332,10 @@ export default function ProfessionalDashboard() {
       await reloadDashboard();
       setSuccessMessage("Bem-vindo à equipe!");
     } catch (requestError) {
-      if (requestError.status === 409 && requestError.code === "ALREADY_IN_TEAM") {
+      if (
+        requestError.status === 409 &&
+        requestError.code === "ALREADY_IN_TEAM"
+      ) {
         setBlockedInvite(invite);
       } else {
         setError(getFriendlyDashboardError(requestError));
@@ -350,7 +373,10 @@ export default function ProfessionalDashboard() {
     try {
       const invite = await sendTeamInvite(email);
       if (invite?.id) {
-        setSentInvites((current) => [invite, ...current.filter((item) => item.id !== invite.id)]);
+        setSentInvites((current) => [
+          invite,
+          ...current.filter((item) => item.id !== invite.id),
+        ]);
       }
       setSuccessMessage(`Convite enviado para ${invite?.email || email}.`);
       return true;
@@ -372,7 +398,10 @@ export default function ProfessionalDashboard() {
       setDashboard((currentDashboard) => ({
         ...currentDashboard,
         team: member?.id
-          ? [...currentDashboard.team.filter((item) => item.id !== member.id), member]
+          ? [
+              ...currentDashboard.team.filter((item) => item.id !== member.id),
+              member,
+            ]
           : currentDashboard.team,
       }));
       await reloadDashboard();
@@ -451,7 +480,9 @@ export default function ProfessionalDashboard() {
   const selectedActiveService =
     activeServices.find(
       (entry) => String(entry.id) === String(selectedActiveEntryId),
-    ) || activeServices[0] || null;
+    ) ||
+    activeServices[0] ||
+    null;
   const selectedServiceColorState = selectedActiveService
     ? selectedActiveService.status === "IN_SERVICE"
       ? "is-in-service"
@@ -472,21 +503,33 @@ export default function ProfessionalDashboard() {
   const availableTeam = (dashboard?.team || []).filter(
     (member) => !busyMemberIds.has(String(member.id)),
   );
-  const subscriptionStatus = String(dashboard?.subscriptionStatus || "").toUpperCase();
-  const isBusinessOwner = String(dashboard?.loggedMemberRole || "").toUpperCase() === "OWNER";
+  const subscriptionStatus = String(
+    dashboard?.subscriptionStatus || "",
+  ).toUpperCase();
+  const isBusinessOwner =
+    String(dashboard?.loggedMemberRole || "").toUpperCase() === "OWNER";
   const periodEnd = parseSubscriptionPeriodEnd(dashboard?.currentPeriodEnd);
   const hasValidPeriodEnd = Boolean(periodEnd);
-  const periodIsCurrent = Boolean(hasValidPeriodEnd && periodEnd.getTime() >= Date.now());
-  const formattedPeriodEnd = hasValidPeriodEnd ? periodEnd.toLocaleDateString("pt-BR") : "data não informada";
-  const isGracePeriod = subscriptionStatus === "ACTIVE" && dashboard?.businessIsActive === true && hasValidPeriodEnd && !periodIsCurrent;
-  const isCanceledWithAccess = subscriptionStatus === "CANCELED" && periodIsCurrent;
-  const subscriptionLocked = subscriptionStatus === "PENDING" || subscriptionStatus === "SUSPENDED" || (subscriptionStatus === "CANCELED" && !isCanceledWithAccess);
-
+  const periodIsCurrent = Boolean(
+    hasValidPeriodEnd && periodEnd.getTime() >= Date.now(),
+  );
+  const formattedPeriodEnd = hasValidPeriodEnd
+    ? periodEnd.toLocaleDateString("pt-BR")
+    : "data não informada";
+  const isGracePeriod =
+    subscriptionStatus === "ACTIVE" &&
+    dashboard?.businessIsActive === true &&
+    hasValidPeriodEnd &&
+    !periodIsCurrent;
+  const isCanceledWithAccess =
+    subscriptionStatus === "CANCELED" && periodIsCurrent;
+  const subscriptionLocked =
+    subscriptionStatus === "PENDING" ||
+    subscriptionStatus === "SUSPENDED" ||
+    (subscriptionStatus === "CANCELED" && !isCanceledWithAccess);
 
   useEffect(() => {
-    const currentIds = new Set(
-      activeServices.map((entry) => String(entry.id)),
-    );
+    const currentIds = new Set(activeServices.map((entry) => String(entry.id)));
     const newlyCalledEntries = activeServices.filter(
       (entry) => !previousActiveEntryIds.current.has(String(entry.id)),
     );
@@ -511,7 +554,6 @@ export default function ProfessionalDashboard() {
 
     previousActiveEntryIds.current = currentIds;
   }, [activeServices, selectedActiveEntryId]);
-
 
   function replaceQueueEntry(updatedEntry) {
     if (!updatedEntry?.id) return;
@@ -557,8 +599,8 @@ export default function ProfessionalDashboard() {
         !dashboard?.isActive
           ? "Abra a fila antes de adicionar um cliente à fila."
           : !dashboard?.sessionId
-          ? "Não foi possível identificar a sessão ativa da fila."
-          : "Não foi possível identificar o membro da equipe autenticado.",
+            ? "Não foi possível identificar a sessão ativa da fila."
+            : "Não foi possível identificar o membro da equipe autenticado.",
       );
       return false;
     }
@@ -590,7 +632,12 @@ export default function ProfessionalDashboard() {
       setSuccessMessage(`${clientName} foi adicionado à fila.`);
       return true;
     } catch (requestError) {
-      setError(getFriendlyDashboardError(requestError, "Não foi possível adicionar o cliente à fila. Tente novamente."));
+      setError(
+        getFriendlyDashboardError(
+          requestError,
+          "Não foi possível adicionar o cliente à fila. Tente novamente.",
+        ),
+      );
       return false;
     } finally {
       setLoading(false);
@@ -710,9 +757,7 @@ export default function ProfessionalDashboard() {
         run(async () => {
           const calledEntry = await callNext(dashboard.sessionId, member.id);
           replaceQueueEntry(
-            calledEntry?.id
-              ? calledEntry
-              : { ...nextClient, status: "CALLED" },
+            calledEntry?.id ? calledEntry : { ...nextClient, status: "CALLED" },
           );
         }),
     });
@@ -791,7 +836,12 @@ export default function ProfessionalDashboard() {
           setPrefix("");
           setEditingPrefix(false);
         } catch (requestError) {
-          setPrefixError(getFriendlyDashboardError(requestError, "Não foi possível salvar o prefixo."));
+          setPrefixError(
+            getFriendlyDashboardError(
+              requestError,
+              "Não foi possível salvar o prefixo.",
+            ),
+          );
         } finally {
           setLoading(false);
         }
@@ -899,7 +949,12 @@ export default function ProfessionalDashboard() {
           setToleranceMinutes("");
           setEditingTolerance(false);
         } catch (requestError) {
-          setToleranceError(getFriendlyDashboardError(requestError, "Não foi possível salvar o tempo de tolerância."));
+          setToleranceError(
+            getFriendlyDashboardError(
+              requestError,
+              "Não foi possível salvar o tempo de tolerância.",
+            ),
+          );
         } finally {
           setLoading(false);
         }
@@ -926,7 +981,9 @@ export default function ProfessionalDashboard() {
       emailVerified={dashboard?.emailVerified}
       onEmailVerified={() => refresh()}
     >
-      <main className={`salon-main${subscriptionLocked ? " subscription-is-locked" : ""}`}>
+      <main
+        className={`salon-main${subscriptionLocked ? " subscription-is-locked" : ""}`}
+      >
         {confirmation && (
           <ConfirmationModal
             confirmation={confirmation}
@@ -963,10 +1020,13 @@ export default function ProfessionalDashboard() {
           <ConfirmationModal
             confirmation={{
               title: "Vínculo Ativo Encontrado",
-              message: "Você já está vinculado a uma barbearia. Para aceitar este novo convite, você precisa encerrar seu vínculo atual.",
-              confirmLabel: dashboard?.loggedMemberRole === "OWNER"
-                ? "Desativar minha barbearia"
-                : "Sair da equipe atual",
+              message:
+                "Você já está vinculado a uma barbearia. Para aceitar este " +
+                "novo convite, você precisa encerrar seu vínculo atual.",
+              confirmLabel:
+                dashboard?.loggedMemberRole === "OWNER"
+                  ? "Desativar minha barbearia"
+                  : "Sair da equipe atual",
               backLabel: "Cancelar",
               danger: true,
             }}
@@ -987,52 +1047,149 @@ export default function ProfessionalDashboard() {
           </div>
         )}
         {successMessage && (
-          <div className="toast" role="status" aria-live="polite">{successMessage}</div>
+          <div className="toast" role="status" aria-live="polite">
+            {successMessage}
+          </div>
         )}
         {isGracePeriod && (
           <div className="subscription-banner past-due" role="alert">
-            <span>⚠️ Sua fatura venceu dia {formattedPeriodEnd}. Regularize o pagamento para evitar o bloqueio do sistema.</span>
-            {isBusinessOwner && <button type="button" onClick={() => navigate("/billing", { state: { businessRole: dashboard?.loggedMemberRole, businessId: dashboard?.businessId } })}>Pagar agora</button>}
+            <span>
+              ⚠️ Sua fatura venceu dia {formattedPeriodEnd}. Regularize o
+              pagamento para evitar o bloqueio do sistema.
+            </span>
+            {isBusinessOwner && (
+              <button
+                type="button"
+                onClick={() =>
+                  navigate("/billing", {
+                    state: {
+                      businessRole: dashboard?.loggedMemberRole,
+                      businessId: dashboard?.businessId,
+                    },
+                  })
+                }
+              >
+                Pagar agora
+              </button>
+            )}
           </div>
         )}
         {isCanceledWithAccess && (
           <div className="subscription-banner canceled-access" role="status">
-            <span>ℹ️ Sua assinatura está cancelada, mas você ainda tem acesso garantido até o dia {formattedPeriodEnd}.</span>
-            {isBusinessOwner && <button type="button" onClick={() => navigate("/billing", { state: { businessRole: dashboard?.loggedMemberRole, businessId: dashboard?.businessId } })}>Reativar assinatura</button>}
+            <span>
+              ℹ️ Sua assinatura está cancelada, mas você ainda tem acesso
+              garantido até o dia {formattedPeriodEnd}.
+            </span>
+            {isBusinessOwner && (
+              <button
+                type="button"
+                onClick={() =>
+                  navigate("/billing", {
+                    state: {
+                      businessRole: dashboard?.loggedMemberRole,
+                      businessId: dashboard?.businessId,
+                    },
+                  })
+                }
+              >
+                Reativar assinatura
+              </button>
+            )}
           </div>
         )}
         {subscriptionLocked && (
           <section className="subscription-hard-lock" role="alert">
             <AlertTriangle size={42} />
             <span className="step">ACESSO BLOQUEADO</span>
-            <h2>{subscriptionStatus === "CANCELED" ? "Assinatura cancelada" : subscriptionStatus === "PENDING" ? "Aguardando pagamento" : "Sistema suspenso"}</h2>
-            <p>{subscriptionStatus === "CANCELED" ? "❌ Sua assinatura foi cancelada. Para voltar a usar o sistema, escolha um novo plano." : subscriptionStatus === "PENDING" ? "⏳ Aguardando a confirmação do pagamento para liberar seu acesso." : "🔒 Sistema suspenso por falta de pagamento. Efetue o pagamento da fatura pendente para reativar seu acesso."}</p>
-            {isBusinessOwner && (subscriptionStatus === "PENDING" ? <div className="subscription-lock-actions">
-              <button type="button" onClick={() => navigate("/billing", { state: { businessRole: dashboard?.loggedMemberRole, businessId: dashboard?.businessId, billingAction: "view-pix" } })}>Ver PIX</button>
-              <button type="button" className="secondary" onClick={() => navigate("/billing", { state: { businessRole: dashboard?.loggedMemberRole, businessId: dashboard?.businessId, billingAction: "payment-method" } })}>Alterar forma de pagamento</button>
-            </div> : <button type="button" onClick={() => navigate("/billing", { state: { businessRole: dashboard?.loggedMemberRole, businessId: dashboard?.businessId } })}>{subscriptionStatus === "CANCELED" ? "Escolher novo plano" : "Pagar agora"}</button>)}
+            <h2>
+              {subscriptionStatus === "CANCELED"
+                ? "Assinatura cancelada"
+                : subscriptionStatus === "PENDING"
+                  ? "Aguardando pagamento"
+                  : "Sistema suspenso"}
+            </h2>
+            <p>
+              {subscriptionStatus === "CANCELED"
+                ? "❌ Sua assinatura foi cancelada. Para voltar a usar o sistema, escolha um novo plano."
+                : subscriptionStatus === "PENDING"
+                  ? "⏳ Aguardando a confirmação do pagamento para liberar seu acesso."
+                  : "🔒 Sistema suspenso por falta de pagamento. Efetue o " +
+                    "pagamento da fatura pendente para reativar seu acesso."}
+            </p>
+            {isBusinessOwner &&
+              (subscriptionStatus === "PENDING" ? (
+                <div className="subscription-lock-actions">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      navigate("/billing", {
+                        state: {
+                          businessRole: dashboard?.loggedMemberRole,
+                          businessId: dashboard?.businessId,
+                          billingAction: "view-pix",
+                        },
+                      })
+                    }
+                  >
+                    Ver PIX
+                  </button>
+                  <button
+                    type="button"
+                    className="secondary"
+                    onClick={() =>
+                      navigate("/billing", {
+                        state: {
+                          businessRole: dashboard?.loggedMemberRole,
+                          businessId: dashboard?.businessId,
+                          billingAction: "payment-method",
+                        },
+                      })
+                    }
+                  >
+                    Alterar forma de pagamento
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() =>
+                    navigate("/billing", {
+                      state: {
+                        businessRole: dashboard?.loggedMemberRole,
+                        businessId: dashboard?.businessId,
+                      },
+                    })
+                  }
+                >
+                  {subscriptionStatus === "CANCELED"
+                    ? "Escolher novo plano"
+                    : "Pagar agora"}
+                </button>
+              ))}
           </section>
         )}
         {dashboard &&
           !hasBusiness &&
           (dashboard.pendingInvites || []).length > 0 && (
-          <section className="professional-welcome-card">
-            <div className="welcome-business-icon"><Building2 size={38} /></div>
-            <span className="step">BEM-VINDO AO CLICKFILA</span>
-            <h2>Seu próximo passo começa agora.</h2>
-            <p>
-              Crie sua própria empresa para organizar a fila, montar sua equipe
-              e oferecer uma experiência melhor aos clientes.
-            </p>
-            <button
-              className="welcome-primary-action"
-              type="button"
-              onClick={() => navigate("/professional/business/new")}
-            >
-              <UserPlus size={20} /> Criar Minha Empresa
-            </button>
-          </section>
-        )}
+            <section className="professional-welcome-card">
+              <div className="welcome-business-icon">
+                <Building2 size={38} />
+              </div>
+              <span className="step">BEM-VINDO AO CLICKFILA</span>
+              <h2>Seu próximo passo começa agora.</h2>
+              <p>
+                Crie sua própria empresa para organizar a fila, montar sua
+                equipe e oferecer uma experiência melhor aos clientes.
+              </p>
+              <button
+                className="welcome-primary-action"
+                type="button"
+                onClick={() => navigate("/professional/business/new")}
+              >
+                <UserPlus size={20} /> Criar Minha Empresa
+              </button>
+            </section>
+          )}
         {dashboard && hasBusiness && hasSession && (
           <QueueControlPanel
             dashboard={dashboard}
@@ -1095,7 +1252,9 @@ export default function ProfessionalDashboard() {
                     >
                       {activeServices.map((entry) => (
                         <option key={entry.id} value={entry.id}>
-                          {entry.servedByMemberName || "Profissional não identificado"} — {entry.clientName}
+                          {entry.servedByMemberName ||
+                            "Profissional não identificado"}{" "}
+                          — {entry.clientName}
                         </option>
                       ))}
                     </select>
@@ -1140,7 +1299,9 @@ export default function ProfessionalDashboard() {
           </section>
         )}
         {dashboard && hasBusiness && hasSession && (
-          <section className={`team-management-shell${teamManagementOpen ? " team-management-mobile-open" : ""}`}>
+          <section
+            className={`team-management-shell${teamManagementOpen ? " team-management-mobile-open" : ""}`}
+          >
             <div className="team-management-actions">
               <button
                 className="walk-in-trigger"
@@ -1151,13 +1312,16 @@ export default function ProfessionalDashboard() {
                 <UserPlus size={19} /> Adicionar cliente à fila
               </button>
               {isBusinessOwner && (
-            <button
-              className={`manage-team-trigger ${teamManagementOpen ? "close-action" : ""}`}
-              type="button"
-              onClick={() => setTeamManagementOpen((open) => !open)}
-            >
-              <UserPlus size={19} /> {teamManagementOpen ? "Fechar gestão da equipe" : "Gerenciar Equipe"}
-            </button>
+                <button
+                  className={`manage-team-trigger ${teamManagementOpen ? "close-action" : ""}`}
+                  type="button"
+                  onClick={() => setTeamManagementOpen((open) => !open)}
+                >
+                  <UserPlus size={19} />{" "}
+                  {teamManagementOpen
+                    ? "Fechar gestão da equipe"
+                    : "Gerenciar Equipe"}
+                </button>
               )}
             </div>
             {isBusinessOwner && teamManagementOpen && (
@@ -1173,18 +1337,21 @@ export default function ProfessionalDashboard() {
             )}
           </section>
         )}
-        {dashboard && hasBusiness && !isBusinessOwner && dashboard.loggedMemberRole && (
-          <section className="leave-team-shell">
-            <button
-              className="leave-team-trigger"
-              type="button"
-              disabled={loading}
-              onClick={handleLeaveTeam}
-            >
-              <LogOut size={18} /> Sair da equipe
-            </button>
-          </section>
-        )}
+        {dashboard &&
+          hasBusiness &&
+          !isBusinessOwner &&
+          dashboard.loggedMemberRole && (
+            <section className="leave-team-shell">
+              <button
+                className="leave-team-trigger"
+                type="button"
+                disabled={loading}
+                onClick={handleLeaveTeam}
+              >
+                <LogOut size={18} /> Sair da equipe
+              </button>
+            </section>
+          )}
       </main>
     </DashboardLayout>
   );

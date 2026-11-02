@@ -1,54 +1,104 @@
 import React, { useEffect, useState } from "react";
-import { AlertTriangle, ArrowRightLeft, Building2, CalendarDays, CheckCircle2, CreditCard, Info, LoaderCircle, Pencil, Power, QrCode } from "lucide-react";
+import {
+  AlertTriangle,
+  ArrowRightLeft,
+  Building2,
+  CalendarDays,
+  CheckCircle2,
+  CreditCard,
+  Info,
+  LoaderCircle,
+  Pencil,
+  Power,
+  QrCode,
+} from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import DashboardLayout from "../components/DashboardLayout";
 import CreditCardUpdateModal from "../components/billing/CreditCardUpdateModal";
 import PixPaymentModal from "../components/billing/PixPaymentModal";
 import ConfirmationModal from "../components/professionalDashboard/ConfirmationModal";
-import { clearProfessionalDashboardCache, deactivateBusiness, getMyBusiness, getProfessionalDashboard, updateMyBusiness } from "../services/queue";
-import { cancelSubscription, getMySubscription, getPlans, getSubscriptionPixQrCode, updateSubscriptionPaymentMethod } from "../services/billing";
+import {
+  clearProfessionalDashboardCache,
+  deactivateBusiness,
+  getMyBusiness,
+  getProfessionalDashboard,
+  updateMyBusiness,
+} from "../services/queue";
+import {
+  cancelSubscription,
+  getMySubscription,
+  getPlans,
+  getSubscriptionPixQrCode,
+  updateSubscriptionPaymentMethod,
+} from "../services/billing";
 
-const money = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
+const money = new Intl.NumberFormat("pt-BR", {
+  style: "currency",
+  currency: "BRL",
+});
 
 function firstValue(...values) {
-  return values.find((value) => value !== undefined && value !== null && value !== "") ?? null;
+  return (
+    values.find(
+      (value) => value !== undefined && value !== null && value !== "",
+    ) ?? null
+  );
 }
 
 function formatDate(value) {
   if (!value) return "Não informado";
-  const date = new Date(String(value).includes("T") ? value : `${value}T12:00:00`);
-  return Number.isNaN(date.getTime()) ? String(value) : date.toLocaleDateString("pt-BR");
+  const date = new Date(
+    String(value).includes("T") ? value : `${value}T12:00:00`,
+  );
+  return Number.isNaN(date.getTime())
+    ? String(value)
+    : date.toLocaleDateString("pt-BR");
 }
 
 function formatDocument(value) {
   const digits = String(value || "").replace(/\D/g, "");
-  if (digits.length === 11) return digits.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
-  if (digits.length === 14) return digits.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, "$1.$2.$3/$4-$5");
+  if (digits.length === 11)
+    return digits.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
+  if (digits.length === 14)
+    return digits.replace(
+      /(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/,
+      "$1.$2.$3/$4-$5",
+    );
   return value || "Não informado";
 }
 
 function formatPhone(value) {
   const digits = String(value || "").replace(/\D/g, "");
-  if (digits.length === 10) return digits.replace(/(\d{2})(\d{4})(\d{4})/, "($1) $2-$3");
-  if (digits.length === 11) return digits.replace(/(\d{2})(\d{5})(\d{4})/, "($1) $2-$3");
+  if (digits.length === 10)
+    return digits.replace(/(\d{2})(\d{4})(\d{4})/, "($1) $2-$3");
+  if (digits.length === 11)
+    return digits.replace(/(\d{2})(\d{5})(\d{4})/, "($1) $2-$3");
   return value || "Não informado";
 }
 
 const STATUS_LABELS = {
-  ACTIVE: "Assinatura ativa", TRIAL: "Em teste", PAST_DUE: "Pagamento pendente",
-  PENDING: "Aguardando pagamento", SUSPENDED: "Suspensa", CANCELED: "Cancelada",
+  ACTIVE: "Assinatura ativa",
+  TRIAL: "Em teste",
+  PAST_DUE: "Pagamento pendente",
+  PENDING: "Aguardando pagamento",
+  SUSPENDED: "Suspensa",
+  CANCELED: "Cancelada",
 };
 
 function daysUntil(value) {
   if (!value) return null;
-  const end = new Date(String(value).includes("T") ? value : `${value}T23:59:59`);
+  const end = new Date(
+    String(value).includes("T") ? value : `${value}T23:59:59`,
+  );
   if (Number.isNaN(end.getTime())) return null;
   return Math.max(0, Math.ceil((end.getTime() - Date.now()) / 86400000));
 }
 
 function billingDaysUntil(value) {
   if (!value) return null;
-  const dueDate = new Date(String(value).includes("T") ? value : `${value}T00:00:00`);
+  const dueDate = new Date(
+    String(value).includes("T") ? value : `${value}T00:00:00`,
+  );
   if (Number.isNaN(dueDate.getTime())) return null;
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -60,13 +110,22 @@ function normalizePixData(response) {
   if (!response) return null;
   const pixQrCodeBase64 = response.pixQrCodeBase64 || response.encodedImage;
   const pixCopiaECola = response.pixCopiaECola || response.payload;
-  return pixQrCodeBase64 && pixCopiaECola ? { ...response, pixQrCodeBase64, pixCopiaECola } : null;
+  return pixQrCodeBase64 && pixCopiaECola
+    ? { ...response, pixQrCodeBase64, pixCopiaECola }
+    : null;
 }
 
 function matchesCurrentPlan(plan, subscription) {
-  const current = [subscription?.planCode, subscription?.planName, subscription?.plan?.code, subscription?.plan?.name]
-    .filter(Boolean).map((value) => String(value).toLowerCase());
-  return [plan?.code, plan?.name].filter(Boolean)
+  const current = [
+    subscription?.planCode,
+    subscription?.planName,
+    subscription?.plan?.code,
+    subscription?.plan?.name,
+  ]
+    .filter(Boolean)
+    .map((value) => String(value).toLowerCase());
+  return [plan?.code, plan?.name]
+    .filter(Boolean)
     .some((value) => current.includes(String(value).toLowerCase()));
 }
 
@@ -98,30 +157,53 @@ export default function Billing() {
       setLoading(true);
       setError("");
       try {
-        const optional404 = (promise) => promise.catch((requestError) => {
-          if (requestError.status === 404) return null;
-          throw requestError;
-        });
+        const optional404 = (promise) =>
+          promise.catch((requestError) => {
+            if (requestError.status === 404) return null;
+            throw requestError;
+          });
         const optionalBusiness = getMyBusiness().catch(() => null);
         const navigationBusinessId = location.state?.businessId || null;
-        const navigationRole = String(location.state?.businessRole || "").toUpperCase();
-        const dashboardRequest = navigationBusinessId && navigationRole
-          ? Promise.resolve({ businessId: navigationBusinessId, loggedMemberRole: navigationRole })
-          : getProfessionalDashboard();
-        const [dashboard, currentBusiness, currentSubscription] = await Promise.all([
-          dashboardRequest, optionalBusiness, optional404(getMySubscription()),
-        ]);
+        const navigationRole = String(
+          location.state?.businessRole || "",
+        ).toUpperCase();
+        const dashboardRequest =
+          navigationBusinessId && navigationRole
+            ? Promise.resolve({
+                businessId: navigationBusinessId,
+                loggedMemberRole: navigationRole,
+              })
+            : getProfessionalDashboard();
+        const [dashboard, currentBusiness, currentSubscription] =
+          await Promise.all([
+            dashboardRequest,
+            optionalBusiness,
+            optional404(getMySubscription()),
+          ]);
         if (!active) return;
         const role = String(dashboard?.loggedMemberRole || "").toUpperCase();
         if (role && role !== "OWNER") {
           navigate("/professionalDashboard", { replace: true });
           return;
         }
-        const businessPayload = currentBusiness?.data || currentBusiness?.business || currentBusiness || {};
+        const businessPayload =
+          currentBusiness?.data ||
+          currentBusiness?.business ||
+          currentBusiness ||
+          {};
         const loadedBusiness = {
-          ...(dashboard?.business || {}), ...businessPayload,
-          id: firstValue(businessPayload?.id, businessPayload?.businessId, dashboard?.businessId),
-          name: firstValue(businessPayload?.name, businessPayload?.businessName, dashboard?.businessName),
+          ...(dashboard?.business || {}),
+          ...businessPayload,
+          id: firstValue(
+            businessPayload?.id,
+            businessPayload?.businessId,
+            dashboard?.businessId,
+          ),
+          name: firstValue(
+            businessPayload?.name,
+            businessPayload?.businessName,
+            dashboard?.businessName,
+          ),
         };
         setBusiness(loadedBusiness);
         setBusinessName(loadedBusiness.name || "");
@@ -133,7 +215,9 @@ export default function Billing() {
       }
     }
     load();
-    return () => { active = false; };
+    return () => {
+      active = false;
+    };
   }, [navigate, location.state?.businessId, location.state?.businessRole]);
 
   useEffect(() => {
@@ -144,33 +228,107 @@ export default function Billing() {
 
   const status = String(subscription?.status || "").toUpperCase();
   const businessId = business?.id;
-  const currentPlan = plans.find((plan) => matchesCurrentPlan(plan, subscription));
-  const planName = firstValue(subscription?.planName, subscription?.plan?.name, currentPlan?.name, "Sem plano");
-  const planPrice = Number(firstValue(subscription?.price, subscription?.amount, subscription?.planPrice, subscription?.plan?.price, currentPlan?.price, 0));
-  const billingCycle = firstValue(subscription?.billingCycle, subscription?.plan?.billingCycle, currentPlan?.billingCycle);
-  const periodEnd = firstValue(subscription?.nextBillingDate, subscription?.currentPeriodEnd, subscription?.expiresAt);
-  const currentPlanCode = firstValue(subscription?.planCode, subscription?.planId, subscription?.plan?.code, subscription?.plan?.id, currentPlan?.code, currentPlan?.id);
+  const currentPlan = plans.find((plan) =>
+    matchesCurrentPlan(plan, subscription),
+  );
+  const planName = firstValue(
+    subscription?.planName,
+    subscription?.plan?.name,
+    currentPlan?.name,
+    "Sem plano",
+  );
+  const planPrice = Number(
+    firstValue(
+      subscription?.price,
+      subscription?.amount,
+      subscription?.planPrice,
+      subscription?.plan?.price,
+      currentPlan?.price,
+      0,
+    ),
+  );
+  const billingCycle = firstValue(
+    subscription?.billingCycle,
+    subscription?.plan?.billingCycle,
+    currentPlan?.billingCycle,
+  );
+  const periodEnd = firstValue(
+    subscription?.nextBillingDate,
+    subscription?.currentPeriodEnd,
+    subscription?.expiresAt,
+  );
+  const currentPlanCode = firstValue(
+    subscription?.planCode,
+    subscription?.planId,
+    subscription?.plan?.code,
+    subscription?.plan?.id,
+    currentPlan?.code,
+    currentPlan?.id,
+  );
   const cancelAtPeriodEnd = Boolean(subscription?.cancelAtPeriodEnd);
   const canReactivateSubscription = status === "CANCELED" || cancelAtPeriodEnd;
   const displayedStatus = canReactivateSubscription ? "CANCELED" : status;
   const savedCreditCard = subscription?.creditCard || null;
-  const paymentMethod = String(firstValue(subscription?.activePaymentMethod, subscription?.paymentMethod, subscription?.paymentType, subscription?.billingType, savedCreditCard ? "CREDIT_CARD" : "PIX")).trim().toUpperCase();
-  const creditCard = paymentMethod === "CREDIT_CARD" && savedCreditCard
-    ? { ...savedCreditCard, brand: savedCreditCard.cardBrand || savedCreditCard.brand }
-    : null;
+  const paymentMethod = String(
+    firstValue(
+      subscription?.activePaymentMethod,
+      subscription?.paymentMethod,
+      subscription?.paymentType,
+      subscription?.billingType,
+      savedCreditCard ? "CREDIT_CARD" : "PIX",
+    ),
+  )
+    .trim()
+    .toUpperCase();
+  const creditCard =
+    paymentMethod === "CREDIT_CARD" && savedCreditCard
+      ? {
+          ...savedCreditCard,
+          brand: savedCreditCard.cardBrand || savedCreditCard.brand,
+        }
+      : null;
   const hasPendingPayment = subscription?.hasPendingPayment === true;
   const trialDays = daysUntil(periodEnd);
   const pendingDays = billingDaysUntil(subscription?.currentPeriodEnd);
   const pendingPaymentAlert = (() => {
     if (!hasPendingPayment || canReactivateSubscription) return null;
     if (paymentMethod === "PIX") {
-      if (pendingDays === null) return { tone: "upcoming", message: "Você tem uma fatura PIX aguardando pagamento." };
-      if (pendingDays > 0) return { tone: "upcoming", message: `Faltam ${pendingDays} ${pendingDays === 1 ? "dia" : "dias"} para o vencimento da sua fatura.` };
-      if (pendingDays === 0) return { tone: "due-today", message: "Sua fatura vence hoje. Efetue o pagamento para evitar a suspensão do acesso." };
+      if (pendingDays === null)
+        return {
+          tone: "upcoming",
+          message: "Você tem uma fatura PIX aguardando pagamento.",
+        };
+      if (pendingDays > 0)
+        return {
+          tone: "upcoming",
+          message: `Faltam ${pendingDays} ${pendingDays === 1 ? "dia" : "dias"} para o vencimento da sua fatura.`,
+        };
+      if (pendingDays === 0)
+        return {
+          tone: "due-today",
+          message:
+            "Sua fatura vence hoje. Efetue o pagamento para evitar a suspensão do acesso.",
+        };
       const overdueDays = Math.abs(pendingDays);
-      return { tone: "overdue", message: `Sua fatura venceu há ${overdueDays} ${overdueDays === 1 ? "dia" : "dias"}. Pague agora para não perder o acesso.` };
+      return {
+        tone: "overdue",
+        message:
+          `Sua fatura venceu há ${overdueDays} ` +
+          `${overdueDays === 1 ? "dia" : "dias"}. ` +
+          "Pague agora para não perder o acesso.",
+      };
     }
-    if (paymentMethod === "CREDIT_CARD" && pendingDays !== null && pendingDays < 0) return { tone: "overdue", message: "O pagamento automático falhou. Atualize sua forma de pagamento (novo cartão ou PIX) para manter o sistema ativo." };
+    if (
+      paymentMethod === "CREDIT_CARD" &&
+      pendingDays !== null &&
+      pendingDays < 0
+    )
+      return {
+        tone: "overdue",
+        message:
+          "O pagamento automático falhou. Atualize sua forma de pagamento " +
+          "(novo cartão ou PIX) para manter o sistema ativo.",
+      };
     return null;
   })();
 
@@ -179,16 +337,34 @@ export default function Billing() {
     if (loading || status !== "PENDING" || !billingAction) return;
     navigate(location.pathname, {
       replace: true,
-      state: { businessRole: location.state?.businessRole, businessId: location.state?.businessId },
+      state: {
+        businessRole: location.state?.businessRole,
+        businessId: location.state?.businessId,
+      },
     });
-    if (billingAction === "view-pix" && paymentMethod === "PIX") showPendingPix();
+    if (billingAction === "view-pix" && paymentMethod === "PIX")
+      showPendingPix();
     if (billingAction === "payment-method") setUpdatingCard(true);
-  }, [loading, location.pathname, location.state?.billingAction, location.state?.businessId, location.state?.businessRole, navigate, paymentMethod, status]);
+  }, [
+    loading,
+    location.pathname,
+    location.state?.billingAction,
+    location.state?.businessId,
+    location.state?.businessRole,
+    navigate,
+    paymentMethod,
+    status,
+  ]);
 
   function subscribe(plan) {
-    if (!businessId) return setError("Crie ou reative sua empresa antes de assinar um plano.");
+    if (!businessId)
+      return setError("Crie ou reative sua empresa antes de assinar um plano.");
     navigate(`/billing/checkout/${encodeURIComponent(plan.code)}`, {
-      state: { plan, changingPlan: status === "ACTIVE" && !cancelAtPeriodEnd, savedCard: savedCreditCard },
+      state: {
+        plan,
+        changingPlan: status === "ACTIVE" && !cancelAtPeriodEnd,
+        savedCard: savedCreditCard,
+      },
     });
   }
 
@@ -224,12 +400,24 @@ export default function Billing() {
     setError("");
     try {
       const updated = await updateMyBusiness(name);
-      const updatedName = firstValue(updated?.name, updated?.businessName, name);
-      setBusiness((current) => ({ ...current, ...(updated || {}), name: updatedName }));
+      const updatedName = firstValue(
+        updated?.name,
+        updated?.businessName,
+        name,
+      );
+      setBusiness((current) => ({
+        ...current,
+        ...(updated || {}),
+        name: updatedName,
+      }));
       setBusinessName(updatedName);
       clearProfessionalDashboardCache();
       setEditingBusiness(false);
-      window.dispatchEvent(new CustomEvent("barberflow:profile-updated", { detail: { businessName: updatedName } }));
+      window.dispatchEvent(
+        new CustomEvent("barberflow:profile-updated", {
+          detail: { businessName: updatedName },
+        }),
+      );
     } catch (requestError) {
       setError(requestError.message);
     } finally {
@@ -243,12 +431,17 @@ export default function Billing() {
     try {
       await deactivateBusiness();
       clearProfessionalDashboardCache();
-      navigate("/professionalDashboard", { replace: true, state: { toast: "Empresa desativada com sucesso." } });
+      navigate("/professionalDashboard", {
+        replace: true,
+        state: { toast: "Empresa desativada com sucesso." },
+      });
     } catch (requestError) {
       setConfirmDeactivate(false);
-      setError(requestError.status === 409
-        ? "Não é possível desativar a empresa enquanto houver uma fila aberta ou clientes aguardando."
-        : requestError.message);
+      setError(
+        requestError.status === 409
+          ? "Não é possível desativar a empresa enquanto houver uma fila aberta ou clientes aguardando."
+          : requestError.message,
+      );
     } finally {
       setLoading(false);
     }
@@ -262,7 +455,10 @@ export default function Billing() {
       setSubscription((current) => ({ ...current, cancelAtPeriodEnd: true }));
       setConfirmCancel(false);
       setShowPlans(false);
-      setSuccessMessage("Assinatura cancelada. O valor pago não será estornado, mas seu acesso continuará disponível até o fim do ciclo já pago.");
+      setSuccessMessage(
+        "Assinatura cancelada. O valor pago não será estornado, mas seu " +
+          "acesso continuará disponível até o fim do ciclo já pago.",
+      );
     } catch (requestError) {
       setConfirmCancel(false);
       setError(requestError.message);
@@ -278,11 +474,16 @@ export default function Billing() {
     try {
       let response = await getSubscriptionPixQrCode();
       if (response === null) {
-        response = await updateSubscriptionPaymentMethod({ paymentMethod: "PIX" });
-        getMySubscription().then(setSubscription).catch(() => {});
+        response = await updateSubscriptionPaymentMethod({
+          paymentMethod: "PIX",
+        });
+        getMySubscription()
+          .then(setSubscription)
+          .catch(() => {});
       }
       const normalizedPix = normalizePixData(response);
-      if (!normalizedPix) throw new Error("A API não retornou os dados da cobrança PIX.");
+      if (!normalizedPix)
+        throw new Error("A API não retornou os dados da cobrança PIX.");
       setPixData(normalizedPix);
     } catch (requestError) {
       setError(requestError.message);
@@ -294,16 +495,34 @@ export default function Billing() {
   return (
     <DashboardLayout tutorialReady={false}>
       <main className="billing-main">
-        {pixData && <PixPaymentModal pixData={pixData} onClose={() => setPixData(null)} />}
+        {pixData && (
+          <PixPaymentModal pixData={pixData} onClose={() => setPixData(null)} />
+        )}
         {confirmDeactivate && (
           <ConfirmationModal
-            confirmation={{ title: "Desativar minha empresa", message: "Sua empresa ficará inativa e não poderá receber novas pessoas na fila. Deseja continuar?", confirmLabel: "Sim, desativar empresa", danger: true }}
-            loading={loading} onBack={() => setConfirmDeactivate(false)} onConfirm={confirmBusinessDeactivation}
+            confirmation={{
+              title: "Desativar minha empresa",
+              message:
+                "Sua empresa ficará inativa e não poderá receber novas pessoas na fila. Deseja continuar?",
+              confirmLabel: "Sim, desativar empresa",
+              danger: true,
+            }}
+            loading={loading}
+            onBack={() => setConfirmDeactivate(false)}
+            onConfirm={confirmBusinessDeactivation}
           />
         )}
         {confirmCancel && (
           <ConfirmationModal
-            confirmation={{ title: "Cancelar assinatura", message: "O valor pago não será estornado. Você continuará com acesso até o final do ciclo já pago. Deseja continuar?", backLabel: "Voltar", confirmLabel: "Sim, cancelar assinatura", danger: true }}
+            confirmation={{
+              title: "Cancelar assinatura",
+              message:
+                "O valor pago não será estornado. Você continuará com acesso " +
+                "até o final do ciclo já pago. Deseja continuar?",
+              backLabel: "Voltar",
+              confirmLabel: "Sim, cancelar assinatura",
+              danger: true,
+            }}
             loading={cancelingSubscription}
             onBack={() => setConfirmCancel(false)}
             onConfirm={confirmSubscriptionCancellation}
@@ -313,111 +532,487 @@ export default function Billing() {
           <CreditCardUpdateModal
             planId={currentPlanCode}
             savedCard={savedCreditCard}
-            initialPaymentMethod={status === "PENDING" ? "CREDIT_CARD" : paymentMethod}
+            initialPaymentMethod={
+              status === "PENDING" ? "CREDIT_CARD" : paymentMethod
+            }
             initialValues={{
               name: firstValue(business?.ownerName, business?.user?.name, ""),
               email: firstValue(business?.user?.login, business?.email, ""),
-              cpfCnpj: firstValue(business?.cpfCnpj, business?.document, business?.taxId, ""),
+              cpfCnpj: firstValue(
+                business?.cpfCnpj,
+                business?.document,
+                business?.taxId,
+                "",
+              ),
               phone: firstValue(business?.user?.phone, business?.phone, ""),
             }}
             onClose={() => setUpdatingCard(false)}
             onSuccess={(updatedPaymentMethod, response) => {
               setUpdatingCard(false);
-              if (updatedPaymentMethod === "PIX" && response?.pixQrCodeBase64 && response?.pixCopiaECola) setPixData(response);
-              setSuccessMessage(updatedPaymentMethod === "PIX" ? "Forma de pagamento alterada para PIX!" : "Cartão atualizado com sucesso!");
-              getMySubscription().then(setSubscription).catch(() => {});
+              if (
+                updatedPaymentMethod === "PIX" &&
+                response?.pixQrCodeBase64 &&
+                response?.pixCopiaECola
+              )
+                setPixData(response);
+              setSuccessMessage(
+                updatedPaymentMethod === "PIX"
+                  ? "Forma de pagamento alterada para PIX!"
+                  : "Cartão atualizado com sucesso!",
+              );
+              getMySubscription()
+                .then(setSubscription)
+                .catch(() => {});
             }}
-            onInvalidSubscription={() => { setUpdatingCard(false); setError("Não foi possível localizar uma assinatura ativa para atualização."); }}
+            onInvalidSubscription={() => {
+              setUpdatingCard(false);
+              setError(
+                "Não foi possível localizar uma assinatura ativa para atualização.",
+              );
+            }}
           />
         )}
         <div className="panel-heading billing-page-heading">
-          <div><span className="step">MINHA CONTA</span><h1>Empresa e Assinatura</h1><p>Gerencie as informações da sua empresa e acompanhe sua assinatura.</p></div>
+          <div>
+            <span className="step">MINHA CONTA</span>
+            <h1>Empresa e Assinatura</h1>
+            <p>
+              Gerencie as informações da sua empresa e acompanhe sua assinatura.
+            </p>
+          </div>
         </div>
-        {error && <div className="login-auth-error" role="alert">{error}</div>}
-        {successMessage && <div className="toast" role="status" aria-live="polite">{successMessage}</div>}
+        {error && (
+          <div className="login-auth-error" role="alert">
+            {error}
+          </div>
+        )}
+        {successMessage && (
+          <div className="toast" role="status" aria-live="polite">
+            {successMessage}
+          </div>
+        )}
 
         <section className="business-details-card">
           <div className="business-card-heading">
-            <div className="billing-card-icon business-icon"><Building2 /></div>
-            <div><h2>Informações da empresa</h2><p>Dados cadastrais da sua empresa.</p></div>
-            <button type="button" onClick={() => { setBusinessName(business?.name || ""); setEditingBusiness((editing) => !editing); }}><Pencil size={17} /> {editingBusiness ? "Cancelar" : "Editar"}</button>
+            <div className="billing-card-icon business-icon">
+              <Building2 />
+            </div>
+            <div>
+              <h2>Informações da empresa</h2>
+              <p>Dados cadastrais da sua empresa.</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setBusinessName(business?.name || "");
+                setEditingBusiness((editing) => !editing);
+              }}
+            >
+              <Pencil size={17} /> {editingBusiness ? "Cancelar" : "Editar"}
+            </button>
           </div>
-          {loading ? <p className="billing-loading">Carregando dados da empresa...</p> : (
-            editingBusiness ? (
-              <form className="business-edit-form" onSubmit={saveBusinessName}>
-                <label htmlFor="billing-business-name">Nome da empresa</label>
-                <div><input id="billing-business-name" value={businessName} minLength={3} maxLength={50} onChange={(event) => setBusinessName(event.target.value)} autoFocus /><button type="submit" disabled={savingBusiness}>{savingBusiness ? "Salvando..." : "Salvar"}</button></div>
-              </form>
-            ) : (
-              <div className="business-details-grid">
-                <div><span>Nome da empresa</span><strong>{business?.name || "Não informado"}</strong></div>
-                {firstValue(business?.cpfCnpj, business?.document, business?.taxId) && <div><span>CPF/CNPJ</span><strong>{formatDocument(firstValue(business?.cpfCnpj, business?.document, business?.taxId))}</strong></div>}
-                {firstValue(business?.user?.login, business?.email) && <div><span>E-mail da empresa</span><strong>{firstValue(business?.user?.login, business?.email)}</strong></div>}
-                {firstValue(business?.user?.phone, business?.phone) && <div><span>Telefone</span><strong>{formatPhone(firstValue(business?.user?.phone, business?.phone))}</strong></div>}
-                {firstValue(business?.createdAt, business?.createdDate, business?.registrationDate) && <div><span>Data de cadastro</span><strong>{formatDate(firstValue(business?.createdAt, business?.createdDate, business?.registrationDate))}</strong></div>}
+          {loading ? (
+            <p className="billing-loading">Carregando dados da empresa...</p>
+          ) : editingBusiness ? (
+            <form className="business-edit-form" onSubmit={saveBusinessName}>
+              <label htmlFor="billing-business-name">Nome da empresa</label>
+              <div>
+                <input
+                  id="billing-business-name"
+                  value={businessName}
+                  minLength={3}
+                  maxLength={50}
+                  onChange={(event) => setBusinessName(event.target.value)}
+                  autoFocus
+                />
+                <button type="submit" disabled={savingBusiness}>
+                  {savingBusiness ? "Salvando..." : "Salvar"}
+                </button>
               </div>
-            )
+            </form>
+          ) : (
+            <div className="business-details-grid">
+              <div>
+                <span>Nome da empresa</span>
+                <strong>{business?.name || "Não informado"}</strong>
+              </div>
+              {firstValue(
+                business?.cpfCnpj,
+                business?.document,
+                business?.taxId,
+              ) && (
+                <div>
+                  <span>CPF/CNPJ</span>
+                  <strong>
+                    {formatDocument(
+                      firstValue(
+                        business?.cpfCnpj,
+                        business?.document,
+                        business?.taxId,
+                      ),
+                    )}
+                  </strong>
+                </div>
+              )}
+              {firstValue(business?.user?.login, business?.email) && (
+                <div>
+                  <span>E-mail da empresa</span>
+                  <strong>
+                    {firstValue(business?.user?.login, business?.email)}
+                  </strong>
+                </div>
+              )}
+              {firstValue(business?.user?.phone, business?.phone) && (
+                <div>
+                  <span>Telefone</span>
+                  <strong>
+                    {formatPhone(
+                      firstValue(business?.user?.phone, business?.phone),
+                    )}
+                  </strong>
+                </div>
+              )}
+              {firstValue(
+                business?.createdAt,
+                business?.createdDate,
+                business?.registrationDate,
+              ) && (
+                <div>
+                  <span>Data de cadastro</span>
+                  <strong>
+                    {formatDate(
+                      firstValue(
+                        business?.createdAt,
+                        business?.createdDate,
+                        business?.registrationDate,
+                      ),
+                    )}
+                  </strong>
+                </div>
+              )}
+            </div>
           )}
         </section>
 
         <section className="current-subscription-card">
           <div className="business-card-heading">
-            <div className="billing-card-icon subscription-icon"><CreditCard /></div>
-            <div><h2>Assinatura atual</h2><p>Confira seu plano e o status da sua assinatura.</p></div>
-            {displayedStatus && <span className={`subscription-status-badge status-${displayedStatus.toLowerCase()}`}><CheckCircle2 size={15} /> {STATUS_LABELS[displayedStatus] || displayedStatus}</span>}
-          </div>
-          {loading ? <p className="billing-loading">Carregando assinatura...</p> : <>
-            {pendingPaymentAlert && <div className={`subscription-state-alert pending-payment ${pendingPaymentAlert.tone}`} role="alert">
-              <AlertTriangle />
-              <span>{pendingPaymentAlert.message}</span>
-              {paymentMethod === "PIX" && <button className="billing-primary" type="button" disabled={loadingPix} onClick={showPendingPix}>{loadingPix ? <><LoaderCircle className="billing-spinner" size={17} /> Carregando...</> : <><QrCode size={17} /> Pagar Fatura / Ver PIX</>}</button>}
-            </div>}
-            {status === "SUSPENDED" && <div className="subscription-state-alert suspended" role="alert"><AlertTriangle /><span>Problemas com o pagamento da sua assinatura. Seu acesso está temporariamente suspenso.</span></div>}
-            {cancelAtPeriodEnd && <div className="subscription-state-alert canceled" role="status"><AlertTriangle /><span>Sua assinatura está cancelada, mas você ainda tem acesso até {formatDate(periodEnd)}.</span></div>}
-            {status === "TRIAL" && <div className="subscription-state-alert trial" role="status"><Info /><span>Você está no período de testes.{trialDays !== null && ` Expira em ${trialDays} ${trialDays === 1 ? "dia" : "dias"}.`}</span></div>}
-
-            <div className="current-subscription-row">
-              <div className="current-plan-data"><span>Plano atual</span><strong>{planName}</strong>{planPrice > 0 && <b>{money.format(planPrice)} <small>/{billingCycle === "YEARLY" ? "ano" : "mês"}</small></b>}</div>
-              {creditCard && <div className="saved-card"><CreditCard size={22} /><div><span>Cartão atual</span><strong>{creditCard.brand || "Cartão"} final {creditCard.lastFourDigits}</strong></div></div>}
-              {!creditCard && status !== "TRIAL" && <div className="saved-card empty"><CreditCard size={22} /><div><span>Forma de pagamento</span><strong>{paymentMethod === "PIX" ? "PIX" : "Não informado"}</strong></div></div>}
-              {status === "ACTIVE" && !cancelAtPeriodEnd && <div className="next-charge"><CalendarDays size={21} /><div><span>Próxima cobrança</span><strong>{formatDate(periodEnd)}</strong>{periodEnd && <small>Renovação automática</small>}</div></div>}
+            <div className="billing-card-icon subscription-icon">
+              <CreditCard />
             </div>
+            <div>
+              <h2>Assinatura atual</h2>
+              <p>Confira seu plano e o status da sua assinatura.</p>
+            </div>
+            {displayedStatus && (
+              <span
+                className={`subscription-status-badge status-${displayedStatus.toLowerCase()}`}
+              >
+                <CheckCircle2 size={15} />{" "}
+                {STATUS_LABELS[displayedStatus] || displayedStatus}
+              </span>
+            )}
+          </div>
+          {loading ? (
+            <p className="billing-loading">Carregando assinatura...</p>
+          ) : (
+            <>
+              {pendingPaymentAlert && (
+                <div
+                  className={`subscription-state-alert pending-payment ${pendingPaymentAlert.tone}`}
+                  role="alert"
+                >
+                  <AlertTriangle />
+                  <span>{pendingPaymentAlert.message}</span>
+                  {paymentMethod === "PIX" && (
+                    <button
+                      className="billing-primary"
+                      type="button"
+                      disabled={loadingPix}
+                      onClick={showPendingPix}
+                    >
+                      {loadingPix ? (
+                        <>
+                          <LoaderCircle className="billing-spinner" size={17} />{" "}
+                          Carregando...
+                        </>
+                      ) : (
+                        <>
+                          <QrCode size={17} /> Pagar Fatura / Ver PIX
+                        </>
+                      )}
+                    </button>
+                  )}
+                </div>
+              )}
+              {status === "SUSPENDED" && (
+                <div
+                  className="subscription-state-alert suspended"
+                  role="alert"
+                >
+                  <AlertTriangle />
+                  <span>
+                    Problemas com o pagamento da sua assinatura. Seu acesso está
+                    temporariamente suspenso.
+                  </span>
+                </div>
+              )}
+              {cancelAtPeriodEnd && (
+                <div
+                  className="subscription-state-alert canceled"
+                  role="status"
+                >
+                  <AlertTriangle />
+                  <span>
+                    Sua assinatura está cancelada, mas você ainda tem acesso até{" "}
+                    {formatDate(periodEnd)}.
+                  </span>
+                </div>
+              )}
+              {status === "TRIAL" && (
+                <div className="subscription-state-alert trial" role="status">
+                  <Info />
+                  <span>
+                    Você está no período de testes.
+                    {trialDays !== null &&
+                      ` Expira em ${trialDays} ${trialDays === 1 ? "dia" : "dias"}.`}
+                  </span>
+                </div>
+              )}
 
-            {status === "SUSPENDED" && currentPlanCode && <button className="billing-primary billing-resolve-button" type="button" onClick={() => { setError(""); setSuccessMessage(""); setUpdatingCard(true); }}>Resolver pendência</button>}
-            {status === "PENDING" && !canReactivateSubscription && <div className="pending-subscription-actions">
-              <button className="change-plan-button" type="button" onClick={() => { setError(""); setSuccessMessage(""); setUpdatingCard(true); }}><CreditCard size={17} /> Alterar forma de pagamento</button>
-              <button className="change-plan-button" type="button" disabled={loadingPlans} onClick={togglePlans}><ArrowRightLeft size={17} /> {loadingPlans ? "Carregando planos..." : showPlans ? "Ocultar planos" : "Escolher outro plano"}</button>
-              {businessId && <button className="cancel-subscription-link" type="button" onClick={() => setConfirmCancel(true)}>Cancelar assinatura</button>}
-            </div>}
-            {canReactivateSubscription && <button className="billing-primary trial-subscribe-button" type="button" disabled={loadingPlans} onClick={togglePlans}>{loadingPlans ? "Carregando planos..." : showPlans ? "Ocultar planos" : "Ativar novamente"}</button>}
-            {status === "ACTIVE" && !cancelAtPeriodEnd && <div className="active-subscription-actions">
-              <button className="change-plan-button" type="button" disabled={loadingPlans} onClick={togglePlans}><ArrowRightLeft size={17} /> {loadingPlans ? "Carregando planos..." : showPlans ? "Ocultar planos" : "Trocar de plano"}</button>
-              {currentPlanCode && <button className="change-plan-button" type="button" onClick={() => { setError(""); setSuccessMessage(""); setUpdatingCard(true); }}><CreditCard size={17} /> Alterar forma de pagamento</button>}
-              {businessId && <button className="cancel-subscription-link" type="button" onClick={() => setConfirmCancel(true)}>Cancelar assinatura</button>}
-            </div>}
-            {status === "TRIAL" && <button className="billing-primary trial-subscribe-button" type="button" disabled={loadingPlans} onClick={togglePlans}>{loadingPlans ? "Carregando planos..." : showPlans ? "Ocultar planos" : "Escolher plano e assinar"}</button>}
-          </>}
+              <div className="current-subscription-row">
+                <div className="current-plan-data">
+                  <span>Plano atual</span>
+                  <strong>{planName}</strong>
+                  {planPrice > 0 && (
+                    <b>
+                      {money.format(planPrice)}{" "}
+                      <small>
+                        /{billingCycle === "YEARLY" ? "ano" : "mês"}
+                      </small>
+                    </b>
+                  )}
+                </div>
+                {creditCard && (
+                  <div className="saved-card">
+                    <CreditCard size={22} />
+                    <div>
+                      <span>Cartão atual</span>
+                      <strong>
+                        {creditCard.brand || "Cartão"} final{" "}
+                        {creditCard.lastFourDigits}
+                      </strong>
+                    </div>
+                  </div>
+                )}
+                {!creditCard && status !== "TRIAL" && (
+                  <div className="saved-card empty">
+                    <CreditCard size={22} />
+                    <div>
+                      <span>Forma de pagamento</span>
+                      <strong>
+                        {paymentMethod === "PIX" ? "PIX" : "Não informado"}
+                      </strong>
+                    </div>
+                  </div>
+                )}
+                {status === "ACTIVE" && !cancelAtPeriodEnd && (
+                  <div className="next-charge">
+                    <CalendarDays size={21} />
+                    <div>
+                      <span>Próxima cobrança</span>
+                      <strong>{formatDate(periodEnd)}</strong>
+                      {periodEnd && <small>Renovação automática</small>}
+                    </div>
+                  </div>
+                )}
+              </div>
 
-          {showPlans && !loadingPlans && <div className="embedded-plans"><div className="plans-grid">
-            {plans.map((plan) => (
-              <article className={`plan-card${matchesCurrentPlan(plan, subscription) ? " current-plan" : ""}`} key={plan.id || plan.code}>
-                <div className="plan-card-labels"><span className="step">{plan.billingCycle === "YEARLY" ? "ANUAL" : "MENSAL"}</span>{matchesCurrentPlan(plan, subscription) && <span className="current-plan-badge">Plano atual</span>}</div>
-                <h3>{plan.name}</h3><strong>{money.format(Number(plan.price || 0))}</strong>
-                <p><CalendarDays size={17} /> Cobrança {plan.billingCycle === "YEARLY" ? "anual" : "mensal"}</p>
-                <button className="billing-primary" type="button" disabled={!canReactivateSubscription && matchesCurrentPlan(plan, subscription)} onClick={() => subscribe(plan)}>
-                  {canReactivateSubscription && matchesCurrentPlan(plan, subscription) ? "Reativar este plano" : matchesCurrentPlan(plan, subscription) ? "Seu plano atual" : "Escolher plano"}
+              {status === "SUSPENDED" && currentPlanCode && (
+                <button
+                  className="billing-primary billing-resolve-button"
+                  type="button"
+                  onClick={() => {
+                    setError("");
+                    setSuccessMessage("");
+                    setUpdatingCard(true);
+                  }}
+                >
+                  Resolver pendência
                 </button>
-              </article>
-            ))}
-            {!plans.length && <p>Nenhum plano está disponível no momento.</p>}
-          </div></div>}
+              )}
+              {status === "PENDING" && !canReactivateSubscription && (
+                <div className="pending-subscription-actions">
+                  <button
+                    className="change-plan-button"
+                    type="button"
+                    onClick={() => {
+                      setError("");
+                      setSuccessMessage("");
+                      setUpdatingCard(true);
+                    }}
+                  >
+                    <CreditCard size={17} /> Alterar forma de pagamento
+                  </button>
+                  <button
+                    className="change-plan-button"
+                    type="button"
+                    disabled={loadingPlans}
+                    onClick={togglePlans}
+                  >
+                    <ArrowRightLeft size={17} />{" "}
+                    {loadingPlans
+                      ? "Carregando planos..."
+                      : showPlans
+                        ? "Ocultar planos"
+                        : "Escolher outro plano"}
+                  </button>
+                  {businessId && (
+                    <button
+                      className="cancel-subscription-link"
+                      type="button"
+                      onClick={() => setConfirmCancel(true)}
+                    >
+                      Cancelar assinatura
+                    </button>
+                  )}
+                </div>
+              )}
+              {canReactivateSubscription && (
+                <button
+                  className="billing-primary trial-subscribe-button"
+                  type="button"
+                  disabled={loadingPlans}
+                  onClick={togglePlans}
+                >
+                  {loadingPlans
+                    ? "Carregando planos..."
+                    : showPlans
+                      ? "Ocultar planos"
+                      : "Ativar novamente"}
+                </button>
+              )}
+              {status === "ACTIVE" && !cancelAtPeriodEnd && (
+                <div className="active-subscription-actions">
+                  <button
+                    className="change-plan-button"
+                    type="button"
+                    disabled={loadingPlans}
+                    onClick={togglePlans}
+                  >
+                    <ArrowRightLeft size={17} />{" "}
+                    {loadingPlans
+                      ? "Carregando planos..."
+                      : showPlans
+                        ? "Ocultar planos"
+                        : "Trocar de plano"}
+                  </button>
+                  {currentPlanCode && (
+                    <button
+                      className="change-plan-button"
+                      type="button"
+                      onClick={() => {
+                        setError("");
+                        setSuccessMessage("");
+                        setUpdatingCard(true);
+                      }}
+                    >
+                      <CreditCard size={17} /> Alterar forma de pagamento
+                    </button>
+                  )}
+                  {businessId && (
+                    <button
+                      className="cancel-subscription-link"
+                      type="button"
+                      onClick={() => setConfirmCancel(true)}
+                    >
+                      Cancelar assinatura
+                    </button>
+                  )}
+                </div>
+              )}
+              {status === "TRIAL" && (
+                <button
+                  className="billing-primary trial-subscribe-button"
+                  type="button"
+                  disabled={loadingPlans}
+                  onClick={togglePlans}
+                >
+                  {loadingPlans
+                    ? "Carregando planos..."
+                    : showPlans
+                      ? "Ocultar planos"
+                      : "Escolher plano e assinar"}
+                </button>
+              )}
+            </>
+          )}
+
+          {showPlans && !loadingPlans && (
+            <div className="embedded-plans">
+              <div className="plans-grid">
+                {plans.map((plan) => (
+                  <article
+                    className={`plan-card${matchesCurrentPlan(plan, subscription) ? " current-plan" : ""}`}
+                    key={plan.id || plan.code}
+                  >
+                    <div className="plan-card-labels">
+                      <span className="step">
+                        {plan.billingCycle === "YEARLY" ? "ANUAL" : "MENSAL"}
+                      </span>
+                      {matchesCurrentPlan(plan, subscription) && (
+                        <span className="current-plan-badge">Plano atual</span>
+                      )}
+                    </div>
+                    <h3>{plan.name}</h3>
+                    <strong>{money.format(Number(plan.price || 0))}</strong>
+                    <p>
+                      <CalendarDays size={17} /> Cobrança{" "}
+                      {plan.billingCycle === "YEARLY" ? "anual" : "mensal"}
+                    </p>
+                    <button
+                      className="billing-primary"
+                      type="button"
+                      disabled={
+                        !canReactivateSubscription &&
+                        matchesCurrentPlan(plan, subscription)
+                      }
+                      onClick={() => subscribe(plan)}
+                    >
+                      {canReactivateSubscription &&
+                      matchesCurrentPlan(plan, subscription)
+                        ? "Reativar este plano"
+                        : matchesCurrentPlan(plan, subscription)
+                          ? "Seu plano atual"
+                          : "Escolher plano"}
+                    </button>
+                  </article>
+                ))}
+                {!plans.length && (
+                  <p>Nenhum plano está disponível no momento.</p>
+                )}
+              </div>
+            </div>
+          )}
         </section>
 
-        {businessId && <section className="billing-danger-zone">
-          <div className="danger-icon"><Power size={21} /></div>
-          <div><h2>Desativar minha empresa</h2><p>Sua empresa ficará inativa e não poderá receber filas.</p></div>
-          <button type="button" disabled={loading} onClick={() => setConfirmDeactivate(true)}>Desativar</button>
-        </section>}
+        {businessId && (
+          <section className="billing-danger-zone">
+            <div className="danger-icon">
+              <Power size={21} />
+            </div>
+            <div>
+              <h2>Desativar minha empresa</h2>
+              <p>Sua empresa ficará inativa e não poderá receber filas.</p>
+            </div>
+            <button
+              type="button"
+              disabled={loading}
+              onClick={() => setConfirmDeactivate(true)}
+            >
+              Desativar
+            </button>
+          </section>
+        )}
       </main>
     </DashboardLayout>
   );

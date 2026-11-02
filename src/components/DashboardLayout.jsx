@@ -17,8 +17,16 @@ import {
   updateTutorialCompleted,
 } from "../auth/authStorage";
 import { completeTutorial } from "../services/auth";
-import { acceptTeamInvite, declineTeamInvite, getMyTeamInvites, leaveTeam } from "../services/team";
-import { deactivateBusiness, getProfessionalDashboard } from "../services/queue";
+import {
+  acceptTeamInvite,
+  declineTeamInvite,
+  getMyTeamInvites,
+  leaveTeam,
+} from "../services/team";
+import {
+  deactivateBusiness,
+  getProfessionalDashboard,
+} from "../services/queue";
 import { ProfileSettingsContent } from "../pages/ProfileSettings";
 import ConfirmationModal from "./professionalDashboard/ConfirmationModal";
 import PendingInvites from "./professionalDashboard/PendingInvites";
@@ -51,8 +59,7 @@ export default function DashboardLayout({
       : sessionRole;
   const [profileOpen, setProfileOpen] = useState(false);
   const [tutorialOpen, setTutorialOpen] = useState(
-    () =>
-      tutorialReady && loadAuthSession()?.tutorialCompleted === false,
+    () => tutorialReady && loadAuthSession()?.tutorialCompleted === false,
   );
   const [completingTutorial, setCompletingTutorial] = useState(false);
   const [confirmLogout, setConfirmLogout] = useState(false);
@@ -139,7 +146,8 @@ export default function DashboardLayout({
     }
 
     function syncPageLock() {
-      const shouldLock = mobileQuery.matches && Boolean(document.querySelector(lockTargets));
+      const shouldLock =
+        mobileQuery.matches && Boolean(document.querySelector(lockTargets));
       if (shouldLock) lockPage();
       else unlockPage();
     }
@@ -205,19 +213,28 @@ export default function DashboardLayout({
   useEffect(() => {
     let active = true;
     if (sessionRole !== "PROFESSIONAL") return undefined;
-    if (location.pathname === "/billing" || location.pathname === "/pricing") return undefined;
+    if (location.pathname === "/billing" || location.pathname === "/pricing")
+      return undefined;
     getProfessionalDashboard()
       .then((dashboard) => {
         if (active) {
-          setBusinessRole(String(dashboard?.loggedMemberRole || "").toUpperCase());
-          setLayoutBusinessId(dashboard?.businessId || dashboard?.business?.id || null);
-          setLayoutBusinessName(dashboard?.businessName || dashboard?.business?.name || "");
+          setBusinessRole(
+            String(dashboard?.loggedMemberRole || "").toUpperCase(),
+          );
+          setLayoutBusinessId(
+            dashboard?.businessId || dashboard?.business?.id || null,
+          );
+          setLayoutBusinessName(
+            dashboard?.businessName || dashboard?.business?.name || "",
+          );
         }
       })
       .catch(() => {
         if (active) setBusinessRole("");
       });
-    return () => { active = false; };
+    return () => {
+      active = false;
+    };
   }, [sessionRole, location.pathname]);
 
   useEffect(() => {
@@ -253,7 +270,9 @@ export default function DashboardLayout({
     setInvitesError("");
     try {
       await declineTeamInvite(invite.id);
-      setGlobalInvites((current) => current.filter((item) => item.id !== invite.id));
+      setGlobalInvites((current) =>
+        current.filter((item) => item.id !== invite.id),
+      );
       setToast("Convite recusado.");
     } catch (error) {
       setInvitesError(error.message);
@@ -308,7 +327,11 @@ export default function DashboardLayout({
   return (
     <div className="app">
       <header>
-        <Link className="brand" to={dashboardPath} aria-label="Ir para o painel principal">
+        <Link
+          className="brand"
+          to={dashboardPath}
+          aria-label="Ir para o painel principal"
+        >
           <span className="brand-mark">
             <img src="/favicon.png" alt="" />
           </span>
@@ -336,25 +359,51 @@ export default function DashboardLayout({
           aria-label="Navegação da conta"
         >
           {tutorialReady && (
-            <button className="account-action" type="button" onClick={() => { setNavigationOpen(false); setTutorialOpen(true); }}>
+            <button
+              className="account-action"
+              type="button"
+              onClick={() => {
+                setNavigationOpen(false);
+                setTutorialOpen(true);
+              }}
+            >
               <CircleHelp size={16} /> <span>Como funciona</span>
             </button>
           )}
-          {sessionRole === "PROFESSIONAL" && location.pathname !== "/professionalDashboard" && (
-            <button className="account-action" type="button" onClick={() => { setNavigationOpen(false); navigate("/professionalDashboard"); }}>
-              <LayoutDashboard size={16} /> <span>Painel profissional</span>
-            </button>
-          )}
-          {sessionRole === "PROFESSIONAL" && location.pathname !== "/clientQueue" && (
-            <button className="account-action" type="button" onClick={() => { setNavigationOpen(false); navigate("/clientQueue"); }}>
-              <ListPlus size={16} /> <span>Entrar em uma fila</span>
-            </button>
-          )}
+          {sessionRole === "PROFESSIONAL" &&
+            location.pathname !== "/professionalDashboard" && (
+              <button
+                className="account-action"
+                type="button"
+                onClick={() => {
+                  setNavigationOpen(false);
+                  navigate("/professionalDashboard");
+                }}
+              >
+                <LayoutDashboard size={16} /> <span>Painel profissional</span>
+              </button>
+            )}
+          {sessionRole === "PROFESSIONAL" &&
+            location.pathname !== "/clientQueue" && (
+              <button
+                className="account-action"
+                type="button"
+                onClick={() => {
+                  setNavigationOpen(false);
+                  navigate("/clientQueue");
+                }}
+              >
+                <ListPlus size={16} /> <span>Entrar em uma fila</span>
+              </button>
+            )}
           {sessionRole === "PROFESSIONAL" && (
             <button
               className="account-action invites-header-action"
               type="button"
-              onClick={() => { setNavigationOpen(false); loadGlobalInvites({ open: true }); }}
+              onClick={() => {
+                setNavigationOpen(false);
+                loadGlobalInvites({ open: true });
+              }}
             >
               <Mail size={16} /> <span>Meus convites</span>
               {globalInvites.length > 0 && (
@@ -363,57 +412,113 @@ export default function DashboardLayout({
             </button>
           )}
           {sessionRole === "PROFESSIONAL" && businessRole === "OWNER" && (
-            <button className="account-action" type="button" onClick={() => { setNavigationOpen(false); navigate("/billing", { state: { businessRole, businessId: layoutBusinessId } }); }}>
+            <button
+              className="account-action"
+              type="button"
+              onClick={() => {
+                setNavigationOpen(false);
+                navigate("/billing", {
+                  state: { businessRole, businessId: layoutBusinessId },
+                });
+              }}
+            >
               <Building2 size={16} /> <span>Minha empresa</span>
             </button>
           )}
           <button
             className="account-action"
             type="button"
-            onClick={() => { setNavigationOpen(false); setProfileOpen(true); }}
+            onClick={() => {
+              setNavigationOpen(false);
+              setProfileOpen(true);
+            }}
           >
             <UserRound size={16} /> <span>Meu perfil</span>
           </button>
           <button
             className="logout"
             type="button"
-            onClick={() => { setNavigationOpen(false); setConfirmLogout(true); }}
+            onClick={() => {
+              setNavigationOpen(false);
+              setConfirmLogout(true);
+            }}
           >
             <LogOut size={16} /> <span>Sair</span>
           </button>
         </div>
       </header>
       {emailVerificationRequired && (
-        <EmailVerificationNotice
-          onVerified={onEmailVerified}
-          inline
-        />
+        <EmailVerificationNotice onVerified={onEmailVerified} inline />
       )}
       {invitesOpen && (
-        <div className="confirmation-modal invites-list-modal" role="dialog" aria-modal="true" aria-labelledby="global-invites-title">
+        <div
+          className="confirmation-modal invites-list-modal"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="global-invites-title"
+        >
           <div>
-            <button className="member-modal-close" type="button" disabled={invitesLoading} onClick={() => setInvitesOpen(false)} aria-label="Fechar convites"><X size={20} /></button>
-            <div className="invite-alert-icon"><Mail size={26} /></div>
+            <button
+              className="member-modal-close"
+              type="button"
+              disabled={invitesLoading}
+              onClick={() => setInvitesOpen(false)}
+              aria-label="Fechar convites"
+            >
+              <X size={20} />
+            </button>
+            <div className="invite-alert-icon">
+              <Mail size={26} />
+            </div>
             <span className="step">EQUIPE</span>
             <h2 id="global-invites-title">Meus convites</h2>
             <p>Convites pendentes enviados para sua conta.</p>
-            {invitesError && <div className="login-auth-error" role="alert">{invitesError}</div>}
-            {invitesLoading && !globalInvites.length ? <p>Carregando convites...</p> : globalInvites.length ? (
-              <PendingInvites invites={globalInvites} loading={invitesLoading} onAccept={handleGlobalAccept} onDecline={handleGlobalDecline} />
+            {invitesError && (
+              <div className="login-auth-error" role="alert">
+                {invitesError}
+              </div>
+            )}
+            {invitesLoading && !globalInvites.length ? (
+              <p>Carregando convites...</p>
+            ) : globalInvites.length ? (
+              <PendingInvites
+                invites={globalInvites}
+                loading={invitesLoading}
+                onAccept={handleGlobalAccept}
+                onDecline={handleGlobalDecline}
+              />
             ) : (
-              <div className="invites-empty"><Mail size={28} /><strong>Nenhum convite pendente</strong><span>Quando uma barbearia convidar você, ele aparecerá aqui.</span></div>
+              <div className="invites-empty">
+                <Mail size={28} />
+                <strong>Nenhum convite pendente</strong>
+                <span>
+                  Quando uma barbearia convidar você, ele aparecerá aqui.
+                </span>
+              </div>
             )}
           </div>
         </div>
       )}
       {blockedInvite && (
         <ConfirmationModal
-          confirmation={{ title: "Vínculo Ativo Encontrado", message: "Você já está vinculado a uma barbearia. Para aceitar este novo convite, você precisa encerrar seu vínculo atual.", confirmLabel: blockedInvite.role === "OWNER" ? "Desativar minha barbearia" : "Sair da equipe atual", backLabel: "Cancelar", danger: true }}
+          confirmation={{
+            title: "Vínculo Ativo Encontrado",
+            message:
+              "Você já está vinculado a uma barbearia. Para aceitar este " +
+              "novo convite, você precisa encerrar seu vínculo atual.",
+            confirmLabel:
+              blockedInvite.role === "OWNER"
+                ? "Desativar minha barbearia"
+                : "Sair da equipe atual",
+            backLabel: "Cancelar",
+            danger: true,
+          }}
           loading={invitesLoading}
           onBack={() => setBlockedInvite(null)}
           onConfirm={handleReplaceTeam}
         />
-      )}      {profileOpen && (
+      )}{" "}
+      {profileOpen && (
         <ProfileSettingsContent onClose={() => setProfileOpen(false)} />
       )}
       {tutorialOpen && (

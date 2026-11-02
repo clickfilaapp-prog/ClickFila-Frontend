@@ -31,7 +31,13 @@ export default function TeamManagement({
   return (
     <div className="team-management-layout">
       <section
-        className={`profile-card team-card team-roster-card${team.length >= 4 ? " has-mobile-collapse" : ""}${teamExpanded ? " is-expanded" : ""}`}
+        className={[
+          "profile-card team-card team-roster-card",
+          team.length >= 4 ? "has-mobile-collapse" : "",
+          teamExpanded ? "is-expanded" : "",
+        ]
+          .filter(Boolean)
+          .join(" ")}
       >
         <div className="team-management-heading">
           <div>
@@ -84,7 +90,9 @@ export default function TeamManagement({
             aria-controls="team-roster-list"
             onClick={() => setTeamExpanded((expanded) => !expanded)}
           >
-            {teamExpanded ? "Mostrar menos" : `Mostrar mais (${team.length - 3})`}
+            {teamExpanded
+              ? "Mostrar menos"
+              : `Mostrar mais (${team.length - 3})`}
             <ChevronDown size={17} aria-hidden="true" />
           </button>
         )}
@@ -109,7 +117,9 @@ export default function TeamManagement({
               aria-controls="team-invite-fields"
               onClick={() => setInviteExpanded((expanded) => !expanded)}
             >
-              <span><Mail size={18} /> Enviar convite</span>
+              <span>
+                <Mail size={18} /> Enviar convite
+              </span>
               <ChevronDown size={18} aria-hidden="true" />
             </button>
             <div className="team-invite-fields" id="team-invite-fields">
@@ -125,7 +135,11 @@ export default function TeamManagement({
                 placeholder="profissional@email.com"
                 aria-label="E-mail do profissional"
               />
-              <button className="team-invite-submit" type="submit" disabled={loading}>
+              <button
+                className="team-invite-submit"
+                type="submit"
+                disabled={loading}
+              >
                 Enviar convite
               </button>
             </div>
@@ -145,7 +159,9 @@ export default function TeamManagement({
               aria-controls="team-quick-fields"
               onClick={() => setQuickAddExpanded((expanded) => !expanded)}
             >
-              <span><UserPlus size={18} /> Cadastro rápido</span>
+              <span>
+                <UserPlus size={18} /> Cadastro rápido
+              </span>
               <ChevronDown size={18} aria-hidden="true" />
             </button>
             <div className="team-quick-fields" id="team-quick-fields">
@@ -161,7 +177,11 @@ export default function TeamManagement({
                 onChange={(event) => setName(event.target.value)}
                 placeholder="Nome do profissional"
               />
-              <button className="team-add-submit" type="submit" disabled={loading}>
+              <button
+                className="team-add-submit"
+                type="submit"
+                disabled={loading}
+              >
                 Adicionar à equipe
               </button>
             </div>

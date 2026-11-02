@@ -8,8 +8,12 @@ export default function TermsOfUse() {
     <div className="privacy-page">
       <header className="privacy-header">
         <Link className="brand" to="/" aria-label="Ir para o início">
-          <span className="brand-mark"><img src="/favicon.png" alt="" /></span>
-          <span>Click <i>Fila</i></span>
+          <span className="brand-mark">
+            <img src="/favicon.png" alt="" />
+          </span>
+          <span>
+            Click <i>Fila</i>
+          </span>
         </Link>
         <Link className="privacy-back" to="/">
           <ArrowLeft size={16} /> Voltar ao sistema
@@ -19,7 +23,9 @@ export default function TermsOfUse() {
       <main className="privacy-main">
         <article className="privacy-card">
           <div className="privacy-title">
-            <span><FileCheck2 size={26} /></span>
+            <span>
+              <FileCheck2 size={26} />
+            </span>
             <div>
               <small>Regras de utilização do sistema</small>
               <h1>Termos de Uso</h1>
@@ -28,8 +34,8 @@ export default function TermsOfUse() {
           </div>
 
           <p>
-            Estes Termos estabelecem as regras para utilização do Click Fila.
-            Ao criar uma conta ou utilizar o sistema, você declara que leu e
+            Estes Termos estabelecem as regras para utilização do Click Fila. Ao
+            criar uma conta ou utilizar o sistema, você declara que leu e
             concorda com estas condições e com a nossa{" "}
             <Link to="/politica-de-privacidade">Política de Privacidade</Link>.
           </p>
@@ -48,8 +54,8 @@ export default function TermsOfUse() {
             <p>
               O usuário deve fornecer informações verdadeiras, completas e
               atualizadas. Ele é responsável por proteger sua senha e por todas
-              as ações realizadas em sua conta. Ao utilizar o login do Google,
-              a segurança dessa etapa também depende da conta Google do próprio
+              as ações realizadas em sua conta. Ao utilizar o login do Google, a
+              segurança dessa etapa também depende da conta Google do próprio
               usuário.
             </p>
             <p>
@@ -61,11 +67,28 @@ export default function TermsOfUse() {
           <section>
             <h2>3. Regras da fila virtual</h2>
             <ul>
-              <li>Cada usuário pode ocupar somente um lugar em uma fila ativa por vez.</li>
-              <li>Ao entrar na fila, o cliente deve acompanhar sua posição e estar presente ou próximo ao estabelecimento quando sua vez se aproximar.</li>
-              <li>O estabelecimento pode definir um período de tolerância para o comparecimento.</li>
-              <li>Se o cliente for chamado e não comparecer dentro da tolerância, ou acumular chamadas perdidas, sua participação poderá ser cancelada e será necessário entrar novamente no final da fila.</li>
-              <li>O ingresso na fila não representa reserva de horário nem garantia de atendimento em um momento exato.</li>
+              <li>
+                Cada usuário pode ocupar somente um lugar em uma fila ativa por
+                vez.
+              </li>
+              <li>
+                Ao entrar na fila, o cliente deve acompanhar sua posição e estar
+                presente ou próximo ao estabelecimento quando sua vez se
+                aproximar.
+              </li>
+              <li>
+                O estabelecimento pode definir um período de tolerância para o
+                comparecimento.
+              </li>
+              <li>
+                Se o cliente for chamado e não comparecer dentro da tolerância,
+                ou acumular chamadas perdidas, sua participação poderá ser
+                cancelada e será necessário entrar novamente no final da fila.
+              </li>
+              <li>
+                O ingresso na fila não representa reserva de horário nem
+                garantia de atendimento em um momento exato.
+              </li>
             </ul>
           </section>
 
@@ -81,13 +104,30 @@ export default function TermsOfUse() {
 
           <section>
             <h2>5. Uso aceitável</h2>
-            <p>O usuário concorda em utilizar o sistema somente para suas finalidades legítimas. É proibido:</p>
+            <p>
+              O usuário concorda em utilizar o sistema somente para suas
+              finalidades legítimas. É proibido:
+            </p>
             <ul>
-              <li>fornecer dados falsos ou utilizar a identidade de terceiros;</li>
-              <li>ocupar lugares de forma artificial ou comercializar posições na fila;</li>
-              <li>criar contas ou acessos para fraudar limites e regras do sistema;</li>
-              <li>interferir no funcionamento, testar vulnerabilidades sem autorização ou tentar obter acesso indevido;</li>
-              <li>utilizar o Click Fila para assédio, discriminação, ameaças, conflitos ou qualquer atividade ilegal.</li>
+              <li>
+                fornecer dados falsos ou utilizar a identidade de terceiros;
+              </li>
+              <li>
+                ocupar lugares de forma artificial ou comercializar posições na
+                fila;
+              </li>
+              <li>
+                criar contas ou acessos para fraudar limites e regras do
+                sistema;
+              </li>
+              <li>
+                interferir no funcionamento, testar vulnerabilidades sem
+                autorização ou tentar obter acesso indevido;
+              </li>
+              <li>
+                utilizar o Click Fila para assédio, discriminação, ameaças,
+                conflitos ou qualquer atividade ilegal.
+              </li>
             </ul>
           </section>
 
@@ -98,18 +138,18 @@ export default function TermsOfUse() {
               contas que violem estes Termos, fraudem o sistema, forneçam dados
               falsos, prejudiquem outros usuários ou faltem repetidamente de
               forma intencional. Violações graves ou atividades ilegais poderão
-              resultar no bloqueio definitivo da conta, sem prejuízo das
-              medidas legais cabíveis.
+              resultar no bloqueio definitivo da conta, sem prejuízo das medidas
+              legais cabíveis.
             </p>
           </section>
 
           <section>
             <h2>7. Responsabilidades do profissional</h2>
             <p>
-              O profissional ou estabelecimento é responsável pelas
-              informações da sua fila, pela organização do atendimento, pelos
-              serviços anunciados e prestados, pelo relacionamento com os
-              clientes e pelo cumprimento das normas aplicáveis à sua atividade.
+              O profissional ou estabelecimento é responsável pelas informações
+              da sua fila, pela organização do atendimento, pelos serviços
+              anunciados e prestados, pelo relacionamento com os clientes e pelo
+              cumprimento das normas aplicáveis à sua atividade.
             </p>
             <p>
               O titular da conta (Dono/Owner) é o único responsável legal por
@@ -156,8 +196,8 @@ export default function TermsOfUse() {
             <h3>Atraso, Suspensão e Reativação</h3>
             <p>
               Em caso de atraso no pagamento da assinatura, o acesso às
-              funcionalidades da plataforma será suspenso no 5º (quinto) dia
-              de inadimplência. Caso o usuário regularize o pagamento após a
+              funcionalidades da plataforma será suspenso no 5º (quinto) dia de
+              inadimplência. Caso o usuário regularize o pagamento após a
               suspensão e antes do cancelamento definitivo (que ocorre no 15º
               dia de atraso), o acesso será reativado. No entanto, a data
               original de renovação do ciclo de faturamento permanecerá
@@ -181,11 +221,10 @@ export default function TermsOfUse() {
             </p>
             <p>
               O período de teste gratuito (Trial) de 30 dias oferecido no
-              cadastro inicial constitui tempo suficiente para avaliação
-              prévia da plataforma, suprindo e englobando o direito de
-              arrependimento previsto na legislação do consumidor, uma vez que
-              a primeira cobrança só ocorre mediante confirmação expressa do
-              usuário.
+              cadastro inicial constitui tempo suficiente para avaliação prévia
+              da plataforma, suprindo e englobando o direito de arrependimento
+              previsto na legislação do consumidor, uma vez que a primeira
+              cobrança só ocorre mediante confirmação expressa do usuário.
             </p>
           </section>
 
@@ -194,8 +233,8 @@ export default function TermsOfUse() {
             <p>
               O tratamento de dados pessoais relacionado ao uso do sistema é
               descrito na{" "}
-              <Link to="/politica-de-privacidade">Política de Privacidade</Link>,
-              que integra estes Termos.
+              <Link to="/politica-de-privacidade">Política de Privacidade</Link>
+              , que integra estes Termos.
             </p>
           </section>
 

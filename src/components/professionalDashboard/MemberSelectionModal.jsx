@@ -24,7 +24,13 @@ export default function MemberSelectionModal({
         >
           <X size={20} />
         </button>
-        <img className="app-symbol-icon" src="/favicon.png" alt="" width="32" height="32" />
+        <img
+          className="app-symbol-icon"
+          src="/favicon.png"
+          alt=""
+          width="32"
+          height="32"
+        />
         <h2 id="member-selection-title">Quem está chamando?</h2>
         <p>Selecione o profissional que atenderá o próximo cliente.</p>
         <div className="member-selection-list">

@@ -43,7 +43,13 @@ export default function ConfirmationModal({
           {!confirmation.hideConfirm && (
             <button
               type="button"
-              className={`confirmation-accept ${confirmation.danger ? "danger" : ""} ${confirmation.success ? "success" : ""}`}
+              className={[
+                "confirmation-accept",
+                confirmation.danger ? "danger" : "",
+                confirmation.success ? "success" : "",
+              ]
+                .filter(Boolean)
+                .join(" ")}
               disabled={loading}
               onClick={onConfirm}
             >

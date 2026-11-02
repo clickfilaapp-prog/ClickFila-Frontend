@@ -79,7 +79,9 @@ export function ProfileSettingsContent({ onClose = null }) {
       clearAuthSession();
       navigate("/login", {
         replace: true,
-        state: { message: "Sua conta foi desativada e será excluída em 30 dias." },
+        state: {
+          message: "Sua conta foi desativada e será excluída em 30 dias.",
+        },
       });
     } catch (requestError) {
       setConfirmingDeletion(false);
@@ -97,7 +99,9 @@ export function ProfileSettingsContent({ onClose = null }) {
         .replace(/^ROLE_/i, "")
         .toUpperCase();
       if (updatedRole !== "PROFESSIONAL") {
-        throw new Error("O servidor não confirmou o upgrade para profissional.");
+        throw new Error(
+          "O servidor não confirmou o upgrade para profissional.",
+        );
       }
 
       removeAccessToken();
@@ -269,7 +273,10 @@ export function ProfileSettingsContent({ onClose = null }) {
       {requestedEditField && (
         <ConfirmationModal
           confirmation={{
-            title: requestedEditField === "name" ? "Alterar nome" : "Alterar telefone",
+            title:
+              requestedEditField === "name"
+                ? "Alterar nome"
+                : "Alterar telefone",
             message: `Deseja liberar o campo ${requestedEditField === "name" ? "nome" : "telefone"} para alteração?`,
             confirmLabel: "Sim, alterar",
           }}
@@ -305,7 +312,9 @@ export function ProfileSettingsContent({ onClose = null }) {
           confirmation={{
             title: "Tornar-se profissional",
             message:
-              "Ao continuar, sua conta será alterada para profissional e, no próximo acesso, você deverá cadastrar o nome da empresa. Deseja realmente continuar?",
+              "Ao continuar, sua conta será alterada para profissional e, no " +
+              "próximo acesso, você deverá cadastrar o nome da empresa. " +
+              "Deseja realmente continuar?",
             backLabel: "Não, continuar como cliente",
             confirmLabel: "Sim, tornar-me profissional",
             danger: true,
@@ -320,7 +329,9 @@ export function ProfileSettingsContent({ onClose = null }) {
           confirmation={{
             title: "Mudar para cliente",
             message:
-              "Você deixará de acessar o painel profissional. Se for dono, feche a fila antes de continuar; se estiver atendendo, finalize ou cancele o atendimento atual.",
+              "Você deixará de acessar o painel profissional. Se for dono, " +
+              "feche a fila antes de continuar; se estiver atendendo, finalize " +
+              "ou cancele o atendimento atual.",
             backLabel: "Não, continuar como profissional",
             confirmLabel: "Sim, mudar para cliente",
           }}
@@ -347,9 +358,7 @@ export function ProfileSettingsContent({ onClose = null }) {
               <h1>Dados pessoais</h1>
             </div>
           </div>
-          <p>
-            Confira e atualize seus dados pessoais.
-          </p>
+          <p>Confira e atualize seus dados pessoais.</p>
           {loading ? (
             <div className="profile-loading" role="status">
               Carregando seus dados...
@@ -496,8 +505,12 @@ export function ProfileSettingsContent({ onClose = null }) {
                     "Salvando..."
                   ) : (
                     <>
-                      <span className="profile-submit-desktop">Salvar alterações</span>
-                      <span className="profile-submit-mobile">Atualizar dados</span>
+                      <span className="profile-submit-desktop">
+                        Salvar alterações
+                      </span>
+                      <span className="profile-submit-mobile">
+                        Atualizar dados
+                      </span>
                     </>
                   )}
                 </button>

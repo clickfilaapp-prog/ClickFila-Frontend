@@ -1,9 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import {
-  clearAuthSession,
-  saveAuthSession,
-} from "../auth/authStorage";
+import { clearAuthSession, saveAuthSession } from "../auth/authStorage";
 import { getMyUserProfile } from "../services/profile";
 
 const AUTH_COOKIE_NAMES = Object.freeze({

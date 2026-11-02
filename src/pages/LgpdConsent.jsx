@@ -49,7 +49,9 @@ export default function LgpdConsent() {
       }
 
       saveAuthSession(token, refreshToken, role);
-      const normalizedRole = String(role).replace(/^ROLE_/i, "").toUpperCase();
+      const normalizedRole = String(role)
+        .replace(/^ROLE_/i, "")
+        .toUpperCase();
       navigate(getSafeReturnUrl(normalizedRole), { replace: true });
     } catch (requestError) {
       setError(requestError.message);
@@ -62,7 +64,9 @@ export default function LgpdConsent() {
     <main className="lgpd-page">
       <form className="lgpd-page-card" onSubmit={handleSubmit}>
         <div className="lgpd-modal-heading">
-          <span><ShieldCheck size={23} /></span>
+          <span>
+            <ShieldCheck size={23} />
+          </span>
           <div>
             <small>Privacidade e proteção de dados</small>
             <h1>Atualização dos termos de privacidade</h1>
@@ -77,9 +81,18 @@ export default function LgpdConsent() {
         <div className="lgpd-modal-content">
           <h3>Como usamos seus dados?</h3>
           <ul>
-            <li><CheckCircle2 size={15} />Para identificar e proteger sua conta.</li>
-            <li><CheckCircle2 size={15} />Para viabilizar filas, atendimentos e comunicações.</li>
-            <li><CheckCircle2 size={15} />Para cumprir obrigações legais aplicáveis.</li>
+            <li>
+              <CheckCircle2 size={15} />
+              Para identificar e proteger sua conta.
+            </li>
+            <li>
+              <CheckCircle2 size={15} />
+              Para viabilizar filas, atendimentos e comunicações.
+            </li>
+            <li>
+              <CheckCircle2 size={15} />
+              Para cumprir obrigações legais aplicáveis.
+            </li>
           </ul>
           <div className="lgpd-security-note">
             <LockKeyhole size={19} />
@@ -91,7 +104,11 @@ export default function LgpdConsent() {
           </div>
         </div>
 
-        {error && <div className="login-auth-error" role="alert">{error}</div>}
+        {error && (
+          <div className="login-auth-error" role="alert">
+            {error}
+          </div>
+        )}
 
         <div className="lgpd-consent-options">
           <label className="lgpd-consent-check">

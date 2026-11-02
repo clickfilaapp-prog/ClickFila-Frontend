@@ -111,7 +111,9 @@ export default function SupportWidget({ businessName = "" }) {
       });
       const result = await supportResponse.json().catch(() => ({}));
       if (!supportResponse.ok) {
-        throw new Error(result.message || "Não foi possível enviar sua mensagem.");
+        throw new Error(
+          result.message || "Não foi possível enviar sua mensagem.",
+        );
       }
 
       setSuccess("Mensagem enviada! Nossa equipe entrará em contato em breve.");
@@ -243,8 +245,16 @@ export default function SupportWidget({ businessName = "" }) {
               </span>
             </label>
 
-            {error && <p className="support-form-error" role="alert">{error}</p>}
-            {success && <p className="support-form-success" role="status">{success}</p>}
+            {error && (
+              <p className="support-form-error" role="alert">
+                {error}
+              </p>
+            )}
+            {success && (
+              <p className="support-form-success" role="status">
+                {success}
+              </p>
+            )}
 
             <button className="support-submit" type="submit" disabled={sending}>
               {sending ? "Enviando..." : "Enviar mensagem"} <Send size={17} />

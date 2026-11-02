@@ -19,8 +19,14 @@ export default function WalkInModal({ loading, onClose, onSubmit }) {
         const modal = modalRef.current;
         if (!modal) return;
 
-        modal.style.setProperty("--walk-in-viewport-height", `${viewport.height}px`);
-        modal.style.setProperty("--walk-in-viewport-top", `${viewport.offsetTop}px`);
+        modal.style.setProperty(
+          "--walk-in-viewport-height",
+          `${viewport.height}px`,
+        );
+        modal.style.setProperty(
+          "--walk-in-viewport-top",
+          `${viewport.offsetTop}px`,
+        );
 
         const activeElement = document.activeElement;
         if (activeElement?.closest(".walk-in-form")) {
@@ -66,7 +72,9 @@ export default function WalkInModal({ loading, onClose, onSubmit }) {
       return;
     }
     if (nextServiceName.length > 100) {
-      setValidationError("A descrição do serviço deve ter no máximo 100 caracteres.");
+      setValidationError(
+        "A descrição do serviço deve ter no máximo 100 caracteres.",
+      );
       return;
     }
 

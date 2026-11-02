@@ -133,7 +133,11 @@ export default function CurrentServiceCard({
           </div>
         </>
       ) : canFinish ? (
-        <button className="next-after" disabled={loading} onClick={onFinish}>
+        <button
+          className="next-after finish-service-action"
+          disabled={loading}
+          onClick={onFinish}
+        >
           Finalizar atendimento
         </button>
       ) : null}

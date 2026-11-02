@@ -25,6 +25,7 @@ import PendingInvites from "./professionalDashboard/PendingInvites";
 import EmailVerificationNotice from "./EmailVerificationNotice";
 import SiteFooter from "./SiteFooter";
 import SystemTutorialModal from "./SystemTutorialModal";
+import SupportWidget from "./SupportWidget";
 
 /** Estrutura reutilizada somente pelas áreas autenticadas. */
 export default function DashboardLayout({
@@ -64,6 +65,7 @@ export default function DashboardLayout({
   const [blockedInvite, setBlockedInvite] = useState(null);
   const [businessRole, setBusinessRole] = useState("");
   const [layoutBusinessId, setLayoutBusinessId] = useState(null);
+  const [layoutBusinessName, setLayoutBusinessName] = useState("");
   const navigationRef = useRef(null);
   const navigationTriggerRef = useRef(null);
 
@@ -209,6 +211,7 @@ export default function DashboardLayout({
         if (active) {
           setBusinessRole(String(dashboard?.loggedMemberRole || "").toUpperCase());
           setLayoutBusinessId(dashboard?.businessId || dashboard?.business?.id || null);
+          setLayoutBusinessName(dashboard?.businessName || dashboard?.business?.name || "");
         }
       })
       .catch(() => {
@@ -439,6 +442,7 @@ export default function DashboardLayout({
       )}
       {!emailVerificationRequired && children}
       <SiteFooter />
+      <SupportWidget businessName={layoutBusinessName} />
     </div>
   );
 }

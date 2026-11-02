@@ -160,7 +160,7 @@ export default function SupportWidget({ businessName = "" }) {
               autoComplete="off"
               aria-hidden="true"
             />
-            <div className="support-form-grid">
+            <div className="support-form-row">
               <label>
                 Nome
                 <input
@@ -184,6 +184,8 @@ export default function SupportWidget({ businessName = "" }) {
                   required
                 />
               </label>
+            </div>
+            <div className="support-form-row">
               <label>
                 Nome da empresa
                 <input

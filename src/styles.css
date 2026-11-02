@@ -3114,6 +3114,11 @@ footer {
   color: #0B1F3B;
   font: 600 23px "Playfair Display";
 }
+.privacy-card h3 {
+  margin: 22px 0 8px;
+  color: #0B1F3B;
+  font-size: 16px;
+}
 .privacy-card p,
 .privacy-card li {
   font-size: 14px;

@@ -23,7 +23,7 @@ export default function TermsOfUse() {
             <div>
               <small>Regras de utilização do sistema</small>
               <h1>Termos de Uso</h1>
-              <p>Última atualização: 17 de agosto de 2026.</p>
+              <p>Última atualização: 2 de novembro de 2026.</p>
             </div>
           </div>
 
@@ -111,6 +111,14 @@ export default function TermsOfUse() {
               serviços anunciados e prestados, pelo relacionamento com os
               clientes e pelo cumprimento das normas aplicáveis à sua atividade.
             </p>
+            <p>
+              O titular da conta (Dono/Owner) é o único responsável legal por
+              adicionar, remover ou conceder permissões a outros membros da
+              equipe (Staff). O Click Fila não se responsabiliza por ações
+              indevidas, exclusões de dados, encerramentos de fila ou
+              cancelamentos de atendimento realizados por membros da equipe
+              autorizados pelo titular.
+            </p>
           </section>
 
           <section>
@@ -128,6 +136,13 @@ export default function TermsOfUse() {
               mas podem ocorrer interrupções por manutenção, falhas de internet,
               serviços de terceiros ou eventos fora do nosso controle.
             </p>
+            <p>
+              As transações financeiras referentes aos planos pagos são
+              processadas por um gateway de pagamentos terceirizado (Asaas). O
+              Click Fila não se responsabiliza por falhas no processamento,
+              recusas de cartão de crédito, atrasos na compensação bancária
+              (PIX) ou instabilidades sistêmicas da operadora financeira.
+            </p>
           </section>
 
           <section>
@@ -137,6 +152,40 @@ export default function TermsOfUse() {
               preços, a periodicidade, as condições de pagamento, renovação e
               cancelamento serão informados antes da contratação. Nenhuma
               cobrança será realizada sem a confirmação do usuário.
+            </p>
+            <h3>Atraso, Suspensão e Reativação</h3>
+            <p>
+              Em caso de atraso no pagamento da assinatura, o acesso às
+              funcionalidades da plataforma será suspenso no 5º (quinto) dia
+              de inadimplência. Caso o usuário regularize o pagamento após a
+              suspensão e antes do cancelamento definitivo (que ocorre no 15º
+              dia de atraso), o acesso será reativado. No entanto, a data
+              original de renovação do ciclo de faturamento permanecerá
+              inalterada.
+            </p>
+            <p>
+              O usuário reconhece e concorda expressamente que não fará jus a
+              qualquer prorrogação de prazo, desconto, crédito, estorno ou
+              reembolso proporcional referente aos dias em que o serviço
+              permaneceu suspenso exclusivamente em razão da sua própria
+              inadimplência.
+            </p>
+            <h3>Cancelamento e Política de Reembolso</h3>
+            <p>
+              O usuário poderá cancelar sua assinatura a qualquer momento
+              através do painel de configurações, interrompendo a renovação
+              automática para o ciclo seguinte. Ao cancelar, o usuário
+              continuará tendo acesso total às funcionalidades até o final do
+              período já pago. O Click Fila não realiza reembolsos ou devoluções
+              proporcionais pelos dias não utilizados após o cancelamento.
+            </p>
+            <p>
+              O período de teste gratuito (Trial) de 30 dias oferecido no
+              cadastro inicial constitui tempo suficiente para avaliação
+              prévia da plataforma, suprindo e englobando o direito de
+              arrependimento previsto na legislação do consumidor, uma vez que
+              a primeira cobrança só ocorre mediante confirmação expressa do
+              usuário.
             </p>
           </section>
 

@@ -23,7 +23,7 @@ export default function PrivacyPolicy() {
             <div>
               <small>Privacidade e proteção de dados</small>
               <h1>Política de Privacidade</h1>
-              <p>Última atualização: 17 de agosto de 2026.</p>
+              <p>Última atualização: 2 de novembro de 2026.</p>
             </div>
           </div>
 
@@ -52,13 +52,45 @@ export default function PrivacyPolicy() {
               <li><strong>Dados de uso:</strong> histórico de entrada em filas, serviço escolhido, posição, horários, chamadas perdidas, status de espera e registros relacionados ao atendimento.</li>
               <li><strong>Dados de rastreio e auditoria:</strong> endereço IP e informações do navegador ou dispositivo (user agent), registrados no momento do aceite dos termos para comprovar o consentimento e proteger o sistema.</li>
               <li><strong>Preferências locais:</strong> identificadores de sessão da fila e preferências de notificação armazenados no navegador.</li>
+              <li><strong>Dados financeiros e de auditoria:</strong> Histórico de pagamentos, mudanças de status da assinatura (ativações, suspensões, cancelamentos), links de faturas e informações do titular do cartão de crédito (nome impresso e CPF/CNPJ do titular). Estes dados são tratados para controle de inadimplência e auditoria fiscal.</li>
             </ul>
             <p>
               A senha é utilizada para autenticação e deve ser armazenada pelo
               serviço de forma criptografada. O Click Fila não solicita CPF,
-              data de nascimento, endereço, localização por GPS ou dados
-              pessoais sensíveis para o funcionamento normal da plataforma.
+              data de nascimento, endereço ou localização por GPS para o
+              funcionamento normal da conta de clientes nas filas. Contudo,
+              para estabelecimentos que contratam planos pagos, dados de
+              faturamento (como CPF/CNPJ e endereço) serão exigidos
+              estritamente para a emissão de cobranças e notas.
             </p>
+          </section>
+
+          <section>
+            <h2>2.1. Dados de Pagamento e Faturamento</h2>
+            <p>
+              Quando o estabelecimento contrata um plano pago, as informações
+              financeiras são enviadas diretamente ao nosso parceiro de
+              pagamentos (Asaas).
+            </p>
+            <ul>
+              <li>
+                <strong>Cartão de Crédito:</strong> O Click Fila não captura nem
+                armazena o número completo do cartão de crédito ou o código de
+                segurança (CVV) em seus servidores. Retemos estritamente um
+                token criptografado (identificador seguro fornecido pelo
+                gateway), a bandeira e os 4 (quatro) últimos dígitos do cartão.
+                Esses dados são usados com a finalidade exclusiva de exibição
+                visual no painel e para viabilizar as renovações.
+              </li>
+              <li>
+                <strong>Endereço de Cobrança (CEP):</strong> O CEP e demais
+                dados de endereço solicitados no momento do cadastro do método
+                de pagamento não são salvos na base de dados do Click Fila.
+                Estas informações são repassadas no momento da digitação, via
+                integração segura (API), diretamente ao gateway de pagamento
+                para validação antifraude.
+              </li>
+            </ul>
           </section>
 
           <section>
@@ -96,6 +128,14 @@ export default function PrivacyPolicy() {
               viabilizar o Click Fila. Informações necessárias ao atendimento
               também poderão ser compartilhadas entre o cliente e o
               profissional responsável pela fila em que o cliente ingressar.
+            </p>
+            <p>
+              Os dados cadastrais e de faturamento dos proprietários de
+              estabelecimentos que contratam planos pagos (como Nome,
+              CPF/CNPJ, E-mail, Telefone, Endereço e IP) são compartilhados com
+              o parceiro processador de pagamentos (Asaas) exclusivamente para
+              fins de criação de conta de cobrança, prevenção a fraudes e
+              processamento de transações.
             </p>
             <p>
               Poderemos compartilhar informações quando exigido por lei, ordem
@@ -170,6 +210,14 @@ export default function PrivacyPolicy() {
               definitiva, ressalvadas as
               hipóteses de conservação autorizadas ou exigidas pelo artigo 16
               da LGPD.
+            </p>
+            <p>
+              <strong>Atenção:</strong> Mesmo após a solicitação de exclusão da
+              conta, o Click Fila reterá os históricos de faturamento,
+              transações financeiras e logs de assinaturas pelos prazos
+              exigidos pela legislação fiscal e tributária brasileira
+              (geralmente 5 anos), bem como para auditoria e prevenção a
+              fraudes, conforme autorizado pelo Art. 16 da LGPD.
             </p>
           </section>
 

@@ -3171,6 +3171,21 @@ footer {
 .privacy-card p + p {
   margin-top: 12px;
 }
+.privacy-highlight {
+  margin-top: 16px;
+  padding: 18px 20px;
+  border: 1px solid #b8e8fb;
+  border-left: 4px solid #00b4ff;
+  border-radius: 12px;
+  background: #f0faff;
+}
+.privacy-highlight h3 {
+  margin: 0 0 6px;
+  color: #073f67;
+}
+.privacy-highlight p {
+  margin: 0;
+}
 .privacy-card ul {
   margin: 12px 0 0;
   padding-left: 21px;

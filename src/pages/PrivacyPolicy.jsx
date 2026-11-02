@@ -197,6 +197,18 @@ export default function PrivacyPolicy() {
               criação de conta de cobrança, prevenção a fraudes e processamento
               de transações.
             </p>
+            <aside className="privacy-highlight">
+              <h3>Comunicações Transacionais de Faturamento:</h3>
+              <p>
+                O endereço de e-mail e/ou telefone do titular da conta
+                (estabelecimento) compartilhados com o gateway de pagamentos
+                (Asaas) serão utilizados por este parceiro para o envio de
+                comunicações sistêmicas e transacionais estritamente relacionadas
+                à sua assinatura. Isso inclui o envio automático de avisos de
+                emissão de novas cobranças, lembretes de vencimento, alertas de
+                suspensão por inadimplência e recibos de confirmação de pagamento.
+              </p>
+            </aside>
             <p>
               Poderemos compartilhar informações quando exigido por lei, ordem
               judicial ou autoridade competente, ou para proteger direitos e a

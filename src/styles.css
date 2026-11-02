@@ -7150,9 +7150,14 @@ main > *,
   height: 38px;
   border: 0;
   border-radius: 50%;
-  background: #edf6fb;
-  color: #27435f;
+  background: #8F1D1D;
+  color: #FFFFFF;
   cursor: pointer;
+  transition: background .2s ease, transform .2s ease;
+}
+.support-panel-close:hover {
+  background: #6F1515;
+  transform: scale(1.04);
 }
 .support-form,
 .support-form label {

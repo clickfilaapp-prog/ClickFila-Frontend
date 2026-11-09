@@ -63,6 +63,38 @@ function validate(values) {
   return errors;
 }
 
+function responseErrors(data) {
+  if (!data || typeof data !== "object" || Array.isArray(data)) return {};
+  const validFields = new Set(Object.keys(EMPTY));
+  const errors = {};
+  const add = (rawField, message) => {
+    const field = String(rawField || "")
+      .split(".")
+      .pop();
+    if (validFields.has(field) && message) errors[field] = String(message);
+  };
+
+  Object.entries(data).forEach(([field, message]) => {
+    if (typeof message === "string") add(field, message);
+  });
+  [data.errors, data.fieldErrors, data.validationErrors, data.violations].forEach(
+    (collection) => {
+      if (Array.isArray(collection))
+        collection.forEach((item) =>
+          add(
+            item?.field || item?.propertyPath,
+            item?.message || item?.defaultMessage,
+          ),
+        );
+      else if (collection && typeof collection === "object")
+        Object.entries(collection).forEach(([field, message]) =>
+          add(field, message),
+        );
+    },
+  );
+  return errors;
+}
+
 function Field({
   label,
   name,
@@ -115,6 +147,10 @@ export default function CreditCardUpdateModal({
   onClose,
   onSuccess,
   onInvalidSubscription,
+  onSubmitPayment,
+  title = "Atualizar forma de pagamento",
+  description = "Escolha como deseja pagar as próximas faturas.",
+  regularization = false,
 }) {
   const [paymentMethod, setPaymentMethod] = useState(
     initialPaymentMethod === "PIX"
@@ -213,11 +249,16 @@ export default function CreditCardUpdateModal({
             : {};
       const effectivePaymentMethod =
         paymentMethod === "SAVED_CARD" ? "CREDIT_CARD" : paymentMethod;
-      const response = await updateSubscriptionPaymentMethod({
-        planId,
+      const paymentPayload = {
         paymentMethod: effectivePaymentMethod,
         ...cardPayload,
-      });
+      };
+      const response = onSubmitPayment
+        ? await onSubmitPayment(paymentPayload)
+        : await updateSubscriptionPaymentMethod({
+            planId,
+            ...paymentPayload,
+          });
       onSuccess(effectivePaymentMethod, response);
     } catch (requestError) {
       setValues((current) => ({ ...current, ccv: "" }));
@@ -228,7 +269,7 @@ export default function CreditCardUpdateModal({
         ) ||
         requestError.status === 404
       ) {
-        return onInvalidSubscription();
+        return onInvalidSubscription?.();
       }
 
       if ([400, 422].includes(requestError.status) && requestError.data) {
@@ -266,8 +307,8 @@ export default function CreditCardUpdateModal({
         <div className="checkout-heading">
           <ShieldCheck />
           <div>
-            <h2 id="payment-update-title">Atualizar forma de pagamento</h2>
-            <p>Escolha como deseja pagar as próximas faturas.</p>
+            <h2 id="payment-update-title">{title}</h2>
+            <p>{description}</p>
           </div>
         </div>
         {error && (
@@ -326,7 +367,11 @@ export default function CreditCardUpdateModal({
                 <QrCode size={22} />
                 <span>
                   <strong>PIX</strong>
-                  <small>Usar PIX nas próximas faturas</small>
+                  <small>
+                    {regularization
+                      ? "Gerar QR Code para pagamento"
+                      : "Usar PIX nas próximas faturas"}
+                  </small>
                 </span>
               </label>
             </div>
@@ -459,14 +504,14 @@ export default function CreditCardUpdateModal({
             {submitting ? (
               <>
                 <LoaderCircle className="billing-spinner" size={18} />{" "}
-                Atualizando...
+                {regularization ? "Processando..." : "Atualizando..."}
               </>
             ) : paymentMethod === "PIX" ? (
-              "Usar PIX"
+              regularization ? "Gerar PIX" : "Usar PIX"
             ) : paymentMethod === "SAVED_CARD" ? (
-              "Usar cartão salvo"
+              regularization ? "Pagar com cartão salvo" : "Usar cartão salvo"
             ) : (
-              "Salvar novo cartão"
+              regularization ? "Pagar com cartão" : "Salvar novo cartão"
             )}
           </button>
         </form>

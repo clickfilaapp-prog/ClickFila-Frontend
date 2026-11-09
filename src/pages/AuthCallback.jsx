@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { clearAuthSession, saveAuthSession } from "../auth/authStorage";
+import ConfirmationModal from "../components/professionalDashboard/ConfirmationModal";
+import { reactivateOAuth2User } from "../services/auth";
 import { getMyUserProfile } from "../services/profile";
 
 const AUTH_COOKIE_NAMES = Object.freeze({
@@ -42,11 +44,27 @@ function deleteTemporaryCookies() {
 export default function AuthCallback() {
   const navigate = useNavigate();
   const [error, setError] = useState("");
+  const [showReactivation, setShowReactivation] = useState(false);
+  const [isReactivating, setIsReactivating] = useState(false);
 
   useEffect(() => {
     let active = true;
 
     async function completeGoogleLogin() {
+      const callbackError = new URLSearchParams(window.location.search).get(
+        "error",
+      );
+
+      if (callbackError === "account_deactivated") {
+        window.history.replaceState(
+          window.history.state,
+          document.title,
+          window.location.pathname,
+        );
+        if (active) setShowReactivation(true);
+        return;
+      }
+
       const token = readCookie(AUTH_COOKIE_NAMES.token);
       const refreshToken = readCookie(AUTH_COOKIE_NAMES.refreshToken);
       const role = String(readCookie(AUTH_COOKIE_NAMES.role) || "")
@@ -94,6 +112,70 @@ export default function AuthCallback() {
       active = false;
     };
   }, [navigate]);
+
+  async function handleOAuth2Reactivation() {
+    setIsReactivating(true);
+    setError("");
+
+    try {
+      const response = await reactivateOAuth2User();
+      const role = String(response?.role || "")
+        .replace(/^ROLE_/i, "")
+        .toUpperCase();
+
+      if (!response?.token || !response?.refreshToken || !ROLE_HOME[role]) {
+        throw new Error(
+          "Ocorreu um problema ao carregar sua conta. Por favor, tente novamente.",
+        );
+      }
+
+      saveAuthSession(
+        response.token,
+        response.refreshToken,
+        role,
+        response.tutorialCompleted === true,
+        response.emailVerified ?? response.email_verified,
+      );
+      setShowReactivation(false);
+      navigate(ROLE_HOME[role], {
+        replace: true,
+        state: { toast: "Conta reativada com sucesso!" },
+      });
+    } catch (requestError) {
+      clearAuthSession();
+      setShowReactivation(false);
+      setError(
+        requestError?.message ||
+          "Não foi possível reativar sua conta. Tente entrar com o Google novamente.",
+      );
+    } finally {
+      setIsReactivating(false);
+    }
+  }
+
+  function handleKeepDeactivated() {
+    setShowReactivation(false);
+    navigate("/login", { replace: true });
+  }
+
+  if (showReactivation) {
+    return (
+      <main className="oauth-callback">
+        <ConfirmationModal
+          confirmation={{
+            title: "Reativar conta",
+            message:
+              "Sua conta está em processo de exclusão. Deseja cancelar a exclusão e reativar sua conta?",
+            backLabel: "Não, manter exclusão",
+            confirmLabel: "Sim, reativar",
+          }}
+          loading={isReactivating}
+          onBack={handleKeepDeactivated}
+          onConfirm={handleOAuth2Reactivation}
+        />
+      </main>
+    );
+  }
 
   if (error) {
     return (

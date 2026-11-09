@@ -12,6 +12,12 @@ export const createSubscriptionCheckout = (checkoutData) =>
     body: checkoutData,
   });
 
+export const regularizeSubscription = (paymentData) =>
+  apiRequest(API_ROUTES.subscriptionRegularize, {
+    method: "POST",
+    body: paymentData,
+  });
+
 export const getSubscriptionPixQrCode = () =>
   apiRequest(API_ROUTES.subscriptionPixQrCode, { method: "GET" });
 

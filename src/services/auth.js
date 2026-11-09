@@ -18,6 +18,13 @@ export const reactivateUser = (email, password) =>
     body: JSON.stringify({ login: normalizeEmail(email), password }),
   });
 
+export const reactivateOAuth2User = () =>
+  apiRequest(API_ROUTES.reactivateOAuth2, {
+    method: "POST",
+    skipAuth: true,
+    withCredentials: true,
+  });
+
 export const registerUser = ({ name, phone, email, password, termsAccepted }) =>
   apiRequest(API_ROUTES.registerClient, {
     method: "POST",

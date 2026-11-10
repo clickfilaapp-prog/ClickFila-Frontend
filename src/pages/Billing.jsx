@@ -633,7 +633,12 @@ export default function Billing() {
             title="Regularizar assinatura"
             description={`Como deseja pagar o valor pendente de ${money.format(planPrice)}?`}
             regularization
-            onSubmitPayment={regularizeSubscription}
+            onSubmitPayment={(paymentPayload) =>
+              regularizeSubscription({
+                planId: currentPlanCode,
+                ...paymentPayload,
+              })
+            }
             onClose={() => setRegularizingSubscription(false)}
             onSuccess={(selectedPaymentMethod, response) => {
               setRegularizingSubscription(false);

@@ -50,7 +50,6 @@ function CallCountdown({ toleranceExpiresAt, onExpired }) {
 export default function CurrentServiceCard({
   current,
   waiting,
-  isActive,
   loading,
   onCallNext,
   onStart,
@@ -71,7 +70,7 @@ export default function CurrentServiceCard({
           <h2>Nenhum atendimento em andamento</h2>
           <button
             className="next-after"
-            disabled={loading || !isActive || !waiting.length}
+            disabled={loading || !waiting.length}
             onClick={onCallNext}
           >
             Chamar próximo
@@ -150,7 +149,7 @@ export default function CurrentServiceCard({
         <button
           className="call-another-client"
           type="button"
-          disabled={loading || !isActive}
+          disabled={loading}
           onClick={onCallNext}
         >
           Chamar outro cliente

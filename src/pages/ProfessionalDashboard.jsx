@@ -1263,7 +1263,6 @@ export default function ProfessionalDashboard() {
                     key={selectedActiveService.id}
                     current={selectedActiveService}
                     waiting={waiting}
-                    isActive={dashboard.isActive}
                     loading={loading}
                     onCallNext={handleCallNext}
                     onStart={() => handleStartService(selectedActiveService)}
@@ -1289,7 +1288,6 @@ export default function ProfessionalDashboard() {
                 <CurrentServiceCard
                   current={null}
                   waiting={waiting}
-                  isActive={dashboard.isActive}
                   loading={loading}
                   onCallNext={handleCallNext}
                 />

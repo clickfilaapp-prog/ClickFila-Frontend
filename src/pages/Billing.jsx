@@ -150,7 +150,6 @@ export default function Billing() {
   const [updatingCard, setUpdatingCard] = useState(false);
   const [regularizingSubscription, setRegularizingSubscription] =
     useState(false);
-  const [awaitingRegularization, setAwaitingRegularization] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [pixData, setPixData] = useState(null);
   const [loadingPix, setLoadingPix] = useState(false);
@@ -230,44 +229,6 @@ export default function Billing() {
     return () => window.clearTimeout(timer);
   }, [successMessage]);
 
-  useEffect(() => {
-    if (!awaitingRegularization) return undefined;
-
-    let active = true;
-    let checking = false;
-    const checkSubscription = async () => {
-      if (checking) return;
-      checking = true;
-      try {
-        const updatedSubscription = await getMySubscription();
-        if (!active) return;
-        setSubscription(updatedSubscription);
-        if (
-          String(updatedSubscription?.status || "").toUpperCase() === "ACTIVE"
-        ) {
-          setAwaitingRegularization(false);
-          setPixData(null);
-          clearProfessionalDashboardCache();
-          navigate("/professionalDashboard", {
-            replace: true,
-            state: { toast: "Acesso liberado!" },
-          });
-        }
-      } catch {
-        // O polling continua: falhas transitórias não interrompem a confirmação.
-      } finally {
-        checking = false;
-      }
-    };
-
-    checkSubscription();
-    const timer = window.setInterval(checkSubscription, 5000);
-    return () => {
-      active = false;
-      window.clearInterval(timer);
-    };
-  }, [awaitingRegularization, navigate]);
-
   const status = String(subscription?.status || "").toUpperCase();
   const businessId = business?.id;
   const currentPlan = plans.find((plan) =>
@@ -330,47 +291,52 @@ export default function Billing() {
         }
       : null;
   const hasPendingPayment = subscription?.hasPendingPayment === true;
+  const gatewaySubscriptionId = firstValue(
+    subscription?.gatewaySubscriptionId,
+    subscription?.gateway?.subscriptionId,
+  );
+  const suspendedAfterTrial = status === "SUSPENDED" && !gatewaySubscriptionId;
   const trialDays = daysUntil(periodEnd);
   const remainingCanceledDays = billingDaysUntil(periodEnd);
   const pendingDays = billingDaysUntil(subscription?.currentPeriodEnd);
-  const pendingPaymentAlert = (() => {
-    if (!hasPendingPayment || canReactivateSubscription) return null;
-    if (paymentMethod === "PIX") {
-      if (pendingDays === null)
-        return {
-          tone: "upcoming",
-          message: "Você tem uma fatura PIX aguardando pagamento.",
-        };
-      if (pendingDays > 0)
-        return {
-          tone: "upcoming",
-          message: `Faltam ${pendingDays} ${pendingDays === 1 ? "dia" : "dias"} para o vencimento da sua fatura.`,
-        };
-      if (pendingDays === 0)
-        return {
-          tone: "due-today",
-          message:
-            "Sua fatura vence hoje. Efetue o pagamento para evitar a suspensão do acesso.",
-        };
-      const overdueDays = Math.abs(pendingDays);
+  const statusAlert = (() => {
+    if (status === "SUSPENDED")
       return {
-        tone: "overdue",
-        message:
-          `Sua fatura venceu há ${overdueDays} ` +
-          `${overdueDays === 1 ? "dia" : "dias"}. ` +
-          "Pague agora para não perder o acesso.",
+        className: "suspended",
+        message: suspendedAfterTrial
+          ? "Seu período de teste acabou! Escolha o seu plano para continuar."
+          : "Problemas com o pagamento. Seu acesso está temporariamente suspenso.",
       };
-    }
-    if (
-      paymentMethod === "CREDIT_CARD" &&
-      pendingDays !== null &&
-      pendingDays < 0
-    )
+    if (status === "PAST_DUE")
       return {
-        tone: "overdue",
+        className: "pending-payment overdue",
         message:
-          "O pagamento automático falhou. Atualize sua forma de pagamento " +
-          "(novo cartão ou PIX) para manter o sistema ativo.",
+          "Identificamos uma pendência no seu pagamento. Regularize agora para evitar a suspensão.",
+      };
+    if (status === "CANCELED" || cancelAtPeriodEnd)
+      return {
+        className: "canceled",
+        message:
+          remainingCanceledDays !== null && remainingCanceledDays > 0
+            ? `Sua assinatura está cancelada, mas você ainda tem acesso até ${formatDate(periodEnd)}.`
+            : "Sua assinatura está cancelada.",
+      };
+    if (status === "TRIAL")
+      return {
+        className: "trial",
+        message: `Você está no período de testes. Aproveite!${
+          trialDays !== null
+            ? ` Faltam ${trialDays} ${trialDays === 1 ? "dia" : "dias"}.`
+            : ""
+        }`,
+      };
+    if (status === "ACTIVE" && hasPendingPayment)
+      return {
+        className: "pending-payment upcoming",
+        message:
+          pendingDays === null
+            ? "Sua fatura está aguardando pagamento."
+            : `Sua fatura vence em ${Math.max(0, pendingDays)} ${Math.max(0, pendingDays) === 1 ? "dia" : "dias"}.`,
       };
     return null;
   })();
@@ -515,19 +481,12 @@ export default function Billing() {
     setLoadingPix(true);
     setError("");
     try {
-      let response = await getSubscriptionPixQrCode();
-      if (response === null) {
-        response = await updateSubscriptionPaymentMethod({
-          paymentMethod: "PIX",
-        });
-        getMySubscription()
-          .then(setSubscription)
-          .catch(() => {});
-      }
+      const response = await getSubscriptionPixQrCode();
       const normalizedPix = normalizePixData(response);
-      if (!normalizedPix)
-        throw new Error("A API não retornou os dados da cobrança PIX.");
-      setPixData(normalizedPix);
+      setPixData(
+        normalizedPix ||
+          response || { pixQrCodeBase64: null, pixCopiaECola: null },
+      );
     } catch (requestError) {
       setError(requestError.message);
     } finally {
@@ -536,7 +495,10 @@ export default function Billing() {
   }
 
   return (
-    <DashboardLayout tutorialReady={false}>
+    <DashboardLayout
+      tutorialReady={false}
+      navigationLocked={status === "SUSPENDED"}
+    >
       <main className="billing-main">
         {pixData && (
           <PixPaymentModal pixData={pixData} onClose={() => setPixData(null)} />
@@ -642,22 +604,25 @@ export default function Billing() {
             onClose={() => setRegularizingSubscription(false)}
             onSuccess={(selectedPaymentMethod, response) => {
               setRegularizingSubscription(false);
-              setAwaitingRegularization(true);
               if (selectedPaymentMethod === "PIX") {
                 const normalizedPix = normalizePixData(response);
-                if (!normalizedPix) {
-                  setAwaitingRegularization(false);
-                  setError("A API não retornou os dados da cobrança PIX.");
-                  return;
-                }
-                setPixData(normalizedPix);
+                setPixData(
+                  normalizedPix ||
+                    response || { pixQrCodeBase64: null, pixCopiaECola: null },
+                );
                 setSuccessMessage(
-                  "Pagamento gerado! Escaneie o QR Code ou copie a chave. O seu pagamento está sendo processado, por favor, aguarde nesta tela.",
+                  normalizedPix
+                    ? "Pagamento gerado! Escaneie o QR Code ou copie a chave para pagar."
+                    : "Solicitação enviada. Estamos gerando seu QR Code PIX.",
                 );
               } else {
-                setSuccessMessage(
-                  "Pagamento em processamento. Por favor, aguarde uns instantes para a liberação da conta.",
-                );
+                setSubscription((current) => ({
+                  ...current,
+                  status: "ACTIVE",
+                  hasPendingPayment: false,
+                }));
+                clearProfessionalDashboardCache();
+                setSuccessMessage("Acesso liberado!");
               }
             }}
             onInvalidSubscription={() => {
@@ -812,15 +777,16 @@ export default function Billing() {
             <p className="billing-loading">Carregando assinatura...</p>
           ) : (
             <>
-              {pendingPaymentAlert && (
+              {statusAlert && (
                 <div
-                  className={`subscription-state-alert pending-payment ${pendingPaymentAlert.tone}`}
+                  className={`subscription-state-alert ${statusAlert.className}`}
                   role="alert"
                 >
-                  <AlertTriangle />
-                  <span>{pendingPaymentAlert.message}</span>
-                  {paymentMethod === "PIX" &&
-                    !["SUSPENDED", "PAST_DUE"].includes(status) && (
+                  {status === "TRIAL" ? <Info /> : <AlertTriangle />}
+                  <span>{statusAlert.message}</span>
+                  {status === "ACTIVE" &&
+                    hasPendingPayment &&
+                    paymentMethod === "PIX" && (
                     <button
                       className="billing-primary"
                       type="button"
@@ -839,42 +805,6 @@ export default function Billing() {
                       )}
                     </button>
                   )}
-                </div>
-              )}
-              {status === "SUSPENDED" && (
-                <div
-                  className="subscription-state-alert suspended"
-                  role="alert"
-                >
-                  <AlertTriangle />
-                  <span>
-                    Problemas com o pagamento da sua assinatura. Seu acesso está
-                    temporariamente suspenso.
-                  </span>
-                </div>
-              )}
-              {cancelAtPeriodEnd && (
-                <div
-                  className="subscription-state-alert canceled"
-                  role="status"
-                >
-                  <AlertTriangle />
-                  <span>
-                    {remainingCanceledDays !== null &&
-                    remainingCanceledDays > 0
-                      ? `Sua assinatura está cancelada, mas você ainda tem acesso até ${formatDate(periodEnd)}.`
-                      : "Sua assinatura está cancelada."}
-                  </span>
-                </div>
-              )}
-              {status === "TRIAL" && (
-                <div className="subscription-state-alert trial" role="status">
-                  <Info />
-                  <span>
-                    Você está no período de testes.
-                    {trialDays !== null &&
-                      ` Expira em ${trialDays} ${trialDays === 1 ? "dia" : "dias"}.`}
-                  </span>
                 </div>
               )}
 
@@ -918,9 +848,19 @@ export default function Billing() {
                   <div className="next-charge">
                     <CalendarDays size={21} />
                     <div>
-                      <span>Próxima cobrança</span>
+                      <span>
+                        {hasPendingPayment
+                          ? "Vencimento da fatura"
+                          : "Próxima cobrança"}
+                      </span>
                       <strong>{formatDate(periodEnd)}</strong>
-                      {periodEnd && <small>Renovação automática</small>}
+                      {periodEnd && (
+                        <small>
+                          {hasPendingPayment
+                            ? "Aguardando pagamento"
+                            : "Em dia"}
+                        </small>
+                      )}
                     </div>
                   </div>
                 )}
@@ -936,7 +876,8 @@ export default function Billing() {
                 )}
               </div>
 
-              {["SUSPENDED", "PAST_DUE"].includes(status) && (
+              {(status === "PAST_DUE" ||
+                (status === "SUSPENDED" && !suspendedAfterTrial)) && (
                 <button
                   className="billing-primary billing-resolve-button"
                   type="button"
@@ -949,6 +890,20 @@ export default function Billing() {
                   Resolver pendência
                 </button>
                 )}
+              {suspendedAfterTrial && (
+                <button
+                  className="billing-primary trial-subscribe-button"
+                  type="button"
+                  disabled={loadingPlans}
+                  onClick={togglePlans}
+                >
+                  {loadingPlans
+                    ? "Carregando planos..."
+                    : showPlans
+                      ? "Ocultar planos"
+                      : "Assinar Agora"}
+                </button>
+              )}
               {status === "PENDING" && !canReactivateSubscription && (
                 <div className="pending-subscription-actions">
                   <button
@@ -1050,7 +1005,7 @@ export default function Billing() {
                     ? "Carregando planos..."
                     : showPlans
                       ? "Ocultar planos"
-                      : "Escolher plano e assinar"}
+                      : "Assinar Agora"}
                 </button>
               )}
             </>

@@ -46,6 +46,7 @@ export default function DashboardLayout({
   emailVerified = null,
   onEmailVerified = null,
   emailVerificationInline = false,
+  navigationLocked = false,
 }) {
   const navigate = useNavigate();
   const location = useLocation();
@@ -329,7 +330,7 @@ export default function DashboardLayout({
       <header>
         <Link
           className="brand"
-          to={dashboardPath}
+          to={navigationLocked ? "/billing" : dashboardPath}
           aria-label="Ir para o painel principal"
         >
           <span className="brand-mark">
@@ -358,6 +359,8 @@ export default function DashboardLayout({
           role="navigation"
           aria-label="Navegação da conta"
         >
+          {!navigationLocked && (
+            <>
           {tutorialReady && (
             <button
               className="account-action"
@@ -435,6 +438,8 @@ export default function DashboardLayout({
           >
             <UserRound size={16} /> <span>Meu perfil</span>
           </button>
+            </>
+          )}
           <button
             className="logout"
             type="button"

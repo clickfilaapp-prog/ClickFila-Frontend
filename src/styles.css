@@ -7602,6 +7602,10 @@ main > *,
 .next-charge small {
   color: #94a3b8;
 }
+.next-charge.overdue-charge small {
+  color: #dc2626;
+  font-weight: 800;
+}
 .change-plan-button {
   min-width: 180px;
   background: #eff8ff;
@@ -7662,9 +7666,9 @@ main > *,
   color: #1d4ed8;
 }
 .subscription-state-alert.pending-payment.due-today {
-  border-color: #fdba74;
-  background: #fff7ed;
-  color: #9a3412;
+  border-color: #fde68a;
+  background: #fffbeb;
+  color: #92400e;
 }
 .subscription-state-alert.pending-payment.overdue {
   border-color: #fecaca;

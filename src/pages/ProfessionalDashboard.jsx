@@ -1118,37 +1118,19 @@ export default function ProfessionalDashboard() {
             </p>
             {isBusinessOwner &&
               (subscriptionStatus === "PENDING" ? (
-                <div className="subscription-lock-actions">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      navigate("/billing", {
-                        state: {
-                          businessRole: dashboard?.loggedMemberRole,
-                          businessId: dashboard?.businessId,
-                          billingAction: "view-pix",
-                        },
-                      })
-                    }
-                  >
-                    Ver PIX
-                  </button>
-                  <button
-                    type="button"
-                    className="secondary"
-                    onClick={() =>
-                      navigate("/billing", {
-                        state: {
-                          businessRole: dashboard?.loggedMemberRole,
-                          businessId: dashboard?.businessId,
-                          billingAction: "payment-method",
-                        },
-                      })
-                    }
-                  >
-                    Alterar forma de pagamento
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  onClick={() =>
+                    navigate("/billing", {
+                      state: {
+                        businessRole: dashboard?.loggedMemberRole,
+                        businessId: dashboard?.businessId,
+                      },
+                    })
+                  }
+                >
+                  Regularizar Assinatura
+                </button>
               ) : (
                 <button
                   type="button"

@@ -148,8 +148,11 @@ export default function Billing() {
   const [confirmCancel, setConfirmCancel] = useState(false);
   const [cancelingSubscription, setCancelingSubscription] = useState(false);
   const [updatingCard, setUpdatingCard] = useState(false);
+  const [updatingRejectedCard, setUpdatingRejectedCard] = useState(false);
   const [regularizingSubscription, setRegularizingSubscription] =
     useState(false);
+  const [regularizationInitialMethod, setRegularizationInitialMethod] =
+    useState(null);
   const [successMessage, setSuccessMessage] = useState("");
   const [pixData, setPixData] = useState(null);
   const [loadingPix, setLoadingPix] = useState(false);
@@ -291,27 +294,33 @@ export default function Billing() {
         }
       : null;
   const hasPendingPayment = subscription?.hasPendingPayment === true;
-  const gatewaySubscriptionId = firstValue(
-    subscription?.gatewaySubscriptionId,
-    subscription?.gateway?.subscriptionId,
-  );
-  const suspendedAfterTrial = status === "SUSPENDED" && !gatewaySubscriptionId;
   const trialDays = daysUntil(periodEnd);
   const remainingCanceledDays = billingDaysUntil(periodEnd);
   const pendingDays = billingDaysUntil(subscription?.currentPeriodEnd);
+  const pendingPeriodEnd = subscription?.currentPeriodEnd;
+  const activePaymentNeedsAttention =
+    status === "ACTIVE" &&
+    hasPendingPayment &&
+    (paymentMethod === "PIX" ||
+      (paymentMethod === "CREDIT_CARD" &&
+        pendingDays !== null &&
+        pendingDays < 0));
   const statusAlert = (() => {
     if (status === "SUSPENDED")
       return {
         className: "suspended",
-        message: suspendedAfterTrial
-          ? "Seu período de teste acabou! Escolha o seu plano para continuar."
-          : "Problemas com o pagamento. Seu acesso está temporariamente suspenso.",
+        message:
+          paymentMethod === "PIX"
+            ? "Seu acesso está suspenso por falta de pagamento. Regularize agora via PIX para reativar o seu sistema imediatamente."
+            : "Seu acesso está suspenso. Todas as tentativas de cobrança no cartão falharam. Atualize sua forma de pagamento para reativar o sistema.",
       };
     if (status === "PAST_DUE")
       return {
         className: "pending-payment overdue",
         message:
-          "Identificamos uma pendência no seu pagamento. Regularize agora para evitar a suspensão.",
+          paymentMethod === "PIX"
+            ? `Sua fatura do dia ${formatDate(pendingPeriodEnd)} está vencida. Regularize o pagamento via PIX para não perder o acesso.`
+            : "Sua fatura está vencida. Houve uma falha na cobrança automática do cartão. Atualize seus dados para regularizar.",
       };
     if (status === "CANCELED" || cancelAtPeriodEnd)
       return {
@@ -321,23 +330,55 @@ export default function Billing() {
             ? `Sua assinatura está cancelada, mas você ainda tem acesso até ${formatDate(periodEnd)}.`
             : "Sua assinatura está cancelada.",
       };
-    if (status === "TRIAL")
-      return {
-        className: "trial",
-        message: `Você está no período de testes. Aproveite!${
-          trialDays !== null
-            ? ` Faltam ${trialDays} ${trialDays === 1 ? "dia" : "dias"}.`
-            : ""
-        }`,
-      };
-    if (status === "ACTIVE" && hasPendingPayment)
-      return {
-        className: "pending-payment upcoming",
-        message:
-          pendingDays === null
-            ? "Sua fatura está aguardando pagamento."
-            : `Sua fatura vence em ${Math.max(0, pendingDays)} ${Math.max(0, pendingDays) === 1 ? "dia" : "dias"}.`,
-      };
+    if (status === "TRIAL") {
+      const remainingTrialDays =
+        trialDays !== null
+          ? `Faltam ${trialDays} ${trialDays === 1 ? "dia" : "dias"}`
+          : "";
+      return hasPendingPayment
+        ? {
+            className: "pending-payment",
+            message: `Você tem um pagamento PIX pendente para ativar a sua assinatura.${
+              remainingTrialDays ? ` (${remainingTrialDays} de teste)` : ""
+            }`,
+          }
+        : {
+            className: "trial",
+            message: `Você está no período de testes. Aproveite!${
+              remainingTrialDays ? ` ${remainingTrialDays}.` : ""
+            }`,
+          };
+    }
+    if (status === "ACTIVE" && hasPendingPayment) {
+      if (paymentMethod === "PIX") {
+        if (pendingDays === null)
+          return {
+            className: "pending-payment upcoming",
+            message: "Sua fatura está aguardando pagamento.",
+          };
+        if (pendingDays > 0)
+          return {
+            className: "pending-payment upcoming",
+            message: `Sua fatura vence em ${pendingDays} ${pendingDays === 1 ? "dia" : "dias"}.`,
+          };
+        if (pendingDays === 0)
+          return {
+            className: "pending-payment due-today",
+            message: "Atenção: Sua fatura vence hoje.",
+          };
+        return {
+          className: "pending-payment overdue",
+          message:
+            "Sua fatura está vencida. Regularize para evitar o bloqueio do sistema.",
+        };
+      }
+      if (paymentMethod === "CREDIT_CARD" && pendingDays !== null && pendingDays < 0)
+        return {
+          className: "pending-payment overdue",
+          message:
+            "Sua fatura está vencida (Cartão recusado). Atualize sua forma de pagamento para evitar o bloqueio.",
+        };
+    }
     return null;
   })();
 
@@ -494,11 +535,32 @@ export default function Billing() {
     }
   }
 
+  async function regularizeWithPix() {
+    if (loadingPix) return;
+    setLoadingPix(true);
+    setError("");
+    setSuccessMessage("");
+    try {
+      const response = await regularizeSubscription({ paymentMethod: "PIX" });
+      const normalizedPix = normalizePixData(response);
+      setPixData(
+        normalizedPix ||
+          response || { pixQrCodeBase64: null, pixCopiaECola: null },
+      );
+      setSuccessMessage(
+        normalizedPix
+          ? "Pagamento gerado! Escaneie o QR Code ou copie a chave para pagar."
+          : "Solicitação enviada. Estamos gerando seu QR Code PIX.",
+      );
+    } catch (requestError) {
+      setError(requestError.message);
+    } finally {
+      setLoadingPix(false);
+    }
+  }
+
   return (
-    <DashboardLayout
-      tutorialReady={false}
-      navigationLocked={status === "SUSPENDED"}
-    >
+    <DashboardLayout tutorialReady={false}>
       <main className="billing-main">
         {pixData && (
           <PixPaymentModal pixData={pixData} onClose={() => setPixData(null)} />
@@ -536,7 +598,7 @@ export default function Billing() {
         {updatingCard && (
           <CreditCardUpdateModal
             planId={currentPlanCode}
-            savedCard={savedCreditCard}
+            savedCard={updatingRejectedCard ? null : savedCreditCard}
             initialPaymentMethod={
               status === "PENDING" ? "CREDIT_CARD" : paymentMethod
             }
@@ -551,9 +613,13 @@ export default function Billing() {
               ),
               phone: firstValue(business?.user?.phone, business?.phone, ""),
             }}
-            onClose={() => setUpdatingCard(false)}
+            onClose={() => {
+              setUpdatingCard(false);
+              setUpdatingRejectedCard(false);
+            }}
             onSuccess={(updatedPaymentMethod, response) => {
               setUpdatingCard(false);
+              setUpdatingRejectedCard(false);
               if (
                 updatedPaymentMethod === "PIX" &&
                 response?.pixQrCodeBase64 &&
@@ -571,6 +637,7 @@ export default function Billing() {
             }}
             onInvalidSubscription={() => {
               setUpdatingCard(false);
+              setUpdatingRejectedCard(false);
               setError(
                 "Não foi possível localizar uma assinatura ativa para atualização.",
               );
@@ -579,8 +646,15 @@ export default function Billing() {
         )}
         {regularizingSubscription && (
           <CreditCardUpdateModal
-            savedCard={savedCreditCard}
-            initialPaymentMethod={savedCreditCard ? "CREDIT_CARD" : "PIX"}
+            savedCard={
+              ["PAST_DUE", "SUSPENDED"].includes(status)
+                ? null
+                : savedCreditCard
+            }
+            initialPaymentMethod={
+              regularizationInitialMethod ||
+              (savedCreditCard ? "CREDIT_CARD" : "PIX")
+            }
             initialValues={{
               name: firstValue(business?.ownerName, business?.user?.name, ""),
               email: firstValue(business?.user?.login, business?.email, ""),
@@ -595,15 +669,14 @@ export default function Billing() {
             title="Regularizar assinatura"
             description={`Como deseja pagar o valor pendente de ${money.format(planPrice)}?`}
             regularization
-            onSubmitPayment={(paymentPayload) =>
-              regularizeSubscription({
-                planId: currentPlanCode,
-                ...paymentPayload,
-              })
-            }
-            onClose={() => setRegularizingSubscription(false)}
+            onSubmitPayment={regularizeSubscription}
+            onClose={() => {
+              setRegularizingSubscription(false);
+              setRegularizationInitialMethod(null);
+            }}
             onSuccess={(selectedPaymentMethod, response) => {
               setRegularizingSubscription(false);
+              setRegularizationInitialMethod(null);
               if (selectedPaymentMethod === "PIX") {
                 const normalizedPix = normalizePixData(response);
                 setPixData(
@@ -627,6 +700,7 @@ export default function Billing() {
             }}
             onInvalidSubscription={() => {
               setRegularizingSubscription(false);
+              setRegularizationInitialMethod(null);
               setError(
                 "Não foi possível localizar a assinatura para regularização.",
               );
@@ -782,7 +856,12 @@ export default function Billing() {
                   className={`subscription-state-alert ${statusAlert.className}`}
                   role="alert"
                 >
-                  {status === "TRIAL" ? <Info /> : <AlertTriangle />}
+                  {(status === "TRIAL" && !hasPendingPayment) ||
+                  statusAlert.className.includes("upcoming") ? (
+                    <Info />
+                  ) : (
+                    <AlertTriangle />
+                  )}
                   <span>{statusAlert.message}</span>
                   {status === "ACTIVE" &&
                     hasPendingPayment &&
@@ -805,6 +884,24 @@ export default function Billing() {
                       )}
                     </button>
                   )}
+                  {status === "ACTIVE" &&
+                    hasPendingPayment &&
+                    paymentMethod === "CREDIT_CARD" &&
+                    pendingDays !== null &&
+                    pendingDays < 0 && (
+                      <button
+                        className="billing-primary"
+                        type="button"
+                        onClick={() => {
+                          setError("");
+                          setSuccessMessage("");
+                          setUpdatingRejectedCard(true);
+                          setUpdatingCard(true);
+                        }}
+                      >
+                        <CreditCard size={17} /> Atualizar Cartão de Crédito
+                      </button>
+                    )}
                 </div>
               )}
 
@@ -849,14 +946,14 @@ export default function Billing() {
                     <CalendarDays size={21} />
                     <div>
                       <span>
-                        {hasPendingPayment
+                        {activePaymentNeedsAttention
                           ? "Vencimento da fatura"
                           : "Próxima cobrança"}
                       </span>
                       <strong>{formatDate(periodEnd)}</strong>
                       {periodEnd && (
                         <small>
-                          {hasPendingPayment
+                          {activePaymentNeedsAttention
                             ? "Aguardando pagamento"
                             : "Em dia"}
                         </small>
@@ -864,82 +961,215 @@ export default function Billing() {
                     </div>
                   </div>
                 )}
-                {status === "SUSPENDED" && periodEnd && (
-                  <div className="next-charge suspended-charge">
+                {status === "PENDING" && pendingPeriodEnd && (
+                  <div className="next-charge">
+                    <CalendarDays size={21} />
+                    <div>
+                      <span>Vencimento</span>
+                      <strong>{formatDate(pendingPeriodEnd)}</strong>
+                      <small>Pagamento pendente</small>
+                    </div>
+                  </div>
+                )}
+                {status === "PAST_DUE" && pendingPeriodEnd && (
+                  <div className="next-charge overdue-charge">
+                    <CalendarDays size={21} />
+                    <div>
+                      <span>Vencimento da fatura</span>
+                      <strong>{formatDate(pendingPeriodEnd)}</strong>
+                      <small>Fatura vencida</small>
+                    </div>
+                  </div>
+                )}
+                {status === "SUSPENDED" && pendingPeriodEnd && (
+                  <div className="next-charge overdue-charge">
                     <CalendarDays size={21} />
                     <div>
                       <span>Vencimento da cobrança</span>
-                      <strong>{formatDate(periodEnd)}</strong>
-                      <small>Pagamento pendente</small>
+                      <strong>{formatDate(pendingPeriodEnd)}</strong>
+                      <small>Fatura vencida</small>
                     </div>
                   </div>
                 )}
               </div>
 
-              {(status === "PAST_DUE" ||
-                (status === "SUSPENDED" && !suspendedAfterTrial)) && (
-                <button
-                  className="billing-primary billing-resolve-button"
-                  type="button"
-                  onClick={() => {
-                    setError("");
-                    setSuccessMessage("");
-                    setRegularizingSubscription(true);
-                  }}
-                >
-                  Resolver pendência
-                </button>
-                )}
-              {suspendedAfterTrial && (
-                <button
-                  className="billing-primary trial-subscribe-button"
-                  type="button"
-                  disabled={loadingPlans}
-                  onClick={togglePlans}
-                >
-                  {loadingPlans
-                    ? "Carregando planos..."
-                    : showPlans
-                      ? "Ocultar planos"
-                      : "Assinar Agora"}
-                </button>
-              )}
-              {status === "PENDING" && !canReactivateSubscription && (
-                <div className="pending-subscription-actions">
-                  <button
-                    className="change-plan-button"
-                    type="button"
-                    onClick={() => {
-                      setError("");
-                      setSuccessMessage("");
-                      setUpdatingCard(true);
-                    }}
-                  >
-                    <CreditCard size={17} /> Alterar forma de pagamento
-                  </button>
-                  <button
-                    className="change-plan-button"
-                    type="button"
-                    disabled={loadingPlans}
-                    onClick={togglePlans}
-                  >
-                    <ArrowRightLeft size={17} />{" "}
-                    {loadingPlans
-                      ? "Carregando planos..."
-                      : showPlans
-                        ? "Ocultar planos"
-                        : "Escolher outro plano"}
-                  </button>
-                  {businessId && (
+              {status === "PAST_DUE" && (
+                <>
+                  {paymentMethod === "PIX" ? (
                     <button
-                      className="cancel-subscription-link"
+                      className="billing-primary billing-resolve-button"
                       type="button"
-                      onClick={() => setConfirmCancel(true)}
+                      disabled={loadingPix}
+                      onClick={regularizeWithPix}
                     >
-                      Cancelar assinatura
+                      {loadingPix ? (
+                        <>
+                          <LoaderCircle className="billing-spinner" size={17} />{" "}
+                          Gerando PIX...
+                        </>
+                      ) : (
+                        <>
+                          <QrCode size={17} /> Pagar Fatura PIX
+                        </>
+                      )}
+                    </button>
+                  ) : (
+                    <button
+                      className="billing-primary billing-resolve-button"
+                      type="button"
+                      onClick={() => {
+                        setError("");
+                        setSuccessMessage("");
+                        setRegularizationInitialMethod("CREDIT_CARD");
+                        setRegularizingSubscription(true);
+                      }}
+                    >
+                      <CreditCard size={17} /> Atualizar Cartão de Crédito
                     </button>
                   )}
-                </div>
+                  <div className="pending-subscription-actions">
+                    <button
+                      className="change-plan-button"
+                      type="button"
+                      onClick={() => {
+                        setError("");
+                        setSuccessMessage("");
+                        setRegularizationInitialMethod(paymentMethod);
+                        setRegularizingSubscription(true);
+                      }}
+                    >
+                      <CreditCard size={17} /> Alterar forma de pagamento
+                    </button>
+                    {businessId && (
+                      <button
+                        className="cancel-subscription-link"
+                        type="button"
+                        onClick={() => setConfirmCancel(true)}
+                      >
+                        Cancelar assinatura
+                      </button>
+                    )}
+                  </div>
+                </>
+              )}
+              {status === "SUSPENDED" && (
+                <>
+                  {paymentMethod === "PIX" ? (
+                    <button
+                      className="billing-primary billing-resolve-button"
+                      type="button"
+                      disabled={loadingPix}
+                      onClick={regularizeWithPix}
+                    >
+                      {loadingPix ? (
+                        <>
+                          <LoaderCircle className="billing-spinner" size={17} />{" "}
+                          Gerando PIX...
+                        </>
+                      ) : (
+                        <>
+                          <QrCode size={17} /> Pagar Fatura PIX
+                        </>
+                      )}
+                    </button>
+                  ) : (
+                    <button
+                      className="billing-primary billing-resolve-button"
+                      type="button"
+                      onClick={() => {
+                        setError("");
+                        setSuccessMessage("");
+                        setRegularizationInitialMethod("CREDIT_CARD");
+                        setRegularizingSubscription(true);
+                      }}
+                    >
+                      <CreditCard size={17} /> Atualizar Cartão de Crédito
+                    </button>
+                  )}
+                  <div className="pending-subscription-actions">
+                    <button
+                      className="change-plan-button"
+                      type="button"
+                      onClick={() => {
+                        setError("");
+                        setSuccessMessage("");
+                        setRegularizationInitialMethod(paymentMethod);
+                        setRegularizingSubscription(true);
+                      }}
+                    >
+                      <CreditCard size={17} /> Alterar forma de pagamento
+                    </button>
+                    {businessId && (
+                      <button
+                        className="cancel-subscription-link"
+                        type="button"
+                        onClick={() => setConfirmCancel(true)}
+                      >
+                        Cancelar assinatura
+                      </button>
+                    )}
+                  </div>
+                </>
+              )}
+              {status === "PENDING" && !canReactivateSubscription && (
+                <>
+                  {hasPendingPayment && paymentMethod === "PIX" && (
+                    <button
+                      className="billing-primary trial-subscribe-button"
+                      type="button"
+                      disabled={loadingPix}
+                      onClick={showPendingPix}
+                    >
+                      {loadingPix ? (
+                        <>
+                          <LoaderCircle className="billing-spinner" size={17} />{" "}
+                          Carregando PIX...
+                        </>
+                      ) : (
+                        <>
+                          <QrCode size={17} /> Pagar com PIX
+                        </>
+                      )}
+                    </button>
+                  )}
+                  {hasPendingPayment && paymentMethod === "CREDIT_CARD" && (
+                    <button
+                      className="billing-primary trial-subscribe-button"
+                      type="button"
+                      onClick={() => {
+                        setError("");
+                        setSuccessMessage("");
+                        setUpdatingRejectedCard(true);
+                        setUpdatingCard(true);
+                      }}
+                    >
+                      <CreditCard size={17} /> Atualizar Cartão de Crédito
+                    </button>
+                  )}
+                  <div className="pending-subscription-actions">
+                    <button
+                      className="change-plan-button"
+                      type="button"
+                      onClick={() => {
+                        setError("");
+                        setSuccessMessage("");
+                        setUpdatingRejectedCard(false);
+                        setUpdatingCard(true);
+                      }}
+                    >
+                      <CreditCard size={17} /> Alterar forma de pagamento
+                    </button>
+                    {businessId && (
+                      <button
+                        className="cancel-subscription-link"
+                        type="button"
+                        onClick={() => setConfirmCancel(true)}
+                      >
+                        Cancelar assinatura
+                      </button>
+                    )}
+                  </div>
+                </>
               )}
               {canReactivateSubscription && (
                 <button
@@ -998,14 +1228,27 @@ export default function Billing() {
                 <button
                   className="billing-primary trial-subscribe-button"
                   type="button"
-                  disabled={loadingPlans}
-                  onClick={togglePlans}
+                  disabled={hasPendingPayment ? loadingPix : loadingPlans}
+                  onClick={hasPendingPayment ? showPendingPix : togglePlans}
                 >
-                  {loadingPlans
-                    ? "Carregando planos..."
-                    : showPlans
-                      ? "Ocultar planos"
-                      : "Assinar Agora"}
+                  {hasPendingPayment ? (
+                    loadingPix ? (
+                      <>
+                        <LoaderCircle className="billing-spinner" size={17} />{" "}
+                        Carregando PIX...
+                      </>
+                    ) : (
+                      <>
+                        <QrCode size={17} /> Concluir Assinatura
+                      </>
+                    )
+                  ) : loadingPlans ? (
+                    "Carregando planos..."
+                  ) : showPlans ? (
+                    "Ocultar planos"
+                  ) : (
+                    "Assinar Agora"
+                  )}
                 </button>
               )}
             </>
